@@ -1,0 +1,46 @@
+version: '3.1'
+
+volumes:
+  covid_pgvolume:
+    external: true
+
+networks:
+  web:
+
+
+services:
+
+  db:
+    image: crunchydata/crunchy-postgres-gis:centos7.12.2-4.1.2
+    volumes:
+      - covid_pgvolume:/pgdata
+    ports:
+      - "5006:5432"
+    networks:
+      - web
+    environment:
+      - PG_DATABASE=covid
+      - PG_PRIMARY_USER=cadmin
+      - PG_PRIMARY_PASSWORD=AngryMoose77
+      - PG_MODE=primary
+      - PG_USER=cadmin
+      - PG_PASSWORD=AngryMoose77
+      - PG_ROOT_PASSWORD=AngryMoose77
+      - PGDATA_PATH_OVERRIDE=persistent
+      - PGHOST=/tmp
+      - MAX_CONNECTIONS=100
+      - SHARED_BUFFERS=512MB
+      - TIMEZONE=UTC
+      - PG_PRIMARY_PORT=5432
+      - BACKUP_PATH=latest
+    expose:
+      - '5006'
+
+  scraper:
+    build: scraper
+    volumes:
+      - ./scraper/bin:/tmp/bin
+      - ./scraper/cvs:/tmp/cvs
+      - ./scraper/scripts:/tmp/scripts
+    networks:
+      - web
