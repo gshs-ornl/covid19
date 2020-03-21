@@ -24,12 +24,10 @@ scraper relies upon to run.
 
 This is the covidb database container
 
-### covidR
-`covidR` is an R package designed to support scraping of webpages. 
-
 ### scraper
 
 The scraper directory contains the actual docker image that will be used
 during deploymennt.
 
-
+#### covidR
+`covidR` is an R package designed to support scraping of webpages. 
