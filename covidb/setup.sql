@@ -1,3 +1,4 @@
+--() { :: }; exec psql -f "$0"
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78':
 CREATE ROLE reporters PASSWORD LOGIN "DogFoodIsGood";
@@ -31,3 +32,7 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIAZATION jesters, reporters
     (state varchar(2), county_name varchar, fips varchar(5), alt_name varchar)
   CREATE TABLE IF NOT EXISTS urls
     (state_abb varchar(2), state varchar, url varchar);
+
+GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters;
+GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
