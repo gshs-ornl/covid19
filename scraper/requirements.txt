@@ -1,0 +1,5 @@
+pscopg2==2.8.4
+pandas==1.0.3
+selenium==3.141.0
+urllib3==1.25.8
+requests==2.23.0
