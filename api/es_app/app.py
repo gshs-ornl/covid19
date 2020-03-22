@@ -24,3 +24,9 @@ def get_var(env_var: str, default: Any = None) -> Any:
     if res := globals().get(env_var):
         return res
     return default
+
+
+flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
+flask_debug = get_var('FLASK_DEBUG', True)
+
+app = Flask(flask_app_name, static_url_path='')
