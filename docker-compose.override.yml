@@ -19,12 +19,12 @@ services:
     networks:
       - web
     environment:
-      - PG_DATABASE=covid
-      - PG_PRIMARY_USER=cadmin
-      - PG_PRIMARY_PASSWORD=AngryMoose77
+      - PG_DATABASE=covidb
+      - PG_PRIMARY_USER=cvadmin
+      - PG_PRIMARY_PASSWORD=LovingLungfish
       - PG_MODE=primary
-      - PG_USER=cadmin
-      - PG_PASSWORD=AngryMoose77
+      - PG_USER=jesters
+      - PG_PASSWORD=AngryMoose78
       - PG_ROOT_PASSWORD=AngryMoose77
       - PGDATA_PATH_OVERRIDE=persistent
       - PGHOST=/tmp
@@ -34,13 +34,15 @@ services:
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
     expose:
-      - '5006'
+      - '5005'
 
   scraper:
     build: scraper
     volumes:
       - ./scraper/bin:/tmp/bin
-      - ./scraper/cvs:/tmp/cvs
+      - ./scraper/cvpy:/tmp/cvpy
       - ./scraper/scripts:/tmp/scripts
+    env_file:
+      - scraper_db.env
     networks:
       - web
