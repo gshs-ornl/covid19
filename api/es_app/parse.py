@@ -60,6 +60,9 @@ class ElasticParse:
         if op_type not in ['index', 'create', 'update', 'delete']:
             raise ValueError('Operation not supported by bulk')
         self.cast_columns()
+        actions = self.table_to_docs()
+        [act.update({'_op_type': op_type}) for act in actions]
+        bulk(self.client, actions)
 
     def cast_columns(self):
         gen_table = dict()
@@ -95,3 +98,7 @@ class ElasticParse:
             '_type': 'county',
             'doc': doc
         }
+
+    def table_to_docs(self):
+        _entries = len(self.parsed_table.get('access_time'))
+        return [self.create_doc(val) for val in range(_entries)]
