@@ -4,7 +4,7 @@ from typing import Callable, List, Dict, Union
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
-from es_app.common import eval_list, get_var
+from es_app.common import get_var
 
 Table = Dict[str, Union[List, str]]
 

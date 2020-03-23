@@ -1,5 +1,3 @@
-from typing import Any, Dict, List
-
 from flask import Flask, request
 
 from es_app.common import get_var, pretty_time
