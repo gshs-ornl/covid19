@@ -1,3 +1,4 @@
+from hashlib import md5
 from typing import Callable, List, Dict, Union
 
 from elasticsearch import Elasticsearch
@@ -33,7 +34,7 @@ class ElasticParse:
 
     def __init__(self, table: Table, sep: str = None):
         self.raw_table = table
-        self.parsed_table = dict()
+        self.parsed_table: Dict[str, List] = dict()
         if sep is not None:
             self.sep = sep
         for key, val in self.raw_table.items():
@@ -55,12 +56,12 @@ class ElasticParse:
             'properties'
         )
 
-    def generate_actions(self, op_type: str = 'index') -> List[Dict]:
+    def send_actions(self, op_type: str = 'index'):
         if op_type not in ['index', 'create', 'update', 'delete']:
             raise ValueError('Operation not supported by bulk')
-        self._cast_columns()
+        self.cast_columns()
 
-    def _cast_columns(self):
+    def cast_columns(self):
         gen_table = dict()
         for key, val in self.parsed_table.items():
             if key not in self.field_mappings:
@@ -72,3 +73,25 @@ class ElasticParse:
                 caster = self.es_type_map.get(elastic_type)
                 gen_table[key] = list(map(caster, val))
         self.parsed_table = gen_table
+
+    def create_doc(self, list_index: int):
+        doc = {key: val[list_index] for key, val in self.parsed_table.items()}
+        lat, lon = None, None
+        if 'lat' in doc:
+            lat = doc.pop('lat')
+        if 'lon' in doc:
+            lon = doc.pop('lon')
+        if lat and lon:
+            doc['geometry'] = {
+                'coordinates': [lon, lat],
+                'type': 'Point'
+            }
+            #
+            # Put the fips grab here once I've tested it
+            #
+        return {
+            '_index': ESINDEX,
+            '_id': md5(str(doc['access_time']).encode('utf-8')).hexdigest(),
+            '_type': 'county',
+            'doc': doc
+        }
