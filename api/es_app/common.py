@@ -1,4 +1,5 @@
 from ast import literal_eval
+from datetime import datetime
 from os import environ
 from typing import Any, Callable, List
 
@@ -32,3 +33,7 @@ def eval_list(list_: str, element_type: Callable = str) -> List[Any]:
     :return: list object containing elements of desired type
     """
     return list(map(element_type, literal_eval(list_)))
+
+
+def pretty_time() -> str:
+    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
