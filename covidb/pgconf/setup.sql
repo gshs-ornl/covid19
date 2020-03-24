@@ -9,7 +9,8 @@ CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters;
 CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
 CREATE USER guest WITH PASSWORD 'abc123';
 
-CREATE DATABASE covidb WITH OWNER cvadmin;
+SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
+  WHERE NOT EXISTS (SELECT pg_database WHERE datname = 'covidb');
 
 CREATE SCHEMA IF NOT EXISTS scrape AUTHORIZATION jesters;
 CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters, reporters;
