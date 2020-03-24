@@ -1,18 +1,31 @@
 from hashlib import md5
-from typing import Callable, List, Dict, Union
+from time import sleep
+from typing import Callable, List, Dict, Union, NoReturn
+
+import requests
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
 from es_app.common import get_var
 
-Table = Dict[str, Union[List, str]]
+Entry = Dict[str, Union[str, int, float]]
+Doc = Dict[str, Union[str, int, float, Dict]]
 
 ESUSER: str = get_var('ESUSER', '')
 ESPASS: str = get_var('ESPASS', '')
 ESHOSTS: str = get_var('ESHOSTS', '')
 ESINDEX: str = get_var('ESINDEX', 'covid-ornl')
 host_list: List[str] = ESHOSTS.split(',')
+host_list: List[Dict] = [{'host': host} for host in host_list]
+
+fips_skeleton: str = (
+    "https://geo.fcc.gov/api/census/block/find"
+    "?latitude={latitude}"
+    "&longitude={longitude}"
+    "&showall=false"
+    "&format=json"
+)
 
 
 def get_elastic_client():
@@ -25,80 +38,80 @@ def get_elastic_client():
 
 class ElasticParse:
 
-    sep: str = ','
-    es_type_map: Dict[str, Callable] = {
-        'date': int,
-        'long': float,
-        'text': str,
-    }
+    _index = ESINDEX
+    _type = 'document'
 
-    def __init__(self, table: Table, sep: str = None):
-        self.raw_table = table
-        self.parsed_table: Dict[str, List] = dict()
-        if sep is not None:
-            self.sep = sep
-        for key, val in self.raw_table.items():
-            if isinstance(val, list):
-                self.parsed_table[key] = val
-            elif isinstance(val, str):
-                self.parsed_table[key] = val.split(self.sep)
-            else:
-                raise ValueError("Unexpected json value format")
+    def __init__(self, entries: List[Entry], op_type: str = 'index'):
         self.client = get_elastic_client()
-        self.index_map = self.client.indices.get_mapping(ESINDEX)
-        self.field_mappings = self.index_map.get(
-            ESINDEX
-        ).get(
-            'mappings'
-        ).get(
-            'record'
-        ).get(
-            'properties'
+        self._entries = entries
+        if op_type not in ['index', 'create', 'update']:
+            raise ValueError('Improper op_type given')
+        self.op_type = op_type
+
+    @staticmethod
+    def gen_id(entry: Entry) -> str:
+        head = entry.get('county') or (entry.get('lat'), entry.get('lon'))
+        if isinstance(head, tuple):
+            head = ''.join(map(str, head))
+        body = entry.get('state')
+        tail = str(entry.get('scrape_group'))
+        seed = ''.join((head, body, tail))
+        return md5(seed.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def get_fips(lat: float, lon: float) -> Dict:
+        fips_request = fips_skeleton.format(
+            latitude=lat,
+            longitude=lon
         )
-
-    def send_actions(self, op_type: str = 'index'):
-        if op_type not in ['index', 'create', 'update', 'delete']:
-            raise ValueError('Operation not supported by bulk')
-        self.cast_columns()
-        actions = self.table_to_docs()
-        [act.update({'_op_type': op_type}) for act in actions]
-        bulk(self.client, actions)
-
-    def cast_columns(self):
-        gen_table = dict()
-        for key, val in self.parsed_table.items():
-            if key not in self.field_mappings:
-                gen_table[key] = val
-            elif key == 'scrape_group':
-                gen_table[key] = list(map(str, val))
+        response = None
+        attempts = 0
+        while response is None:
+            try:
+                response = requests.get(fips_request)
+            except requests.exceptions.RequestException:
+                if attempts > 5:
+                    raise
             else:
-                elastic_type = self.field_mappings[key].get('type')
-                caster = self.es_type_map.get(elastic_type)
-                gen_table[key] = list(map(caster, val))
-        self.parsed_table = gen_table
+                if not 200 <= response.status_code < 300:
+                    response = None
+                else:
+                    return response.json()
+            sleep(pow(2, attempts))
+            attempts += 1
 
-    def create_doc(self, list_index: int):
-        doc = {key: val[list_index] for key, val in self.parsed_table.items()}
-        lat, lon = None, None
+    @classmethod
+    def entry_to_act(cls, entry: Entry) -> Dict:
+        doc: Doc = entry.copy()
+        lat: None = None
+        lon: None = None
         if 'lat' in doc:
-            lat = doc.pop('lat')
+            lat: float = doc.pop('lat')
         if 'lon' in doc:
-            lon = doc.pop('lon')
-        if lat and lon:
+            lon: float = doc.pop('lon')
+        if lat is not None and lon is not None:
             doc['geometry'] = {
-                'coordinates': [lon, lat],
+                'coordinates': [
+                    lon,
+                    lat
+                ],
                 'type': 'Point'
             }
-            #
-            # Put the fips grab here once I've tested it
-            #
+            doc['fips'] = cls.get_fips(lat=lat, lon=lon)
         return {
-            '_index': ESINDEX,
-            '_id': md5(str(doc['access_time']).encode('utf-8')).hexdigest(),
-            '_type': 'county',
+            '_index': cls._index,
+            '_type': cls._type,
+            '_id': cls.gen_id(entry),
             'doc': doc
         }
 
-    def table_to_docs(self):
-        _entries = len(self.parsed_table.get('access_time'))
-        return [self.create_doc(val) for val in range(_entries)]
+    def gen_actions(self) -> List[Dict]:
+        actions = map(self.entry_to_act, self._entries)
+        actions = list(actions)
+        [act.update({'_op_type': self.op_type}) for act in actions]
+        return actions
+
+    def send_actions(self, actions: List[Dict] = None) -> NoReturn:
+        if actions is None:
+            actions = self.gen_actions()
+        bulk(self.client, actions)
