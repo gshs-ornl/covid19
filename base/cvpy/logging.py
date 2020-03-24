@@ -13,8 +13,8 @@ import traceback
 import multiprocessing
 import logging.config
 from threading import Thread
-from ei.static import LoggingInfo
-from ei.static import Files
+from cvpy.static import LoggingInfo
+from cvpy.static import Files
 from logging.handlers import RotatingFileHandler
 
 

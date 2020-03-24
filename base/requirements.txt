@@ -1,0 +1,10 @@
+psycopg2-binary==2.8.4
+pandas==1.0.3
+selenium==3.141.0
+urllib3==1.25.8
+requests==2.23.0
+rpy2==3.2.7
+beautifulsoup4==4.8.2
+demjson==2.2.4
+html5lib==1.0.1
+lxml==4.5.0

@@ -6,10 +6,10 @@ import sys
 import time
 import logging
 import logging.config as LC
-from cvr.static import Files as F
-from cvr.static import Directories as D
-from cvr.common import check_environment as ce
-from cvr.logging import UTCFormatter, DictLogger
+from cvpy.static import Files as F
+from cvpy.static import Directories as D
+from cvpy.common import check_environment as ce
+from cvpy.logging import UTCFormatter, DictLogger
 
 
 # find the desired logfile
