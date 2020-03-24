@@ -14,6 +14,7 @@ services:
     image: crunchydata/crunchy-postgres-gis:centos7-12.2-4.1.2
     volumes:
       - covid_pgvolume:/pgdata
+      - ./covidb/pgconf:/pgconf
     ports:
       - "5006:5432"
     networks:
