@@ -3,7 +3,6 @@ from flask import Flask, request
 from es_app.common import get_var, pretty_time
 from es_app.parse import ElasticParse
 
-
 flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
 flask_debug = get_var('FLASK_DEBUG', True)
 

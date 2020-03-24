@@ -3,7 +3,6 @@ from time import sleep
 from typing import Dict, List, NoReturn, Union
 
 import requests
-
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
@@ -37,7 +36,6 @@ def get_elastic_client():
 
 
 class ElasticParse:
-
     _index = ESINDEX
     _type = 'document'
 
