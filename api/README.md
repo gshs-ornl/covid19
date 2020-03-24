@@ -6,7 +6,8 @@ Python package and Docker setup for ElasticSearch REST api
 ## syntax
 1. `/put/<uid>[?sep=,]` : Post operation identified by uid that expects
 JSON data
-    * JSON keys should represent column names
-    * JSON values should be either lists or a string of comma-separated rows
-    * If comma separation is sub-optimal, separator may be specified with
-    `?sep=<separator_character>`
+    * Expects list of json objects containing information for post
+    * As little conversion as possible is performed to maintain source data
+    * If a lat and lon are present, they are replaced with a Point
+    geometry and fips information is added from
+    geo.fcc.gov/api/census/block/find
