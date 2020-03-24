@@ -36,5 +36,10 @@ def check_input(uid):
     }
 
 
+@app.route('/')
+def default():
+    return 'Use /put/<uid> to do things and /test-put/<uid> to test things'
+
+
 if __name__ == '__main__':
     app.run(port=8888)
