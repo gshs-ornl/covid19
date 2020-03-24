@@ -27,7 +27,7 @@ def process_input(uid):
 def check_input(uid):
     start_time = pretty_time()
     content = request.get_json()
-    tmp = ElasticParse(content).entries_to_docs()
+    tmp = ElasticParse(content).gen_actions()
     end_time = pretty_time()
     return {
         'uid': uid,
