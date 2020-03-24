@@ -1,7 +1,7 @@
 version: '3.1'
 
 volumes:
-  covid_pgvolume:
+  covidb_pg:
     external: true
 
 networks:
@@ -11,9 +11,10 @@ networks:
 services:
 
   db:
-    image: crunchydata/crunchy-postgres-gis:centos7.12.2-4.1.2
+    image: crunchydata/crunchy-postgres-gis:centos7-12.2-4.1.2
     volumes:
-      - covid_pgvolume:/pgdata
+      - covidb_pg:/pgdata
+      - ./covidb/pgconf:/pgconf
     ports:
       - "5006:5432"
     networks:
@@ -43,6 +44,6 @@ services:
       - ./scraper/cvpy:/tmp/cvpy
       - ./scraper/scripts:/tmp/scripts
     env_file:
-      - scraper_db.env
+      - scraper/db.env
     networks:
       - web

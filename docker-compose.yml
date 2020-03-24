@@ -2,7 +2,14 @@ version: '3.1'
 
 volumes:
   covidb_pg:
+<<<<<<< HEAD
   covid_out:
+=======
+    external: true
+  covid_out: 
+    external: true
+>>>>>>> db_updates
+
 
 networks:
   web:
@@ -59,12 +66,9 @@ services:
     image: selenium/standalone-chrome:latest
     container_name: chrome
     depends_on:
-      - selenium-hub
+      - hub
     networks:
       - web
     environment:
       - HUB_HOST=hub
       - HUB_PORT=4444
-
-    
- 
