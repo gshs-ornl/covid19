@@ -1,9 +1,68 @@
 version: '3.1'
 
+volumes:
+  covidb_pg:
+    external: true
+  covid_out:
+    external: true
+
+networks:
+  - web
+
 services:
 
   scraper:
     build: scraper
+    container_name: scraper
     networks:
       - web
+    env_file:
+      - db.env
+      - scraper/scrape.env
+    volumes:
+      - covidb_pg:/pgdata
+
+   tidy:
+     build: tidy
+     container_name: tidy
+     networks:
+       - web
+     env_file:
+       - db.env
+       - tidy/tidy.env
+     volumes:
+       - covid_out:/tmp/output
+
+
+    covidb:
+      build: covidb
+      container_name: covidb
+      networks:
+        - web
+      env_file:
+        - db.env
+      ports:
+        - "5432:5432"
+      volumes:
+       - covid_out:/tmp/output
+
+    hub:
+      image: selenium/standalone-chrome:latest
+      container_name: hub
+      networks:
+        - web
+      ports:
+        - "4444:4444"
+
+    chrome:
+      image: selenium/standalone-chrome:latest
+      container_name: chrome
+      depends_on:
+        - selenium-hub
+      networks:
+        - web
+      environment:
+        - HUB_HOST=hub
+        - HUB_PORT=4444
+
 

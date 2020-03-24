@@ -9,7 +9,7 @@ data_files = glob.glob('*.csv')
 setup(
     name='scraper',
     version='0.1.0',
-    packages=['cvr'],
+    packages=['cvpy'],
     data_files=data_files,
     url='',
     license='GPL 3',

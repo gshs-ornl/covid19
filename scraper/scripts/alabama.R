@@ -2,8 +2,5 @@
 library(covidR)
 library(data.table)
 
-dt <- scrape_alabama()
-filename <- paste0('../../data/output/alabama_',
-                   format(Sys.Date(),format = '%Y%d%m%H%M'), '.csv')
-dt[, page := NULL]
-fwrite(dt, file = filename)
+fxn <- 'scrape_alabama()'
+dt <- wrap_scraper(fxn)
