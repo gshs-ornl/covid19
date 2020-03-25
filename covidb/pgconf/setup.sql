@@ -10,7 +10,7 @@ CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
 CREATE USER guest WITH PASSWORD 'abc123';
 CREATE DATABASE covidb WITH OWNER cvadmin;
 
- GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,guest;
+GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,guest;
 \c covidb
 DROP SCHEMA if exists static;
 CREATE SCHEMA static AUTHORIZATION jesters
@@ -77,9 +77,10 @@ DROP SCHEMA if exists scraping;
     scrape_group integer REFERENCES scraping.scrape_group(id), page_id integer REFERENCES pages(id)
   )
 
-GRANT USAGE ON SCHEMA scraping TO reporters, jesters;
+GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
+GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 
