@@ -1,4 +1,3 @@
---() { :: }; exec psql -f "$0"
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
@@ -23,7 +22,7 @@ CREATE SCHEMA static AUTHORIZATION jesters
      (id SERIAL PRIMARY KEY, iso2c varchar(2), iso3c varchar(3),
       country varchar)
    CREATE TABLE IF NOT EXISTS states
-     (id SERIAL PRIMARY KEY, country_id int REFERENCES static.country(id), abb varchar(2), state varchar)
+     (id SERIAL PRIMARY KEY, country_id int REFERENCES static.country(id),fips varchar(2), abb varchar(2), state varchar)
    CREATE TABLE IF NOT EXISTS urls
      (state_id int REFERENCES static.states(id), state varchar, url varchar)
    CREATE TABLE IF NOT EXISTS county
@@ -76,6 +75,8 @@ DROP SCHEMA if exists scraping;
     inconclusive integer DEFAULT NULL, pending_tets integer DEFAULT NULL,
     scrape_group integer REFERENCES scraping.scrape_group(id), page_id integer REFERENCES pages(id)
   )
+
+--TODO: Add planetsense tables
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
@@ -386,59 +387,60 @@ INSERT INTO iso_lookup (cc_id, cc_name, iso_short_name, iso_alpha2_code, iso_alp
 insert into static.country(iso2c, iso3c, country)
 select iso_alpha2_code, iso_alpha3_code, cc_name from iso_lookup;
 
-INSERT into static.states(abb, state) values ('AL', 'Alabama'),
-('AK', 'Alaska'),
-('AL', 'Alabama'),
-('AZ', 'Arizona'),
-('AR', 'Arkansas'),
-('CA', 'California'),
-('CO', 'Colorado'),
-('CT', 'Connecticut'),
-('DE', 'Delaware'),
-('DC', 'District of Columbia'),
-('FL', 'Florida'),
-('GA', 'Georgia'),
-('HI', 'Hawaii'),
-('ID', 'Idaho'),
-('IL', 'Illinois'),
-('IN', 'Indiana'),
-('IA', 'Iowa'),
-('KS', 'Kansas'),
-('KY', 'Kentucky'),
-('LA', 'Louisiana'),
-('ME', 'Maine'),
-('MD', 'Maryland'),
-('MA', 'Massachusetts'),
-('MI', 'Michigan'),
-('MN', 'Minnesota'),
-('MS', 'Mississippi'),
-('MO', 'Missouri'),
-('MT', 'Montana'),
-('NE', 'Nebraska'),
-('NV', 'Nevada'),
-('NH', 'New Hampshire'),
-('NJ', 'New Jersey'),
-('NM', 'New Mexico'),
-('NY', 'New York'),
-('NC', 'North Carolina'),
-('ND', 'North Dakota'),
-('OH', 'Ohio'),
-('OK', 'Oklahoma'),
-('OR', 'Oregon'),
-('PA', 'Pennsylvania'),
-('PR', 'Puerto Rico'),
-('RI', 'Rhode Island'),
-('SC', 'South Carolina'),
-('SD', 'South Dakota'),
-('TN', 'Tennessee'),
-('TX', 'Texas'),
-('UT', 'Utah'),
-('VT', 'Vermont'),
-('VA', 'Virginia'),
-('WA', 'Washington'),
-('WV', 'West Virginia'),
-('WI', 'Wisconsin'),
-('WY', 'Wyoming');
+
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (1, NULL, 'TX', 'Texas', '48');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (2, NULL, 'CA', 'California', '06');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (3, NULL, 'AK', 'Alaska', '02');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (4, NULL, 'KY', 'Kentucky', '21');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (5, NULL, 'VT', 'Vermont', '50');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (6, NULL, 'GA', 'Georgia', '13');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (7, NULL, 'NE', 'Nebraska', '31');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (8, NULL, 'WI', 'Wisconsin', '55');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (9, NULL, 'OR', 'Oregon', '41');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (10, NULL, 'WA', 'Washington', '53');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (11, NULL, 'VA', 'Virginia', '51');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (12, NULL, 'NJ', 'New Jersey', '34');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (13, NULL, 'TN', 'Tennessee', '47');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (14, NULL, 'OH', 'Ohio', '39');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (15, NULL, 'LA', 'Louisiana', '22');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (16, NULL, 'AL', 'Alabama', '01');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (17, NULL, 'NY', 'New York', '36');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (18, NULL, 'PR', 'Puerto Rico', '72');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (19, NULL, 'MI', 'Michigan', '26');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (20, NULL, 'ID', 'Idaho', '16');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (21, NULL, 'AR', 'Arkansas', '05');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (22, NULL, 'FL', 'Florida', '12');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (23, NULL, 'MT', 'Montana', '30');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (24, NULL, 'MS', 'Mississippi', '28');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (25, NULL, 'MN', 'Minnesota', '27');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (26, NULL, 'CO', 'Colorado', '08');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (27, NULL, 'RI', 'Rhode Island', '44');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (28, NULL, 'IL', 'Illinois', '17');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (29, NULL, 'MO', 'Missouri', '29');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (30, NULL, 'NM', 'New Mexico', '35');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (31, NULL, 'IA', 'Iowa', '19');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (32, NULL, 'SD', 'South Dakota', '46');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (33, NULL, 'NC', 'North Carolina', '37');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (34, NULL, 'UT', 'Utah', '49');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (35, NULL, 'ND', 'North Dakota', '38');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (36, NULL, 'OK', 'Oklahoma', '40');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (37, NULL, 'WY', 'Wyoming', '56');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (38, NULL, 'NH', 'New Hampshire', '33');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (39, NULL, 'WV', 'West Virginia', '54');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (40, NULL, 'IN', 'Indiana', '18');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (41, NULL, 'MA', 'Massachusetts', '25');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (42, NULL, 'NV', 'Nevada', '32');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (43, NULL, 'CT', 'Connecticut', '09');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (44, NULL, 'DC', 'District of Columbia', '11');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (45, NULL, 'SC', 'South Carolina', '45');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (46, NULL, 'ME', 'Maine', '23');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (47, NULL, 'HI', 'Hawaii', '15');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (48, NULL, 'AZ', 'Arizona', '04');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (49, NULL, 'DE', 'Delaware', '10');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (50, NULL, 'MD', 'Maryland', '24');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (51, NULL, 'PA', 'Pennsylvania', '42');
+INSERT INTO static.states (id, country_id, abb, state, fips) VALUES (52, NULL, 'KS', 'Kansas', '20');
 
 
 update static.states set country_id = (select id from static.country where country = 'United States');
+
