@@ -96,6 +96,7 @@ class ElasticParse:
                 'type': 'Point'
             }
             doc['fips'] = cls.get_fips(lat=lat, lon=lon)
+        doc['province/state'] = doc.pop('state', None)
         return {
             '_index': cls._index,
             '_type': cls._type,

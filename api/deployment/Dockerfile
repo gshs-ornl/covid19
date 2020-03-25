@@ -1,29 +1,39 @@
-FROM python:3.8-stretch
+FROM python:3.8-buster
 
-RUN pip install --no-cache-dir --disable-pip-version-check uwsgi
-
+ENV HOME /opt/repo
 ENV NGINX_VERSION 1.15.7-1~stretch
 
-RUN set -x \
-    && curl -O https://nginx.org/keys/nginx_signing.key \
-    && apt-key add ./nginx_signing.key; \
-    echo "deb http://nginx.org/packages/mainline/debian/ stretch nginx" >> /etc/apt/sources.list \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y \
         ca-certificates \
-        nginx=${NGINX_VERSION} \
+        nginx \
         gettext-base \
         supervisor \
+        uwsgi \
     && rm -rf /var/lib/apt/lists/*
 
-#configuration configuration
-RUN rm /etc/nginx/conf.d/default.conf \
-    && echo "daemon off;" >> /etc/nginx/nginx.conf
-COPY ./deployment/nginx.conf /etc/nginx/conf.d/
-COPY ./deployment/uwsgi.ini /etc/uwsgi/
-COPY ./deployment/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
+RUN useradd --no-create-home nginx
 
-ENV LISTEN_PORT 8888
+#configuration configuration
+COPY ./deployment/nginx.conf /etc/nginx/nginx.conf
+#RUN rm /etc/nginx/conf.d/default.conf
+RUN mkdir -p /spool/nginx /run/pid \
+    && chmod -R 666 \
+        /var/log/nginx \
+        /etc/nginx \
+        /var/run \
+        /run \
+        /run/pid \
+        /spool/nginx
+COPY ./deployment/uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
+RUN ln -s /etc/uwsgi/apps-available/uwsgi.ini /etc/uwsgi/apps-enabled/uwsgi.ini
+COPY ./deployment/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+COPY ./es_app ${HOME}/es_app
+COPY ./requirements.txt ${HOME}
+RUN chmod -R 777 ${HOME}
+RUN pip install -r ${HOME}/requirements.txt
+
 EXPOSE 8888 8888
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/bin/supervisord"]

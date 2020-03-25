@@ -1,3 +1,5 @@
 elasticsearch>6,<7
 Flask
 pytest
+uwsgi
+requests
