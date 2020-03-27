@@ -13,6 +13,14 @@ networks:
 
 services:  
 
+  api:
+    build: api
+    container_name: api
+    networks:
+      - web
+    ports:
+      - "8888:8888"
+
   scraper:
     build: scraper
     container_name: scraper
@@ -23,6 +31,7 @@ services:
       - scraper/scrape.env
     volumes:
       - covidb_pg:/pgdata
+
   hub:
     image: selenium/standalone-chrome:latest
     container_name: hub
