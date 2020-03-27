@@ -8,12 +8,13 @@ CREATE USER digester WITH PASSWORD 'LittlePumpkin' IN ROLE jesters;
 CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters;
 CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
 CREATE USER guest WITH PASSWORD 'abc123';
-CREATE DATABASE covidb WITH OWNER cvadmin;
+SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'covidb'\gexecx;
 
-GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,guest;
+GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
+                                    guest;
 \c covidb
-DROP SCHEMA if exists static;
-CREATE SCHEMA static AUTHORIZATION jesters
+CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
    CREATE TABLE IF NOT EXISTS timezones
      (county_code varchar(2), 
       country_name varchar, 
@@ -49,8 +50,7 @@ CREATE SCHEMA static AUTHORIZATION jesters
       alt_name varchar DEFAULT NULL,
       non_std varchar DEFAULT NULL);
 
-DROP SCHEMA if exists scraping;
- CREATE SCHEMA scraping AUTHORIZATION jesters
+ CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters
    CREATE TABLE IF NOT EXISTS raw_data
    (country varchar, 
     state varchar, 
@@ -171,9 +171,9 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 
 /**************** Country Data *********************/
 
-truncate table static.country restart identity cascade ;
+TRUNCATE TABLE static.country restart identity cascade ;
 
-create temporary table iso_lookup
+CREATE temporary TABLE iso_lookup
 (
   cc_id            integer,
   cc_name          varchar(254),
