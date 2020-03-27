@@ -1,5 +1,5 @@
+from datetime import datetime
 from hashlib import md5
-from json import load
 from time import sleep
 from typing import Dict, List, NoReturn, Union
 
@@ -98,6 +98,11 @@ class ElasticParse:
             }
             doc['fips'] = cls.get_fips(lat=lat, lon=lon)
         doc['province/state'] = doc.pop('state', None)
+        if isinstance(doc.get('updated'), str):
+            doc['updated'] = datetime.strptime(
+                doc['updated'],
+                '%B %d, %Y'
+            ).timestamp()
         return {
             '_index': cls._index,
             '_type': cls._type,
