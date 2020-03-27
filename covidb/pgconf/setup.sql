@@ -15,66 +15,148 @@ GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,gue
 DROP SCHEMA if exists static;
 CREATE SCHEMA static AUTHORIZATION jesters
    CREATE TABLE IF NOT EXISTS timezones
-     (county_code varchar(2), country_name varchar, zone_name varchar,
-      tz_abb text, dst boolean, _offset real)
+     (county_code varchar(2), 
+      country_name varchar, 
+      zone_name varchar,
+      tz_abb text, 
+      dst boolean, 
+      _offset real)
    CREATE TABLE IF NOT EXISTS fips_lut
-     (state varchar(2), county_name varchar, fips varchar(5), alt_name varchar)
+     (state varchar(2), 
+      county_name varchar, 
+      fips varchar(5), 
+      alt_name varchar)
    CREATE TABLE IF NOT EXISTS country
-     (id SERIAL PRIMARY KEY, iso2c varchar(2), iso3c varchar(3),
+     (id SERIAL PRIMARY KEY, 
+      iso2c varchar(2), 
+      iso3c varchar(3),
       country varchar)
    CREATE TABLE IF NOT EXISTS states
-     (id SERIAL PRIMARY KEY, country_id int REFERENCES static.country(id),fips varchar(2), abb varchar(2), state varchar)
+     (id SERIAL PRIMARY KEY, 
+      country_id int REFERENCES static.country(id),
+      fips varchar(2), 
+      abb varchar(2), 
+      state varchar)
    CREATE TABLE IF NOT EXISTS urls
-     (state_id int REFERENCES static.states(id), state varchar, url varchar)
+     (state_id int REFERENCES static.states(id), 
+      state varchar, 
+      url varchar)
    CREATE TABLE IF NOT EXISTS county
-     (id SERIAL PRIMARY KEY, county_name varchar,
+     (id SERIAL PRIMARY KEY, 
+      county_name varchar,
       state_id integer REFERENCES static.states(id),
-      fips varchar(5), alt_name varchar DEFAULT NULL,
+      fips varchar(5),
+      alt_name varchar DEFAULT NULL,
       non_std varchar DEFAULT NULL);
 
 DROP SCHEMA if exists scraping;
  CREATE SCHEMA scraping AUTHORIZATION jesters
    CREATE TABLE IF NOT EXISTS raw_data
-   (country varchar, state varchar, url varchar, raw_page text,
-    access_time timestamp, county varchar DEFAULT NULL,
-    cases integer DEFAULT NULL, udpated timestamp with time zone,
-    deaths integer DEFAULT NULL, presumptive integer DEFAULT NULL,
-    recovered integer DEFAULT NULL, tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, negative integer DEFAULT NULL,
-    counties integer DEFAULT NULL, severe integer DEFAULT NULL,
-    lat numeric DEFAULT NULL, lon numeric DEFAULT NULL,
-    parish varchar DEFAULT NULL, monitored integer DEFAULT NULL,
+   (country varchar, 
+    state varchar, 
+    url varchar, 
+    raw_page text,
+    access_time timestamp, 
+    county varchar DEFAULT NULL,
+    cases integer DEFAULT NULL, 
+    udpated timestamp with time zone,
+    deaths integer DEFAULT NULL, 
+    presumptive integer DEFAULT NULL,
+    recovered integer DEFAULT NULL, 
+    tested integer DEFAULT NULL,
+    hospitalized integer DEFAULT NULL, 
+    negative integer DEFAULT NULL,
+    counties integer DEFAULT NULL, 
+    severe integer DEFAULT NULL,
+    lat numeric DEFAULT NULL, 
+    lon numeric DEFAULT NULL,
+    parish varchar DEFAULT NULL, 
+    monitored integer DEFAULT NULL,
+    private_test integer DEFAULT NULL,
+    state_test integer DEFAULT NULL,
     no_longer_monitored integer DEFAULT NULL,
-    pending_tests integer DEFAULT NULL, active integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, scrape_group integer NOT NULL)
+    pending_tests integer DEFAULT NULL, 
+    active integer DEFAULT NULL,
+    inconclusive integer DEFAULT NULL, 
+    scrape_group integer NOT NULL,
+    icu integer DEFAULT NULL,
+    cases_0_9 integer DEFAULT NULL,
+    cases_10_19 integer DEFAULT NULL,
+    cases_20_29 integer DEFAULT NULL,
+    cases_30_39 integer DEFAULT NULL,
+    cases_40_49 integer DEFAULT NULL,
+    cases_50_59 integer DEFAULT NULL,
+    cases_60_69 integer DEFAULT NULL,
+    cases_70_79 integer DEFAULT NULL,
+    cases_80 integer DEFAULT NULL,
+    hospitalized_0_9 integer DEFAULT NULL,
+    hospitalized_10_19 integer DEFAULT NULL,
+    hospitalized_20_29 integer DEFAULT NULL,
+    hospitalized_30_39 integer DEFAULT NULL,
+    hospitalized_40_49 integer DEFAULT NULL,
+    hospitalized_50_59 integer DEFAULT NULL,
+    hospitalized_60_69 integer DEFAULT NULL,
+    hospitalized_70_79 integer DEFAULT NULL,
+    hospitalized_80 integer DEFAULT NULL,
+    deaths_0_9 integer DEFAULT NULL,
+    deaths_10_19 integer DEFAULT NULL,
+    deaths_20_29 integer DEFAULT NULL,
+    deaths_30_39 integer DEFAULT NULL,
+    deaths_40_49 integer DEFAULT NULL,
+    deaths_50_59 integer DEFAULT NULL,
+    deaths_60_69 integer DEFAULT NULL,
+    deaths_70_79 integer DEFAULT NULL,
+    deaths_80 integer DEFAULT NULL
+  )
   CREATE TABLE IF NOT EXISTS pages
-   (id SERIAL PRIMARY KEY, page text, url varchar, hash varchar(64),
+   (id SERIAL PRIMARY KEY, 
+    page text, 
+    url varchar, 
+    hash varchar(64),
     access_time timestamp with time zone)
   CREATE TABLE IF NOT EXISTS scrape_group
-   (id SERIAL PRIMARY KEY, scrape_group integer NOT NULL)
+   (id SERIAL PRIMARY KEY, 
+    scrape_group integer NOT NULL)
   CREATE TABLE IF NOT EXISTS pages
-   (id SERIAL PRIMARY KEY, url varchar NOT NULL, page text NOT NULL,updated timestamp with time zone)
+   (id SERIAL PRIMARY KEY, 
+    url varchar NOT NULL,
+    page text NOT NULL,
+    updated timestamp with time zone)
   CREATE TABLE IF NOT EXISTS state_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
-    access_time timestamp, updated timestamp with time zone,
-    cases integer DEFAULT NULL, deaths integer DEFAULT NULL,
-    presumptive integer DEFAULT NULL, tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, negative integer DEFAULT NULL,
-    monitored integer DEFAULT NULL, no_longer_monitored integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, pending_tets integer DEFAULT NULL,
-    scrape_group  integer REFERENCES scraping.scrape_group(id), page_id integer REFERENCES pages(id))
+    access_time timestamp, 
+    updated timestamp with time zone,
+    cases integer DEFAULT NULL, 
+    deaths integer DEFAULT NULL,
+    presumptive integer DEFAULT NULL, 
+    tested integer DEFAULT NULL,
+    hospitalized integer DEFAULT NULL, 
+    negative integer DEFAULT NULL,
+    monitored integer DEFAULT NULL, 
+    no_longer_monitored integer DEFAULT NULL,
+    inconclusive integer DEFAULT NULL, 
+    pending_tets integer DEFAULT NULL,
+    scrape_group  integer REFERENCES scraping.scrape_group(id), 
+    page_id integer REFERENCES pages(id))
   CREATE TABLE IF NOT EXISTS county_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
     county_id integer REFERENCES static.county(id),
-    access_time timestamp, updated timestamp with time zone,
-    cases integer DEFAULT NULL, deaths integer DEFAULT NULL,
-    presumptive integer DEFAULT NULL, tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, negative integer DEFAULT NULL,
-    monitored integer DEFAULT NULL, no_longer_monitored integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, pending_tets integer DEFAULT NULL,
-    scrape_group integer REFERENCES scraping.scrape_group(id), page_id integer REFERENCES pages(id)
+    access_time timestamp, 
+    updated timestamp with time zone,
+    cases integer DEFAULT NULL, 
+    deaths integer DEFAULT NULL,
+    presumptive integer DEFAULT NULL, 
+    tested integer DEFAULT NULL,
+    hospitalized integer DEFAULT NULL, 
+    negative integer DEFAULT NULL,
+    monitored integer DEFAULT NULL, 
+    no_longer_monitored integer DEFAULT NULL,
+    inconclusive integer DEFAULT NULL, 
+    pending_tets integer DEFAULT NULL,
+    scrape_group integer REFERENCES scraping.scrape_group(id), 
+    page_id integer REFERENCES pages(id)
   )
 
 --TODO: Add planetsense tables
