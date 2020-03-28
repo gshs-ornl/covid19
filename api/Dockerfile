@@ -12,7 +12,7 @@ RUN apt-get update \
         uwsgi \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --no-create-home nginx
+RUN useradd -g 101 -u 1001 nginx  
 
 #configuration configuration
 COPY ./deployment/nginx.conf /etc/nginx/nginx.conf
@@ -45,6 +45,7 @@ RUN pip install -r requirements.txt
 WORKDIR /opt/repo
 
 COPY ./es_app/app.py .
+RUN chmod +x app.py && chown -R nginx:101 /opt/repo
 
 EXPOSE 8888
 
