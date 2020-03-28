@@ -1,4 +1,4 @@
-FROM code.ornl.gov:4567/nset_covid/covid19scrapers/base:latest
+FROM code.ornl.gov:4567/nset_covid19/covid19scrapers/base:latest
 
 ENV HOME /opt/repo
 ENV NGINX_VERSION 1.15.7-1~stretch
