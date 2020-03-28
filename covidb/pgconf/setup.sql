@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS static.county
   non_std varchar DEFAULT NULL);
 
 CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters;
-CREATE TABLE IF NOT EXISTS raw_data
+CREATE TABLE IF NOT EXISTS scraping.raw_data
 (country varchar,
 state varchar,
 url varchar,
@@ -93,24 +93,24 @@ age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL
 );
-CREATE TABLE IF NOT EXISTS age_ranges
+CREATE TABLE IF NOT EXISTS scraping.age_ranges
 (id SERIAL PRIMARY KEY,
 age_ranges varchar);
-CREATE TABLE IF NOT EXISTS pages
+CREATE TABLE IF NOT EXISTS scraping.pages
 (id SERIAL PRIMARY KEY,
 page text,
 url varchar,
 hash varchar(64),
 access_time timestamp with time zone);
-CREATE TABLE IF NOT EXISTS scrape_group
+CREATE TABLE IF NOT EXISTS scraping.scrape_group
 (id SERIAL PRIMARY KEY,
 scrape_group integer NOT NULL);
-CREATE TABLE IF NOT EXISTS pages
+CREATE TABLE IF NOT EXISTS scraping.pages
 (id SERIAL PRIMARY KEY,
 url varchar NOT NULL,
 page text NOT NULL,
 updated timestamp with time zone);
-CREATE TABLE IF NOT EXISTS state_data
+CREATE TABLE IF NOT EXISTS scraping.state_data
 (country_id integer REFERENCES static.country(id),
 state_id integer REFERENCES static.states(id),
 access_time timestamp,
@@ -140,7 +140,7 @@ age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL
 );
-CREATE TABLE IF NOT EXISTS county_data
+CREATE TABLE IF NOT EXISTS scraping.county_data
 (country_id integer REFERENCES static.country(id),
 state_id integer REFERENCES static.states(id),
 county_id integer REFERENCES static.county(id),
@@ -172,6 +172,7 @@ age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL
 );
 
+--TODO: Add planetsense tables
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
