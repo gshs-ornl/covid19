@@ -23,13 +23,13 @@ services:
       - scraper/scrape.env
     volumes:
       - covidb_pg:/pgdata
-  hub:
-    image: selenium/standalone-chrome:latest
-    container_name: hub
-    networks:
-      - web
-    ports:
-      - "4444:4444"
+  #hub:
+    #image: selenium/standalone-chrome:latest
+    #container_name: hub
+    #networks:
+      #- web
+    #ports:
+      #- "4444:4444"
 
   tidy:
     build: tidy
@@ -39,12 +39,8 @@ services:
     env_file:
       - db.env
       - tidy/tidy.env
-    ports:
-      - "5432:5432"
     volumes:
       - covid_out:/tmp/output
-      
-  
       
   covidb:
     build: covidb
@@ -57,6 +53,7 @@ services:
       - "5432:5432"
     volumes:
       - covid_out:/tmp/output
+      - covidb_pg:/data
       
   chrome:
     image: selenium/standalone-chrome:latest
@@ -68,3 +65,5 @@ services:
     environment:
       - HUB_HOST=hub
       - HUB_PORT=4444
+    expose:
+      - "4444:4444"
