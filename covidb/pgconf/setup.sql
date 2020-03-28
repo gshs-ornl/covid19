@@ -13,8 +13,7 @@ SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
-\c covidb
-CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
+CREATE SCHEMA IF NOT EXISTS static
    CREATE TABLE IF NOT EXISTS timezones
      (county_code varchar(2), 
       country_name varchar, 
@@ -48,9 +47,10 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
       state_id integer REFERENCES static.states(id),
       fips varchar(5),
       alt_name varchar DEFAULT NULL,
-      non_std varchar DEFAULT NULL);
+      non_std varchar DEFAULT NULL)
+    AUTHORIZATION jesters, reporters;
 
- CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters
+ CREATE SCHEMA IF NOT EXISTS scraping
    CREATE TABLE IF NOT EXISTS raw_data
    (country varchar, 
     state varchar, 
@@ -90,7 +90,9 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
     age_hospitalized integer DEFAULT NULL,
     age_hospitalized_percent varchar DEFAULT NULL,
     age_deaths integer DEFAULT NULL,
-    age_deaths_percent varchar DEFAULT NULL
+    age_deaths_percent varchar DEFAULT NULL,
+    age_negative integer DEFAULT NULL,
+    age_negative_percent varchar DEFAULT NULL
   )
   CREATE TABLE IF NOT EXISTS age_ranges
   (id SERIAL PRIMARY KEY,
@@ -169,7 +171,7 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
     age_hospitalized_percent varchar DEFAULT NULL,
     age_deaths integer DEFAULT NULL,
     age_deaths_percent varchar DEFAULT NULL
-  )
+  ) AUTHORIZATION jesters, reporters;
 
 --TODO: Add planetsense tables
 
