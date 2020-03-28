@@ -80,34 +80,21 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
     inconclusive integer DEFAULT NULL, 
     scrape_group integer NOT NULL,
     icu integer DEFAULT NULL,
-    cases_0_9 integer DEFAULT NULL,
-    cases_10_19 integer DEFAULT NULL,
-    cases_20_29 integer DEFAULT NULL,
-    cases_30_39 integer DEFAULT NULL,
-    cases_40_49 integer DEFAULT NULL,
-    cases_50_59 integer DEFAULT NULL,
-    cases_60_69 integer DEFAULT NULL,
-    cases_70_79 integer DEFAULT NULL,
-    cases_80 integer DEFAULT NULL,
-    hospitalized_0_9 integer DEFAULT NULL,
-    hospitalized_10_19 integer DEFAULT NULL,
-    hospitalized_20_29 integer DEFAULT NULL,
-    hospitalized_30_39 integer DEFAULT NULL,
-    hospitalized_40_49 integer DEFAULT NULL,
-    hospitalized_50_59 integer DEFAULT NULL,
-    hospitalized_60_69 integer DEFAULT NULL,
-    hospitalized_70_79 integer DEFAULT NULL,
-    hospitalized_80 integer DEFAULT NULL,
-    deaths_0_9 integer DEFAULT NULL,
-    deaths_10_19 integer DEFAULT NULL,
-    deaths_20_29 integer DEFAULT NULL,
-    deaths_30_39 integer DEFAULT NULL,
-    deaths_40_49 integer DEFAULT NULL,
-    deaths_50_59 integer DEFAULT NULL,
-    deaths_60_69 integer DEFAULT NULL,
-    deaths_70_79 integer DEFAULT NULL,
-    deaths_80 integer DEFAULT NULL
+    lab varchar DEFAULT NULL,
+    lab_tests integer DEFAULT NULL,
+    lab_positive integer DEFAULT NULL,
+    lab_negative integer DEFAULT NULL,
+    age_range varchar DEFAULT NULL,
+    age_cases integer DEFAULT NULL,
+    age_percent varchar DEFAULT NULL,
+    age_hospitalized integer DEFAULT NULL,
+    age_hospitalized_percent varchar DEFAULT NULL,
+    age_deaths integer DEFAULT NULL,
+    age_deaths_percent varchar DEFAULT NULL
   )
+  CREATE TABLE IF NOT EXISTS age_ranges
+  (id SERIAL PRIMARY KEY,
+   age_ranges varchar)
   CREATE TABLE IF NOT EXISTS pages
    (id SERIAL PRIMARY KEY, 
     page text, 
@@ -138,7 +125,20 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
     inconclusive integer DEFAULT NULL, 
     pending_tets integer DEFAULT NULL,
     scrape_group  integer REFERENCES scraping.scrape_group(id), 
-    page_id integer REFERENCES pages(id))
+    page_id integer REFERENCES pages(id),
+    icu integer DEFAULT NULL,
+    lab varchar DEFAULT NULL,
+    lab_tests integer DEFAULT NULL,
+    lab_positive integer DEFAULT NULL,
+    lab_negative integer DEFAULT NULL,
+    age_range varchar DEFAULT NULL,
+    age_cases integer DEFAULT NULL,
+    age_percent varchar DEFAULT NULL,
+    age_hospitalized integer DEFAULT NULL,
+    age_hospitalized_percent varchar DEFAULT NULL,
+    age_deaths integer DEFAULT NULL,
+    age_deaths_percent varchar DEFAULT NULL
+  )
   CREATE TABLE IF NOT EXISTS county_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
@@ -156,7 +156,19 @@ CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters
     inconclusive integer DEFAULT NULL, 
     pending_tets integer DEFAULT NULL,
     scrape_group integer REFERENCES scraping.scrape_group(id), 
-    page_id integer REFERENCES pages(id)
+    page_id integer REFERENCES pages(id),
+    icu integer DEFAULT NULL,
+    lab varchar DEFAULT NULL,
+    lab_tests integer DEFAULT NULL,
+    lab_positive integer DEFAULT NULL,
+    lab_negative integer DEFAULT NULL,
+    age_range varchar DEFAULT NULL,
+    age_cases integer DEFAULT NULL,
+    age_percent varchar DEFAULT NULL,
+    age_hospitalized integer DEFAULT NULL,
+    age_hospitalized_percent varchar DEFAULT NULL,
+    age_deaths integer DEFAULT NULL,
+    age_deaths_percent varchar DEFAULT NULL
   )
 
 --TODO: Add planetsense tables
