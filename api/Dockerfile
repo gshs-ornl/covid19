@@ -25,18 +25,26 @@ RUN mkdir -p /spool/nginx /run/pid \
         /run \
         /run/pid \
         /spool/nginx
-COPY ./deployment/uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
+
+COPY ./uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
 RUN ln -s /etc/uwsgi/apps-available/uwsgi.ini /etc/uwsgi/apps-enabled/uwsgi.ini
-COPY ./deployment/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /tmp
 
 # copy over required files
 COPY ./es_app .
 COPY ./requirements.txt .
+COPY .setup.py .
+
+RUN python3 setup.py install
 
 # install python requirements
 RUN pip install -r requirements.txt
+
+WORKDIR /opt/repo
+
+COPY ./es_app/app.py .
 
 EXPOSE 8888
 
