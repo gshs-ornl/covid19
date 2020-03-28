@@ -14,7 +14,7 @@ SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
 \c covidb
-
+CREATE EXTENSION pgcrypto;
 CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters;
 CREATE TABLE IF NOT EXISTS static.timezones
  (county_code varchar(2),
@@ -139,7 +139,8 @@ age_percent varchar DEFAULT NULL,
 age_hospitalized integer DEFAULT NULL,
 age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
-age_deaths_percent varchar DEFAULT NULL
+age_deaths_percent varchar DEFAULT NULL,
+CONSTRAINT const_state_page_id UNIQUE (state_id, page_id)
 );
 CREATE TABLE IF NOT EXISTS scraping.county_data
 (country_id integer REFERENCES static.country(id),
@@ -179,6 +180,7 @@ GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters, cvadmin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 
