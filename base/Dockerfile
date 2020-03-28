@@ -44,8 +44,8 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
         /usr/local/bin/installGithub.R 
 
 # copy over data
-COPY county_list.csv .
-COPY url_list.csv .
+#COPY county_list.csv .
+#COPY url_list.csv .
 
 # install python dependencies
 COPY requirements.txt .
@@ -63,10 +63,12 @@ RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
       sf maptools stringr jsonlite rebus lubridate shiny httr RSelenium \
       magick png snakecase V8 DBI remotes
 # install covidR
-RUN wget $COVID_URL/$COVID_VERS/covidR_$COVID_VERS.tar.gz && \
-      install.r covidR_$COVID_VERS.tar.gz
+# saving below for our web releases
+#RUN wget $COVID_URL/$COVID_VERS/covidR_$COVID_VERS.tar.gz && \
+      #install.r covidR_$COVID_VERS.tar.gz
+COPY covidR.tar.gz .
+RUN install.r covidR.tar.gz
 
 # cleanup
-RUN rm /etc/apt/sources.list.d/google-chrome.list && \
-      rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
       rm -rf /tmp/downloaded_packages/ /tmp/*.rds

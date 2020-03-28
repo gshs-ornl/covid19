@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM code.ornl.gov:4567/nset_covid/covid19scrapers/base:latest
 
 ENV HOME /opt/repo
 ENV NGINX_VERSION 1.15.7-1~stretch
@@ -29,11 +29,15 @@ COPY ./deployment/uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
 RUN ln -s /etc/uwsgi/apps-available/uwsgi.ini /etc/uwsgi/apps-enabled/uwsgi.ini
 COPY ./deployment/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-COPY ./es_app ${HOME}/es_app
-COPY ./requirements.txt ${HOME}
-RUN chmod -R 777 ${HOME}
-RUN pip install -r ${HOME}/requirements.txt
+WORKDIR /tmp
 
-EXPOSE 8888 8888
+# copy over required files
+COPY ./es_app .
+COPY ./requirements.txt .
+
+# install python requirements
+RUN pip install -r requirements.txt
+
+EXPOSE 8888
 
 CMD ["/usr/bin/supervisord"]
