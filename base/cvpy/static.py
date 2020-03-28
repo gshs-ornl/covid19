@@ -80,3 +80,36 @@ class LoggingInfo:
         f'%(message)s'
     ROTATE_FORMAT = '[%(asctime)s]-[%(levelname)s%(name)s]' + \
         '{%(process)d}:%(filename)s|%(funcName)s:%(lineno)s - %(message)s'
+
+
+class Headers:
+    site = ['country', 'state', 'url', 'page', 'access_time',
+            'county', 'cases', 'updated', 'deaths', 'presumptive',
+            'recovered', 'tested', 'hospitalized', 'negative',
+            'counties', 'severe', 'lat', 'lon', 'fips', 'monitored',
+            'no_longer_monitored', 'pending', 'active', 'inconclusive',
+            'quarantined', 'private_tests', 'state_tests',
+            'scrape_group', 'resolution', 'icu',
+            'cases_0_9', 'cases_10_19', 'cases_20_29', 'cases_30_39',
+            'cases_40_49', 'cases_50_59', 'cases_60_69',
+            'cases_70_79', 'cases_80', 'hospitalized_0_9',
+            'hospitalized_10_19', 'hospitalized_20_29',
+            'hospitalized_30_39', 'hospitalized_40_49',
+            'hospitalized_50_59', 'hospitalized_60_69',
+            'hospitalized_70_79', 'hospitalized_80', 'deaths_0_9',
+            'deaths_10_19', 'deaths_20_29', 'deaths_30_39',
+            'deaths_40_49', 'deaths_50_59', 'deaths_60_69',
+            'deaths_70_79', 'deaths_80', 'cases_male', 'cases_female']
+    tomq = ['County_Name', 'State_Name', 'Confirmed', 'New Death',
+            'Fatality_Rate', 'Last_Update', ' Latitude', 'Longitude',
+            'New_Death']
+    nyt_county = ['date', 'county', 'state', 'fips', 'cases', 'deaths']
+    nyt_state = ['date', 'state', 'fips', 'cases', 'deaths']
+    hopkins = ['state', 'country_region', 'updated cases', 'deaths',
+               'recovered', 'state', 'lat', 'lon', 'fips', 'admin2',
+               'provice_state', 'country', 'last_updated', 'latitude',
+               'longitude', 'active', 'combined_keys', 'fips']
+    hattiesburg = ['country', 'cases', 'deaths', 'recovered', 'active',
+                   'unknown', 'update_time', 'something', 'lat', 'lon', 'date']
+
+

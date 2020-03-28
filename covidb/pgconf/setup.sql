@@ -172,7 +172,6 @@ age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL
 );
 
---TODO: Add planetsense tables
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
