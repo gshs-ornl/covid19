@@ -14,6 +14,7 @@ SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
 \c covidb
+CREATE EXTENSION pgcrypto;
 
 CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters;
 CREATE TABLE IF NOT EXISTS static.timezones
@@ -60,7 +61,7 @@ raw_page text,
 access_time timestamp,
 county varchar DEFAULT NULL,
 cases integer DEFAULT NULL,
-udpated timestamp with time zone,
+updated timestamp with time zone,
 deaths integer DEFAULT NULL,
 presumptive integer DEFAULT NULL,
 recovered integer DEFAULT NULL,
@@ -124,7 +125,8 @@ negative integer DEFAULT NULL,
 monitored integer DEFAULT NULL,
 no_longer_monitored integer DEFAULT NULL,
 inconclusive integer DEFAULT NULL,
-pending_tets integer DEFAULT NULL,
+pending_tests integer DEFAULT NULL,
+active integer DEFAULT NULL,
 scrape_group  integer REFERENCES scraping.scrape_group(id),
 page_id integer REFERENCES scraping.pages(id),
 icu integer DEFAULT NULL,
@@ -155,8 +157,8 @@ negative integer DEFAULT NULL,
 monitored integer DEFAULT NULL,
 no_longer_monitored integer DEFAULT NULL,
 inconclusive integer DEFAULT NULL,
-pending_tets integer DEFAULT NULL,
-scrape_group integer REFERENCES scraping.scrape_group(id),
+pending_tests integer DEFAULT NULL,
+active integer DEFAULT NULL,
 page_id integer REFERENCES scraping.pages(id),
 icu integer DEFAULT NULL,
 lab varchar DEFAULT NULL,
@@ -172,15 +174,22 @@ age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL
 );
 
---TODO: Add planetsense tables
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters, cvadmin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA static TO ingester, cvadmin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 
+ALTER TABLE scraping.state_data
+    ADD CONSTRAINT const_state_page_id
+        UNIQUE (page_id);
+ALTER TABLE scraping.county_data
+	ADD CONSTRAINT const_county_page_id
+	UNIQUE (page_id);
 
 /**************** Country Data *********************/
 
