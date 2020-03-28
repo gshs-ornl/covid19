@@ -1,4 +1,4 @@
-:--() { :: }; exec psql -f "$0"
+--() { :: }; exec psql -f "$0"
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
@@ -9,7 +9,7 @@ CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters;
 CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
 CREATE USER guest WITH PASSWORD 'abc123';
 SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'covidb'\gexecx;
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'covidb')\gexec
 
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
@@ -3759,4 +3759,5 @@ INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std) V
 INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std) VALUES (3218, 'Aleutians West', 14, '016', NULL, NULL);
 INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std) VALUES (3219, 'Claiborne', 8, '025', NULL, NULL);
 INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std) VALUES (3220, 'Broome', 10, '007', NULL, NULL);
+
 
