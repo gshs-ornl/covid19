@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
+"""The Database class is responsible for interacting with the covidb database.\
 """
-    This class is responsible for interacting with the covidb database
-"""
-import os
-import re
-import sys
 import logging
 import psycopg2
 import traceback
 import sqlalchemy
 import pandas as pd
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from cvpy.common import check_environment as ce
 
 
 class Database(object):
-    """ provides a convenient API-like interface to the covidb database
-
+    """Provides a convenient API-like interface to the covidb database.
+    The database object is the interface to the covidb database.
         :param db_name the name of the database to connect to
     """
-    def __init__(logger=logging.getLogger(ce('PY_LOGGER', 'main')),
+    def __init__(self, logger=logging.getLogger(ce('PY_LOGGER', 'main')),
                  email_list=['grantjn@ornl.gov', 'piburnjo@ornl.gov',
                              'kaufmanjc@ornl.gov']):
-        """ initiate the database object """
+        """Initiate the database object."""
         self.timeout = int(ce('DB_TIMEOUT', '60'))
         self.user = ce('DB_USER', 'guest')
         self.passwd = ce('DB_PASS', 'abc123')
@@ -37,23 +33,23 @@ class Database(object):
         self.logger.debug('Initiated Database Object')
 
     def __del__(self):
-        """ default del for object """
+        """Delete default del for object."""
         self.logger.debug('Removing Database Object')
         self.close()
 
     def __enter__(self):
-        """ ability to use with to enter database object """
+        """Use with to enter database object."""
         self.logger.debug('Entering Database Object')
         self.open()
         return self
 
     def __exit__(self, err_type, err_value, err_traceback):
-        """ ability to exit after with statement """
+        """Exit gracefully."""
         self.logger.debug('Exiting Database Object')
         self.close()
 
     def open(self):
-        """ open the connection to the database """
+        """Open the connection to the database."""
         self.logger.debug('Opening Database Object')
         try:
             msg = '\nConnecting information\n' + \
@@ -76,7 +72,7 @@ class Database(object):
             self.logger.error(f'Database error: {e}')
 
     def close(self):
-        """ close the database connection """
+        """Close the database connection."""
         self.logger.debug('Closing the database coinnection')
         if hasattr(self, 'cur') and self.cur is not None:
             self.logger.debug('Closing cursor and setting to None')
@@ -87,9 +83,11 @@ class Database(object):
             self.con.commit()
             self.con.close()
             self.con = None
+        if hasattr(self, 'engine') and self.engine is not None:
+            self.logger.debug('Closig sqlalchemy connection')
 
     def query(self, query):
-        """ send a query to the database and retrieve the results """
+        """Send a query to the database and retrieve the results."""
         self.logger.debug(f'Initiating query: {query}')
         try:
             self.cur.execute(query)
@@ -98,10 +96,10 @@ class Database(object):
             traceback.print_stack()
             self.logger.error(f'Problem querying database: {e}')
             res = None
-        return None
+        return res
 
     def fetch_county_data(self, scrape_group=None):
-        """ fetch county data """
+        """Fetch county data."""
         if scrape_group is None:
             query = "SELECT * FROM scraping.vw_county_data;"
             res = self.query(query)
@@ -112,7 +110,7 @@ class Database(object):
         return res
 
     def fetch_state_data(self, scrape_group=None):
-        """ fetch the state data """
+        """Fetch the state data."""
         if scrape_group is None:
             query = "SELECT * FROM scraping.vw_state_data;"
             res = self.query(query)
@@ -123,7 +121,8 @@ class Database(object):
         return res
 
     def insert_raw_data(self, df, uri):
-        if not hasattr(self, engine):
+        """Insert raw data into database."""
+        if not hasattr(self, 'engine'):
             self.engine = create_engine(uri)
-        df.to_sql('raw_data', self.engine, if_exists='append',
-                  index=False, method='multi')
+        df.to_sql('raw_data', self.engine, scheam='scraping',
+                  if_exists='append', index=False, method='multi')
