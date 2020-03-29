@@ -32,17 +32,20 @@ CREATE TABLE IF NOT EXISTS static.country
  (id SERIAL PRIMARY KEY,
   iso2c varchar(2),
   iso3c varchar(3),
-  country varchar);
+  country varchar,
+CONSTRAINT const_country UNIQUE (country));
 CREATE TABLE IF NOT EXISTS static.states
  (id SERIAL PRIMARY KEY,
   country_id int REFERENCES static.country(id),
   fips varchar(2),
   abb varchar(2),
-  state varchar);
+  state varchar,
+CONSTRAINT const_states UNIQUE(state));
 CREATE TABLE IF NOT EXISTS static.urls
  (state_id int REFERENCES static.states(id),
   state varchar,
-  url varchar);
+  url varchar,
+CONSTRAINT cons_url UNIQUE(url));
 CREATE TABLE IF NOT EXISTS static.county
  (id SERIAL PRIMARY KEY,
   county_name varchar,
