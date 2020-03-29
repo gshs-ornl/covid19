@@ -7561,6 +7561,10 @@ $$
             VALUES (3220, 'Broome', 10, '007', NULL, NULL);
 
 
+            INSERT INTO static.fips_lut(state, county_name, fips, alt_name)
+            select s.abb, c.county_name, c.fips, c.alt_name from static.states s
+            join static.county c ON c.state_id = s.id;
+
         end if;
 
     end;
