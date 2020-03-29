@@ -1,4 +1,4 @@
-create view scraping.vw_all_data as
+CREATE OR REPLACE VIEW scraping.vw_all_data as
 select ctry.country           as country,
        ctry.iso2c             as iso2c,
        ctry.iso3c             as iso3c,
@@ -10,41 +10,41 @@ select ctry.country           as country,
        non_std,
        sd.country_id          as country_id,
        sd.state_id            as state_id,
-       sd.access_time         as access_time,
-       sd.updated             as updated,
-       sd.cases               as cases,
-       sd.deaths              as deaths,
-       sd.presumptive         as presumptive,
-       sd.tested              as tested,
-       sd.hospitalized        as hospitalized,
-       sd.negative            as negative,
-       sd.monitored           as monitored,
-       sd.no_longer_monitored as no_longer_monitored,
-       sd.inconclusive        as inconclusive,
-       sd.pending_tets        as pending_tets,
-       sd.scrape_group,
+       sd.access_time         as state_access_time,
+       sd.updated             as state_updated,
+       sd.cases               as state_cases,
+       sd.deaths              as state_deaths,
+       sd.presumptive         as state_presumptive,
+       sd.tested              as state_tested,
+       sd.hospitalized        as state_hospitalized,
+       sd.negative            as state_negative,
+       sd.monitored           as state_monitored,
+       sd.no_longer_monitored as state_no_longer_monitored,
+       sd.inconclusive        as state_inconclusive,
+       sd.pending_tets        as state_pending_tets,
+       sd.scrape_group        as state_scrape_group,
        state_pages.page       as state_page,
        state_pages.url        as state_url,
        state_pages.hash       as state_hash,
-       state_pages.access_time as state_access_time,
+       state_pages.access_time as state_pages_access_time,
        c.county_name,
-       cd.access_time         as access_time,
-       cd.updated             as updated,
-       cd.cases               as cases,
-       cd.deaths              as deaths,
-       cd.presumptive         as presumptive,
-       cd.tested              as tested,
-       cd.hospitalized        as hospitalized,
-       cd.negative            as negative,
-       cd.monitored           as monitored,
-       cd.no_longer_monitored as no_longer_monitored,
-       cd.inconclusive        as inconclusive,
-       cd.pending_tets        as pending_tets,
+       cd.access_time         as county_access_time,
+       cd.updated             as county_updated,
+       cd.cases               as county_cases,
+       cd.deaths              as county_deaths,
+       cd.presumptive         as county_presumptive,
+       cd.tested              as county_tested,
+       cd.hospitalized        as county_hospitalized,
+       cd.negative            as county_negative,
+       cd.monitored           as county_monitored,
+       cd.no_longer_monitored as county_no_longer_monitored,
+       cd.inconclusive        as county_inconclusive,
+       cd.pending_tets        as county_pending_tets,
        sg.scrape_group        as scrape_group,
        county_pages.page      as county_page,
        county_pages.url       as county_url,
        county_pages.hash      as county_hash,
-       county_pages.access_time as county_access_time,
+       county_pages.access_time as county_pages_access_time
 from static.states s
          join static.county c on c.state_id = c.id
          join static.country ctry ON ctry.id = s.country_id
@@ -55,14 +55,14 @@ from static.states s
          join scraping.pages county_pages ON county_pages.id = sd.page_id;
 
 
-create view scraping.vw_state_data as
+CREATE OR REPLACE VIEW scraping.vw_state_data as
 select ctry.country           as country,
        ctry.iso2c             as iso2c,
        ctry.iso3c             as iso3c,
        s.fips                 as fips,
        abb,
        state,
-       sd.access_time         as access_time,
+       sd.access_time         as state_access_time,
        sd.updated             as updated,
        sd.cases               as cases,
        sd.deaths              as deaths,
@@ -78,7 +78,7 @@ select ctry.country           as country,
        page,
        url,
        hash,
-       p.access_time          as access_time
+       p.access_time          as pages_access_time
 from scraping.state_data sd
          join static.states s on sd.state_id = s.id
          join static.country ctry ON ctry.id = s.country_id
@@ -86,11 +86,11 @@ from scraping.state_data sd
          join scraping.pages p ON p.id = sd.page_id;
 
 
-create view scraping.vw_county_data as
+CREATE OR REPLACE VIEW scraping.vw_county_data as
 select cd.country_id           as country_id,
        cd.state_id             as state_id,
        county_id               as county_id,
-       cd.access_time          as access_time,
+       cd.access_time          as county_access_time,
        updated,
        cases,
        deaths,
@@ -116,7 +116,7 @@ select cd.country_id           as country_id,
        country,
        page,
        url,
-       hash,
+       hash
 from scraping.county_data cd
          join scraping.scrape_group sg ON cd.scrape_group = sg.scrape_group
          join scraping.pages p ON p.id = cd.page_id

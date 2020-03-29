@@ -29,3 +29,4 @@ vignettes/*.pdf
 .httr-oauth
 .Renviron
 *.sh[px]
+.idea/*

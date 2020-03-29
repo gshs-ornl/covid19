@@ -1,10 +1,11 @@
 version: '3.1'
 
 volumes:
-  covidb_pg:
-    external: true
-  covid_out: 
-    external: true
+#  covidb_pg:
+#    external: true
+  covid_out:
+#    external: true
+  pgvolume:
 
 
 networks:
@@ -22,7 +23,7 @@ services:
       - db.env
       - scraper/scrape.env
     volumes:
-      - covidb_pg:/pgdata
+      - pgvolume:/pgdata
   #hub:
     #image: selenium/standalone-chrome:latest
     #container_name: hub
@@ -42,28 +43,43 @@ services:
     volumes:
       - covid_out:/tmp/output
       
-  covidb:
-    build: covidb
-    container_name: covidb
+  db:
+    build: ./covidb
+    environment:
+      - PG_DATABASE=covidb
+      - PG_PRIMARY_USER=cvadmin
+      - PG_PRIMARY_PASSWORD=LovingLungfish
+      - PG_MODE=primary
+      - PG_USER=jesters
+      - PG_PASSWORD=AngryMoose78
+      - PG_ROOT_PASSWORD=AngryMoose77
+      - PGDATA_PATH_OVERRIDE=persistent
+      - PGHOST=/tmp
+      - MAX_CONNECTIONS=100
+      - SHARED_BUFFERS=512MB
+      - TIMEZONE=UTC
+      - PG_PRIMARY_PORT=5432
+      - BACKUP_PATH=latest
+#    container_name: covidb
     networks:
       - web
-    env_file:
-      - db.env
-    ports:
-      - "5432:5432"
+#    env_file:
+#      - db.env
+#    ports:
+#      - "5432:5432"
     volumes:
       - covid_out:/tmp/output
-      - covidb_pg:/data
+#      - covidb_pg:/data
       
   chrome:
     image: selenium/standalone-chrome:latest
     container_name: chrome
-    depends_on:
-      - hub
+#    depends_on:
+#      - hub
     networks:
       - web
     environment:
       - HUB_HOST=hub
       - HUB_PORT=4444
-    expose:
-      - "4444:4444"
+#    expose:
+#      - "4444:4444"
