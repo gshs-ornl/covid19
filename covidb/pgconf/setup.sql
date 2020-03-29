@@ -9,75 +9,81 @@ CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters;
 CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
 CREATE USER guest WITH PASSWORD 'abc123';
 SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'covidb')\gexec
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'covidb'); --\gexec
 
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
-CREATE SCHEMA IF NOT EXISTS static
-   CREATE TABLE IF NOT EXISTS timezones
-     (county_code varchar(2), 
-      country_name varchar, 
-      zone_name varchar,
-      tz_abb text, 
-      dst boolean, 
-      _offset real)
-   CREATE TABLE IF NOT EXISTS fips_lut
-     (state varchar(2), 
-      county_name varchar, 
-      fips varchar(5), 
-      alt_name varchar)
-   CREATE TABLE IF NOT EXISTS country
-     (id SERIAL PRIMARY KEY, 
-      iso2c varchar(2), 
-      iso3c varchar(3),
-      country varchar)
-   CREATE TABLE IF NOT EXISTS states
-     (id SERIAL PRIMARY KEY, 
-      country_id int REFERENCES static.country(id),
-      fips varchar(2), 
-      abb varchar(2), 
-      state varchar)
-   CREATE TABLE IF NOT EXISTS urls
-     (state_id int REFERENCES static.states(id), 
-      state varchar, 
-      url varchar)
-   CREATE TABLE IF NOT EXISTS county
-     (id SERIAL PRIMARY KEY, 
-      county_name varchar,
-      state_id integer REFERENCES static.states(id),
-      fips varchar(5),
-      alt_name varchar DEFAULT NULL,
-      non_std varchar DEFAULT NULL)
-    AUTHORIZATION jesters, reporters;
+CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION cvadmin;
+CREATE TABLE IF NOT EXISTS static.timezones
+ (county_code varchar(2),
+  country_name varchar,
+  zone_name varchar,
+  tz_abb text,
+  dst boolean,
+  _offset real);
 
- CREATE SCHEMA IF NOT EXISTS scraping
-   CREATE TABLE IF NOT EXISTS raw_data
-   (country varchar, 
-    state varchar, 
-    url varchar, 
+CREATE TABLE IF NOT EXISTS static.fips_lut
+ (state varchar(2),
+  county_name varchar,
+  fips varchar(5),
+  alt_name varchar);
+
+CREATE TABLE IF NOT EXISTS static.country
+ (id SERIAL PRIMARY KEY,
+  iso2c varchar(2),
+  iso3c varchar(3),
+  country varchar);
+
+CREATE TABLE IF NOT EXISTS static.states
+ (id SERIAL PRIMARY KEY,
+  country_id int REFERENCES static.country(id),
+  fips varchar(2),
+  abb varchar(2),
+  state varchar);
+
+CREATE TABLE IF NOT EXISTS static.urls
+ (state_id int REFERENCES static.states(id),
+  state varchar,
+  url varchar);
+
+CREATE TABLE IF NOT EXISTS static.county
+ (id SERIAL PRIMARY KEY,
+  county_name varchar,
+  state_id integer REFERENCES static.states(id),
+  fips varchar(5),
+  alt_name varchar DEFAULT NULL,
+  non_std varchar DEFAULT NULL);
+
+--     AUTHORIZATION jesters, reporters;
+
+CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION cvadmin;
+   CREATE TABLE IF NOT EXISTS scraping.raw_data
+   (country varchar,
+    state varchar,
+    url varchar,
     raw_page text,
-    access_time timestamp, 
+    access_time timestamp,
     county varchar DEFAULT NULL,
-    cases integer DEFAULT NULL, 
+    cases integer DEFAULT NULL,
     udpated timestamp with time zone,
-    deaths integer DEFAULT NULL, 
+    deaths integer DEFAULT NULL,
     presumptive integer DEFAULT NULL,
-    recovered integer DEFAULT NULL, 
+    recovered integer DEFAULT NULL,
     tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, 
+    hospitalized integer DEFAULT NULL,
     negative integer DEFAULT NULL,
-    counties integer DEFAULT NULL, 
+    counties integer DEFAULT NULL,
     severe integer DEFAULT NULL,
-    lat numeric DEFAULT NULL, 
+    lat numeric DEFAULT NULL,
     lon numeric DEFAULT NULL,
-    parish varchar DEFAULT NULL, 
+    parish varchar DEFAULT NULL,
     monitored integer DEFAULT NULL,
     private_test integer DEFAULT NULL,
     state_test integer DEFAULT NULL,
     no_longer_monitored integer DEFAULT NULL,
-    pending_tests integer DEFAULT NULL, 
+    pending_tests integer DEFAULT NULL,
     active integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, 
+    inconclusive integer DEFAULT NULL,
     scrape_group integer NOT NULL,
     icu integer DEFAULT NULL,
     lab varchar DEFAULT NULL,
@@ -93,41 +99,41 @@ CREATE SCHEMA IF NOT EXISTS static
     age_deaths_percent varchar DEFAULT NULL,
     age_negative integer DEFAULT NULL,
     age_negative_percent varchar DEFAULT NULL
-  )
-  CREATE TABLE IF NOT EXISTS age_ranges
+  );
+  CREATE TABLE IF NOT EXISTS scraping.age_ranges
   (id SERIAL PRIMARY KEY,
-   age_ranges varchar)
-  CREATE TABLE IF NOT EXISTS pages
-   (id SERIAL PRIMARY KEY, 
-    page text, 
-    url varchar, 
+   age_ranges varchar);
+  CREATE TABLE IF NOT EXISTS scraping.pages
+   (id SERIAL PRIMARY KEY,
+    page text,
+    url varchar,
     hash varchar(64),
-    access_time timestamp with time zone)
-  CREATE TABLE IF NOT EXISTS scrape_group
-   (id SERIAL PRIMARY KEY, 
-    scrape_group integer NOT NULL)
-  CREATE TABLE IF NOT EXISTS pages
-   (id SERIAL PRIMARY KEY, 
+    access_time timestamp with time zone);
+  CREATE TABLE IF NOT EXISTS scraping.scrape_group
+   (id SERIAL PRIMARY KEY,
+    scrape_group integer NOT NULL);
+  CREATE TABLE IF NOT EXISTS scraping.pages
+   (id SERIAL PRIMARY KEY,
     url varchar NOT NULL,
     page text NOT NULL,
-    updated timestamp with time zone)
-  CREATE TABLE IF NOT EXISTS state_data
+    updated timestamp with time zone);
+  CREATE TABLE IF NOT EXISTS scraping.state_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
-    access_time timestamp, 
+    access_time timestamp,
     updated timestamp with time zone,
-    cases integer DEFAULT NULL, 
+    cases integer DEFAULT NULL,
     deaths integer DEFAULT NULL,
-    presumptive integer DEFAULT NULL, 
+    presumptive integer DEFAULT NULL,
     tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, 
+    hospitalized integer DEFAULT NULL,
     negative integer DEFAULT NULL,
-    monitored integer DEFAULT NULL, 
+    monitored integer DEFAULT NULL,
     no_longer_monitored integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, 
+    inconclusive integer DEFAULT NULL,
     pending_tets integer DEFAULT NULL,
-    scrape_group  integer REFERENCES scraping.scrape_group(id), 
-    page_id integer REFERENCES pages(id),
+    scrape_group  integer REFERENCES scraping.scrape_group(id),
+    page_id integer REFERENCES scraping.pages(id),
     icu integer DEFAULT NULL,
     lab varchar DEFAULT NULL,
     lab_tests integer DEFAULT NULL,
@@ -140,25 +146,25 @@ CREATE SCHEMA IF NOT EXISTS static
     age_hospitalized_percent varchar DEFAULT NULL,
     age_deaths integer DEFAULT NULL,
     age_deaths_percent varchar DEFAULT NULL
-  )
-  CREATE TABLE IF NOT EXISTS county_data
+  );
+  CREATE TABLE IF NOT EXISTS scraping.county_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
     county_id integer REFERENCES static.county(id),
-    access_time timestamp, 
+    access_time timestamp,
     updated timestamp with time zone,
-    cases integer DEFAULT NULL, 
+    cases integer DEFAULT NULL,
     deaths integer DEFAULT NULL,
-    presumptive integer DEFAULT NULL, 
+    presumptive integer DEFAULT NULL,
     tested integer DEFAULT NULL,
-    hospitalized integer DEFAULT NULL, 
+    hospitalized integer DEFAULT NULL,
     negative integer DEFAULT NULL,
-    monitored integer DEFAULT NULL, 
+    monitored integer DEFAULT NULL,
     no_longer_monitored integer DEFAULT NULL,
-    inconclusive integer DEFAULT NULL, 
+    inconclusive integer DEFAULT NULL,
     pending_tets integer DEFAULT NULL,
-    scrape_group integer REFERENCES scraping.scrape_group(id), 
-    page_id integer REFERENCES pages(id),
+    scrape_group integer REFERENCES scraping.scrape_group(id),
+    page_id integer REFERENCES scraping.pages(id),
     icu integer DEFAULT NULL,
     lab varchar DEFAULT NULL,
     lab_tests integer DEFAULT NULL,
@@ -170,23 +176,23 @@ CREATE SCHEMA IF NOT EXISTS static
     age_hospitalized integer DEFAULT NULL,
     age_hospitalized_percent varchar DEFAULT NULL,
     age_deaths integer DEFAULT NULL,
-    age_deaths_percent varchar DEFAULT NULL
-  ) AUTHORIZATION jesters, reporters;
-
---TODO: Add planetsense tables
-
+    age_deaths_percent varchar DEFAULT NULL);
+--   ) AUTHORIZATION jesters, reporters;
+--
+-- --TODO: Add planetsense tables
+--
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
-
-
-/**************** Country Data *********************/
-
+--
+--
+-- /**************** Country Data *********************/
+--
 TRUNCATE TABLE static.country restart identity cascade ;
-
+--
 CREATE temporary TABLE iso_lookup
 (
   cc_id            integer,
@@ -198,8 +204,8 @@ CREATE temporary TABLE iso_lookup
   iso_independent  boolean,
   inferred_match   boolean
 );
-
-
+--
+--
 INSERT INTO iso_lookup (cc_id, cc_name, iso_short_name, iso_alpha2_code, iso_alpha3_code, iso_numeric_code, iso_independent, inferred_match) VALUES (3, 'Akrotiri (UK)', 'United Kingdom of Great Britain and Northern Ireland', 'GB', 'GBR', '826', true, true);
 INSERT INTO iso_lookup (cc_id, cc_name, iso_short_name, iso_alpha2_code, iso_alpha3_code, iso_numeric_code, iso_independent, inferred_match) VALUES (16, 'Ashmore & Cartier Is (Aus)', 'Australia', 'AU', 'AUS', '36', true, true);
 INSERT INTO iso_lookup (cc_id, cc_name, iso_short_name, iso_alpha2_code, iso_alpha3_code, iso_numeric_code, iso_independent, inferred_match) VALUES (1, 'Abyei (disp)', 'Abyei (disp)', 'XX', 'XXX', '999', null, null);
