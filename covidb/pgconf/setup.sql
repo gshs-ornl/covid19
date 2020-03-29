@@ -2066,7 +2066,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (473, 'Union', 4, '291', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (474, 'Roanoke', 7, '770', NULL, NULL);
+            VALUES (474, 'Roanoke City', 7, '770', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (475, 'Twin Falls', 12, '083', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -4572,7 +4572,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (1726, 'Marquette', 11, '103', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (1727, 'Richmond', 7, '760', NULL, NULL);
+            VALUES (1727, 'Richmond City', 7, '760', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (1728, 'Sumter', 13, '119', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -4788,7 +4788,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (1834, 'Gates', 27, '073', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (1835, 'Fairfax', 7, '600', NULL, NULL);
+            VALUES (1835, 'Fairfax City', 7, '600', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (1836, 'Comanche', 29, '031', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -5594,7 +5594,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2237, 'Clark', 48, '025', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (2238, 'Baltimore', 45, '510', NULL, NULL);
+            VALUES (2238, 'Baltimore City', 45, '510', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2239, 'Madison', 38, '089', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -5632,7 +5632,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2256, 'Nantucket', 33, '019', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (2257, 'Franklin', 7, '620', NULL, NULL);
+            VALUES (2257, 'Franklin City', 7, '620', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2258, 'Hopewell', 7, '670', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -6710,7 +6710,7 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2795, 'Washington', 38, '129', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
-            VALUES (2796, 'St. Louis', 21, '510', NULL, NULL);
+            VALUES (2796, 'St. Louis City', 21, '510', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (2797, 'Calhoun', 40, '017', NULL, NULL);
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
@@ -7560,6 +7560,14 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (3220, 'Broome', 10, '007', NULL, NULL);
 
+
+--             --change to city
+-- Maryland,510,Baltimore
+-- Missouri,510,St. Louis
+-- Virginia,770,Roanoke
+-- Virginia,760,Richmond
+-- Virginia,620,Franklin
+-- Virginia,600,Fairfax
 
             INSERT INTO static.fips_lut(state, county_name, fips, alt_name)
             select s.abb, c.county_name, c.fips, c.alt_name from static.states s
