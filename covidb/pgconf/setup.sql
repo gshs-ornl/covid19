@@ -32,24 +32,28 @@ CREATE TABLE IF NOT EXISTS static.country
  (id SERIAL PRIMARY KEY,
   iso2c varchar(2),
   iso3c varchar(3),
-  country varchar);
+  country varchar,
+  constraint UNIQUE (iso3c));
 CREATE TABLE IF NOT EXISTS static.states
  (id SERIAL PRIMARY KEY,
   country_id int REFERENCES static.country(id),
   fips varchar(2),
   abb varchar(2),
-  state varchar);
+  state varchar,
+  constraint UNIQUE (fips));
 CREATE TABLE IF NOT EXISTS static.urls
  (state_id int REFERENCES static.states(id),
   state varchar,
-  url varchar);
+  url varchar,
+  constraint UNIQUE (url));
 CREATE TABLE IF NOT EXISTS static.county
  (id SERIAL PRIMARY KEY,
   county_name varchar,
   state_id integer REFERENCES static.states(id),
   fips varchar(5),
   alt_name varchar DEFAULT NULL,
-  non_std varchar DEFAULT NULL);
+  non_std varchar DEFAULT NULL,
+  constraint UNIQUE (county_name, state_id));
 
 CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters;
 CREATE TABLE IF NOT EXISTS scraping.raw_data
@@ -7557,6 +7561,10 @@ $$
             INSERT INTO static.county (id, county_name, state_id, fips, alt_name, non_std)
             VALUES (3220, 'Broome', 10, '007', NULL, NULL);
 
+
+            INSERT INTO static.fips_lut(state, county_name, fips, alt_name)
+            select s.abb, c.county_name, c.fips, c.alt_name from static.states s
+            join static.county c ON c.state_id = s.id;
 
         end if;
 
