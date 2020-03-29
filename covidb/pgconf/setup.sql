@@ -48,7 +48,7 @@ CREATE SCHEMA IF NOT EXISTS static
       fips varchar(5),
       alt_name varchar DEFAULT NULL,
       non_std varchar DEFAULT NULL)
-    AUTHORIZATION jesters, reporters;
+    AUTHORIZATION jesters, reporters, guest;
 
  CREATE SCHEMA IF NOT EXISTS scraping
    CREATE TABLE IF NOT EXISTS raw_data
@@ -106,11 +106,6 @@ CREATE SCHEMA IF NOT EXISTS static
   CREATE TABLE IF NOT EXISTS scrape_group
    (id SERIAL PRIMARY KEY, 
     scrape_group integer NOT NULL)
-  CREATE TABLE IF NOT EXISTS pages
-   (id SERIAL PRIMARY KEY, 
-    url varchar NOT NULL,
-    page text NOT NULL,
-    updated timestamp with time zone)
   CREATE TABLE IF NOT EXISTS state_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
