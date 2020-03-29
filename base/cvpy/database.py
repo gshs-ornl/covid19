@@ -8,7 +8,10 @@ import sys
 import logging
 import psycopg2
 import traceback
+import sqlalchemy
 import pandas as pd
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from cvpy.common import check_environment as ce
 
 
@@ -17,7 +20,7 @@ class Database(object):
 
         :param db_name the name of the database to connect to
     """
-    def __init__(logger=logging.getLogger('main'),
+    def __init__(logger=logging.getLogger(ce('PY_LOGGER', 'main')),
                  email_list=['grantjn@ornl.gov', 'piburnjo@ornl.gov',
                              'kaufmanjc@ornl.gov']):
         """ initiate the database object """
@@ -118,3 +121,9 @@ class Database(object):
                         WHERE scrape_group = {scrape_group};"""
             res = self.query(query)
         return res
+
+    def insert_raw_data(self, df, uri):
+        if not hasattr(self, engine):
+            self.engine = create_engine(uri)
+        df.to_sql('raw_data', self.engine, if_exists='append',
+                  index=False, method='multi')
