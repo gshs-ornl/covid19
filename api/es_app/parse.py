@@ -38,7 +38,7 @@ def get_elastic_client():
 
 class ElasticParse:
     _index = ESINDEX
-    _type = 'document'
+    _type = 'record'
 
     def __init__(self, entries: List[Entry], op_type: str = 'index'):
         self.client = get_elastic_client()
@@ -46,6 +46,11 @@ class ElasticParse:
         if op_type not in ['index', 'create', 'update']:
             raise ValueError('Improper op_type given')
         self.op_type = op_type
+        self.body_name = {
+            'index': '_source',
+            'create': '_source',
+            'update': 'doc'
+        }.get(self.op_type)
 
     @staticmethod
     def gen_id(entry: Entry) -> str:
@@ -79,8 +84,7 @@ class ElasticParse:
             sleep(pow(2, attempts))
             attempts += 1
 
-    @classmethod
-    def entry_to_act(cls, entry: Entry) -> Dict:
+    def entry_to_act(self, entry: Entry) -> Dict:
         doc: Doc = entry.copy()
         lat: None = None
         lon: None = None
@@ -96,18 +100,24 @@ class ElasticParse:
                 ],
                 'type': 'Point'
             }
-            doc['fips'] = cls.get_fips(lat=lat, lon=lon)
+            doc['fips'] = self.get_fips(lat=lat, lon=lon)
         doc['province/state'] = doc.pop('state', None)
         if isinstance(doc.get('updated'), str):
             doc['updated'] = datetime.strptime(
                 doc['updated'],
                 '%B %d, %Y'
             ).timestamp()
+        if 'page' in doc:
+            _ = doc.pop('page')
+        doc['access_time'] = datetime.strptime(
+            doc['access_time'],
+            '%Y-%m-%d %H:%M:%S'
+        ).timestamp()
         return {
-            '_index': cls._index,
-            '_type': cls._type,
-            '_id': cls.gen_id(entry),
-            'doc': doc
+            '_index': self._index,
+            '_type': self._type,
+            '_id': self.gen_id(entry),
+            self.body_name: doc
         }
 
     def gen_actions(self) -> List[Dict]:
