@@ -8,6 +8,8 @@ import logging
 import requests
 import traceback
 from selenium import webdriver
+from selenium.webdriver.remote.webdriver import WebDriver as WD
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.select import Select
@@ -53,7 +55,7 @@ class WebDriver():
                           'headless'],
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
-                 timeout=30, implicit_wait=5,
+                 timeout=30, implicit_wait=5, remote=True,
                  logger=logging.getLogger(ce('LOGGER', 'main'))):
         """
             initiate the WebDriver class
@@ -69,6 +71,8 @@ class WebDriver():
         if script is None:
             self.script = ''
         else:
+            if remote:
+                self.driver
             self.script = script
         if driver.lower() in ['requests', 'curl']:
             self.out = self.request_url()
@@ -154,6 +158,21 @@ class WebDriver():
         self._log(f'Unknown output_type specified: {self.output_type}')
         self._log('Returning bare response')
         return response
+
+    def request_remote(self):
+        self.options = webdriver.ChromeOptions()
+        try:
+            if self.opts is not None:
+                for opt in self.opts:
+                    self.options.add_argument(opt)
+                self.driver = WD(
+                    'chrome:4444/wd/hub',
+                    desired_capabilities={'browserName': 'chrome'},
+                    options=self.options)
+        except WebDriverException as e:
+            self.logger.error(f'Webdriver threw an exception {e}')
+        except Exception as e:
+            self.logger.error(f'Webdriver threw an exception {e}')
 
     def request_chrome(self):
         """ method to create driver based on chrome """

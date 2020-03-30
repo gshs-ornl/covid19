@@ -1,4 +1,4 @@
-FROM code.ornl.gov:4567/nset_covid/covid19scrapers/base:latest
+FROM code.ornl.gov:4567/nset_covid19/covid19scrapers/base:latest
 
 LABEL maintainer="Joshua N. Grant <grantjn@ornl.gov>" \
   version="0.1.0" \

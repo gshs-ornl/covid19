@@ -1,4 +1,4 @@
-FROM code.ornl.gov:4567/nset_covid/covid19scrapers/base:latest
+FROM code.ornl.gov:4567/nset_covid19/covid19scrapers/base:latest
 
 ENV HOME /opt/repo
 ENV NGINX_VERSION 1.15.7-1~stretch
@@ -12,7 +12,7 @@ RUN apt-get update \
         uwsgi \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --no-create-home nginx
+RUN useradd -g 101 -u 1001 nginx  
 
 #configuration configuration
 COPY ./deployment/nginx.conf /etc/nginx/nginx.conf
@@ -25,18 +25,27 @@ RUN mkdir -p /spool/nginx /run/pid \
         /run \
         /run/pid \
         /spool/nginx
-COPY ./deployment/uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
+
+COPY ./uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
 RUN ln -s /etc/uwsgi/apps-available/uwsgi.ini /etc/uwsgi/apps-enabled/uwsgi.ini
-COPY ./deployment/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /tmp
 
 # copy over required files
 COPY ./es_app .
 COPY ./requirements.txt .
+COPY .setup.py .
+
+RUN python3 setup.py install
 
 # install python requirements
 RUN pip install -r requirements.txt
+
+WORKDIR /opt/repo
+
+COPY ./es_app/app.py .
+RUN chmod +x app.py && chown -R nginx:101 /opt/repo
 
 EXPOSE 8888
 
