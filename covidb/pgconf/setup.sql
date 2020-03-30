@@ -94,7 +94,9 @@ age_percent varchar DEFAULT NULL,
 age_hospitalized integer DEFAULT NULL,
 age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
-age_deaths_percent varchar DEFAULT NULL
+age_deaths_percent varchar DEFAULT NULL,
+other varchar DEFAULT NULL,
+other_value integer DEFAULT NULL
 );
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
 (id SERIAL PRIMARY KEY,
@@ -143,6 +145,8 @@ age_hospitalized integer DEFAULT NULL,
 age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL,
+other varchar DEFAULT NULL,
+other_value integer DEFAULT NULL,
 CONSTRAINT const_state_page_id UNIQUE (state_id, page_id)
 );
 CREATE TABLE IF NOT EXISTS scraping.county_data
@@ -176,6 +180,8 @@ age_hospitalized integer DEFAULT NULL,
 age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL,
+other varchar DEFAULT NULL,
+other_value integer DEFAULT NULL,
 CONSTRAINT const_county_page_id UNIQUE (county_id, page_id)
 );
 
@@ -233,7 +239,7 @@ BEGIN
                                         age_hospitalized,
                                         age_hospitalized_percent,
                                         age_deaths,
-                                        age_deaths_percent, scrape_group, page_id)
+                                        age_deaths_percent, other, other_value, scrape_group, page_id)
         values ((select id from static.country c where lower(NEW.country) = lower(c.country)),
                 (select id from static.states s where lower(NEW.state) = lower(s.state)),
                 NEW.access_time,
@@ -253,6 +259,8 @@ BEGIN
                 NEW.age_hospitalized_percent,
                 NEW.age_deaths,
                 NEW.age_deaths_percent,
+                NEW.other,
+                NEW.other_value,
                 v_scrape_group, v_page_id)
         ON CONFLICT ON CONSTRAINT const_state_page_id
             DO UPDATE
@@ -281,6 +289,8 @@ BEGIN
                 age_hospitalized_percent = NEW.age_hospitalized_percent,
                 age_deaths               = NEW.age_deaths,
                 age_deaths_percent       = NEW.age_deaths_percent,
+                other = NEW.other,
+                other_value = NEW.other_value,
                 scrape_group             = v_scrape_group;
     end if;
 
@@ -326,6 +336,8 @@ BEGIN
                 NEW.age_hospitalized_percent,
                 NEW.age_deaths,
                 NEW.age_deaths_percent,
+                                NEW.other,
+                NEW.other_value,
                 v_scrape_group, v_page_id)
         ON CONFLICT ON CONSTRAINT const_county_page_id
             DO UPDATE
@@ -354,6 +366,8 @@ BEGIN
                 age_hospitalized_percent = NEW.age_hospitalized_percent,
                 age_deaths               = NEW.age_deaths,
                 age_deaths_percent       = NEW.age_deaths_percent,
+                other = NEW.other,
+                other_value = NEW.other_value,
                 scrape_group             = v_scrape_group;
     end if;
 
