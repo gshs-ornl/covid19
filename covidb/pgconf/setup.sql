@@ -111,11 +111,7 @@ access_time timestamp with time zone);
 CREATE TABLE IF NOT EXISTS scraping.scrape_group
 (id SERIAL PRIMARY KEY,
 scrape_group integer NOT NULL);
-CREATE TABLE IF NOT EXISTS scraping.pages
-(id SERIAL PRIMARY KEY,
-url varchar NOT NULL,
-page text NOT NULL,
-updated timestamp with time zone);
+
 CREATE TABLE IF NOT EXISTS scraping.country_data
 (
 country_id integer REFERENCES static.country(id),
@@ -279,7 +275,7 @@ BEGIN
                                         age_hospitalized,
                                         age_hospitalized_percent,
                                         age_deaths,
-                                        age_deaths_percent, other, other_value, scrape_group, page_id)
+                                        age_deaths_percent, other, other_value, data_source, scrape_group, page_id)
         values ((select id from static.country c where lower(NEW.country) = lower(c.country)),
                 (select id from static.states s where lower(NEW.state) = lower(s.state)),
                 NEW.access_time,
