@@ -505,7 +505,7 @@ BEGIN
     RETURN NEW;
 END
 $$;
-:x
+
 
 DROP TRIGGER IF EXISTS tr_raw_data on scraping.raw_data;
 CREATE TRIGGER  tr_raw_data
