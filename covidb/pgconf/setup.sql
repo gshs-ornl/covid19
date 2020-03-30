@@ -326,7 +326,6 @@ BEGIN
                 age_hospitalized_percent = NEW.age_hospitalized_percent,
                 age_deaths               = NEW.age_deaths,
                 age_deaths_percent       = NEW.age_deaths_percent,
-                data_source = NEW.data_source,
                 other = NEW.other,
                 other_value = NEW.other_value,
                 scrape_group             = v_scrape_group;
@@ -401,7 +400,6 @@ BEGIN
                 age_deaths_percent       = NEW.age_deaths_percent,
                 other = NEW.other,
                 other_value = NEW.other_value,
-                data_source = NEW.data_source,
                 scrape_group             = v_scrape_group;
     end if;
 
@@ -492,7 +490,6 @@ BEGIN
                 age_hospitalized_percent = NEW.age_hospitalized_percent,
                 age_deaths               = NEW.age_deaths,
                 age_deaths_percent       = NEW.age_deaths_percent,
-                data_source = NEW.data_source,
                 other = NEW.other,
                 other_value = NEW.other_value,
                 scrape_group             = v_scrape_group;
