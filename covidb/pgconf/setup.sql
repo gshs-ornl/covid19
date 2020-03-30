@@ -96,7 +96,8 @@ age_hospitalized_percent varchar DEFAULT NULL,
 age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL,
 other varchar DEFAULT NULL,
-other_value integer DEFAULT NULL
+other_value integer DEFAULT NULL,
+data_source varchar DEFAULT NULL
 );
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
 (id SERIAL PRIMARY KEY,
@@ -115,8 +116,44 @@ CREATE TABLE IF NOT EXISTS scraping.pages
 url varchar NOT NULL,
 page text NOT NULL,
 updated timestamp with time zone);
+CREATE TABLE IF NOT EXISTS scraping.country_data
+(
+country_id integer REFERENCES static.country(id),
+access_time timestamp,
+updated timestamp with time zone,
+cases integer DEFAULT NULL,
+deaths integer DEFAULT NULL,
+presumptive integer DEFAULT NULL,
+tested integer DEFAULT NULL,
+hospitalized integer DEFAULT NULL,
+negative integer DEFAULT NULL,
+monitored integer DEFAULT NULL,
+no_longer_monitored integer DEFAULT NULL,
+inconclusive integer DEFAULT NULL,
+pending_tests integer DEFAULT NULL,
+active integer DEFAULT NULL,
+scrape_group  integer REFERENCES scraping.scrape_group(id),
+page_id integer REFERENCES scraping.pages(id),
+icu integer DEFAULT NULL,
+lab varchar DEFAULT NULL,
+lab_tests integer DEFAULT NULL,
+lab_positive integer DEFAULT NULL,
+lab_negative integer DEFAULT NULL,
+age_range varchar DEFAULT NULL,
+age_cases integer DEFAULT NULL,
+age_percent varchar DEFAULT NULL,
+age_hospitalized integer DEFAULT NULL,
+age_hospitalized_percent varchar DEFAULT NULL,
+age_deaths integer DEFAULT NULL,
+age_deaths_percent varchar DEFAULT NULL,
+other varchar DEFAULT NULL,
+other_value integer DEFAULT NULL,
+data_source varchar DEFAULT NULL,
+CONSTRAINT const_country_page_id UNIQUE (country_id, page_id)
+);
 CREATE TABLE IF NOT EXISTS scraping.state_data
-(country_id integer REFERENCES static.country(id),
+(
+country_id integer REFERENCES static.country(id),
 state_id integer REFERENCES static.states(id),
 access_time timestamp,
 updated timestamp with time zone,
@@ -147,10 +184,12 @@ age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL,
 other varchar DEFAULT NULL,
 other_value integer DEFAULT NULL,
+data_source varchar DEFAULT NULL,
 CONSTRAINT const_state_page_id UNIQUE (state_id, page_id)
 );
 CREATE TABLE IF NOT EXISTS scraping.county_data
-(country_id integer REFERENCES static.country(id),
+(
+    country_id integer REFERENCES static.country(id),
 state_id integer REFERENCES static.states(id),
 county_id integer REFERENCES static.county(id),
 access_time timestamp,
@@ -182,6 +221,7 @@ age_deaths integer DEFAULT NULL,
 age_deaths_percent varchar DEFAULT NULL,
 other varchar DEFAULT NULL,
 other_value integer DEFAULT NULL,
+data_source varchar DEFAULT NULL,
 CONSTRAINT const_county_page_id UNIQUE (county_id, page_id)
 );
 
@@ -261,6 +301,80 @@ BEGIN
                 NEW.age_deaths_percent,
                 NEW.other,
                 NEW.other_value,
+                NEW.data_source,
+                v_scrape_group, v_page_id)
+        ON CONFLICT ON CONSTRAINT const_state_page_id
+            DO UPDATE
+            SET access_time              = NEW.access_time,
+                updated                  = NEW.updated,
+                cases                    = NEW.cases,
+                deaths                   = NEW.deaths,
+                presumptive              = NEW.presumptive,
+                tested                   = NEW.tested,
+                hospitalized             = NEW.hospitalized,
+                negative                 = NEW.negative,
+                monitored                = NEW.monitored,
+                no_longer_monitored      = NEW.no_longer_monitored,
+                inconclusive=NEW.inconclusive,
+                pending_tests            = NEW.pending_tests,
+                active                   = NEW.active,
+                icu                      = NEW.icu,
+                lab                      = NEW.lab,
+                lab_tests                = NEW.lab_tests,
+                lab_positive             = NEW.lab_positive,
+                lab_negative             = NEW.lab_negative,
+                age_range                = NEW.age_range,
+                age_cases                = NEW.age_cases,
+                age_percent              = NEW.age_percent,
+                age_hospitalized         = NEW.age_hospitalized,
+                age_hospitalized_percent = NEW.age_hospitalized_percent,
+                age_deaths               = NEW.age_deaths,
+                age_deaths_percent       = NEW.age_deaths_percent,
+                data_source = NEW.data_source,
+                other = NEW.other,
+                other_value = NEW.other_value,
+                scrape_group             = v_scrape_group;
+    end if;
+
+    IF (NEW.county is null and NEW.state is null) THEN --Country Level data
+
+        INSERT INTO scraping.country_data(country_id, access_time, updated, cases, deaths, presumptive, tested,
+                                        hospitalized, negative, monitored, no_longer_monitored, inconclusive,
+                                        pending_tests,
+                                        active,
+                                        icu,
+                                        lab,
+                                        lab_tests,
+                                        lab_positive,
+                                        lab_negative,
+                                        age_range,
+                                        age_cases,
+                                        age_percent,
+                                        age_hospitalized,
+                                        age_hospitalized_percent,
+                                        age_deaths,
+                                        age_deaths_percent, other, other_value, data_source,scrape_group, page_id)
+        values ((select id from static.country c where lower(NEW.country) = lower(c.country)),
+                NEW.access_time,
+                NEW.updated, NEW.cases, NEW.deaths, NEW.presumptive, NEW.tested,
+                NEW.hospitalized, NEW.negative, NEW.monitored, NEW.no_longer_monitored, NEW.inconclusive,
+                NEW.pending_tests,
+                NEW.active,
+                NEW.icu,
+                NEW.lab,
+                NEW.lab_tests,
+                NEW.lab_positive,
+                NEW.lab_negative,
+                NEW.age_range,
+                NEW.age_cases,
+                NEW.age_percent,
+                NEW.age_hospitalized,
+                NEW.age_hospitalized_percent,
+                NEW.age_deaths,
+                NEW.age_deaths_percent,
+                NEW.other,
+                NEW.other_value,
+                NEW.data_source,
                 v_scrape_group, v_page_id)
         ON CONFLICT ON CONSTRAINT const_state_page_id
             DO UPDATE
@@ -291,6 +405,7 @@ BEGIN
                 age_deaths_percent       = NEW.age_deaths_percent,
                 other = NEW.other,
                 other_value = NEW.other_value,
+                data_source = NEW.data_source,
                 scrape_group             = v_scrape_group;
     end if;
 
@@ -324,6 +439,7 @@ BEGIN
                age_hospitalized_percent,
                age_deaths,
                age_deaths_percent,
+                data_source,
                other,
                other_value, scrape_group, page_id)
         values ((select id from static.country c where lower(NEW.country) = lower(c.country)),
@@ -351,6 +467,7 @@ BEGIN
                 NEW.age_deaths_percent,
                                 NEW.other,
                 NEW.other_value,
+                NEW.data_source,
                 v_scrape_group, v_page_id)
         ON CONFLICT ON CONSTRAINT const_county_page_id
             DO UPDATE
@@ -379,6 +496,7 @@ BEGIN
                 age_hospitalized_percent = NEW.age_hospitalized_percent,
                 age_deaths               = NEW.age_deaths,
                 age_deaths_percent       = NEW.age_deaths_percent,
+                data_source = NEW.data_source,
                 other = NEW.other,
                 other_value = NEW.other_value,
                 scrape_group             = v_scrape_group;
@@ -387,6 +505,7 @@ BEGIN
     RETURN NEW;
 END
 $$;
+:x
 
 DROP TRIGGER IF EXISTS tr_raw_data on scraping.raw_data;
 CREATE TRIGGER  tr_raw_data
