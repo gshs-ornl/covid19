@@ -461,9 +461,9 @@ BEGIN
                 NEW.age_hospitalized_percent,
                 NEW.age_deaths,
                 NEW.age_deaths_percent,
-                                NEW.other,
-                NEW.other_value,
                 NEW.data_source,
+                NEW.other,
+                NEW.other_value,
                 v_scrape_group, v_page_id)
         ON CONFLICT ON CONSTRAINT const_county_page_id
             DO UPDATE
