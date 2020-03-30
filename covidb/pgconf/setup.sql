@@ -99,7 +99,9 @@ CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION cvadmin;
     age_deaths integer DEFAULT NULL,
     age_deaths_percent varchar DEFAULT NULL,
     age_negative integer DEFAULT NULL,
-    age_negative_percent varchar DEFAULT NULL
+    age_negative_percent varchar DEFAULT NULL,
+    other varchar DEFAULT NULL,
+    other_value varchar DEFAULT NULL
   );
   CREATE TABLE IF NOT EXISTS scraping.age_ranges
   (id SERIAL PRIMARY KEY,
@@ -118,6 +120,9 @@ CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION cvadmin;
     url varchar NOT NULL,
     page text NOT NULL,
     updated timestamp with time zone);
+  CREATE TABLE IF NOT EXISTS scraping.other_stats
+   (id SERIAL PRIMARY KEY,
+    stat varchar NOT NULL);
   CREATE TABLE IF NOT EXISTS scraping.state_data
    (country_id integer REFERENCES static.country(id),
     state_id integer REFERENCES static.states(id),
