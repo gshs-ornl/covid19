@@ -52,6 +52,9 @@ class Files:
 
     LOG = Path('/tmp/cvpy.log')
     LOG_STR = '/tmp/cvpy.log'
+    ROTATE_LOG = Path('/tmp/cvpy_rotate.log')
+    ROTATE_LOG_STR = '/tmp/cvpy_rotate.log'
+
 
 
 class LoggingInfo:

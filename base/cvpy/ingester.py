@@ -14,7 +14,8 @@ from cvpy.static import Headers as H
 class Ingest():
     """Ingests all csvs in the output directory."""
 
-    def __init__(self, logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
+    def __init__(self, production=ce('PRODUCTION', default='False'),
+                 logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
         """Set up the Ingest class for ingestion of csvs."""
         self.logger = logger
         self.output_dir = ce('OUTPUT_DIR', '/tmp/output/')
@@ -24,11 +25,12 @@ class Ingest():
         self.csv_utf_list = []
 
     def make_csvs_utf(self):
+        """Ensure CSVs are utf8."""
         def get_encoding_type(f):
             with open(f, 'rb') as f:
                 raw = f.read()
-            return detect(rawdata)['encoding']
-        from_codec = get_encoding_type(f)
+                from_codec = get_encoding_type(f)
+            return detect(raw)['encoding'], from_codec
         self.logger.info(
             f'Retrieved encoding {from_codec}, converting to utf8')
         try:
