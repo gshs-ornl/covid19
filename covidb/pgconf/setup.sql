@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS static.county
 
 CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters;
 CREATE TABLE IF NOT EXISTS scraping.raw_data
-(country varchar,
+(data_source varchar 
+ country varchar,
 state varchar,
 url varchar,
 raw_page text,
