@@ -196,6 +196,11 @@ CREATE TABLE IF NOT EXISTS scraping.attribute_classes
   class varchar
 ):
 
+CREATE TABLE IF NOT EXISTS scraping.attributes
+ (id SERIAL PRIMARY KEY,
+  attribute varchar NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS scraping.melt
  (country_id integer REFERENCES static.country(id),
   state_id integer REFERENCES static.country(id),
@@ -204,7 +209,7 @@ CREATE TABLE IF NOT EXISTS scraping.melt
   page_id integer REFERENCES scraping.pages(id),
   scrape_group integer REFERENCES scraping.scrape_group(id),
   attribute_class integer REFERENCES scraping.attribute_classes(id),
-  attribute character NOT NULL,
+  attribute integer REFERENCES scraping.attributes(id),
   value numeric NOT NULL
 );
 
