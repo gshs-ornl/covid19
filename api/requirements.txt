@@ -1,4 +1,4 @@
-elasticsearch>6,<7
+elasticsearch>7
 Flask
 pytest
 uwsgi
