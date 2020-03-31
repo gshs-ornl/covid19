@@ -13,21 +13,26 @@ SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
+COMMENT ON DATABASE covidb IS 'covid-19 data curation database';
 \c covidb
 CREATE EXTENSION pgcrypto;
 CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters;
+COMMENT ON SCHEMA static IS 'provide access to static data';
 CREATE TABLE IF NOT EXISTS static.timezones
- (county_code varchar(2),
+ (country_code varchar(2),
   country_name varchar,
   zone_name varchar,
   tz_abb text,
   dst boolean,
   _offset real);
+/****FIXME why was this county_code? changed to country_code, why is this not 
+ mapped to the country or state(contains provinces) table? -- jng ****/
 CREATE TABLE IF NOT EXISTS static.fips_lut
  (state varchar(2),
   county_name varchar,
   fips varchar(5),
   alt_name varchar);
+/****FIXME why is this also not mapped to state and county tables? ****/
 CREATE TABLE IF NOT EXISTS static.country
  (id SERIAL PRIMARY KEY,
   iso2c varchar(2),
@@ -183,6 +188,14 @@ CREATE TABLE IF NOT EXISTS scraping.county_data
   age_deaths_percent varchar DEFAULT NULL,
  CONSTRAINT const_county_page_id UNIQUE (county_id, page_id)
 );
+
+CREATE TABLE IF NOT EXISTS scraping.attribute_classes
+ (id SERIAL PRIMARY KEY,
+  name varchar NOT NULL,
+  units varchar,
+  class varchar
+):
+
 CREATE TABLE IF NOT EXISTS scraping.melt
  (country_id integer REFERENCES static.country(id),
   state_id integer REFERENCES static.country(id),
@@ -190,10 +203,14 @@ CREATE TABLE IF NOT EXISTS scraping.melt
   updated timestamp with time zone NOT NULL,
   page_id integer REFERENCES scraping.pages(id),
   scrape_group integer REFERENCES scraping.scrape_group(id),
+  attribute_class integer REFERENCES scraping.attribute_classes(id),
   attribute character NOT NULL,
   value numeric NOT NULL
 );
 
+/*** FIXME can this be cleaned up so that it is easier to read and stops at
+           line width of <80? let's also keep convention of commands being in
+           caps -- jng ***/
 create or replace function scraping.fn_update_scraping() returns trigger
     language plpgsql
 as
@@ -392,6 +409,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA scraping to ingester;
+/****FIXME surely there is a better way to import this data? --jng ****/
 /**************** Country Data *********************/
 DO
 $$
