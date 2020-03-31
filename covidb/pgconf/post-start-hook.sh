@@ -19,5 +19,7 @@ done
 sleep 5
 
 psql -h /tmp -U postgres -d covidb -f /tmp/init.sql
+psql -h /tmp -U postgres -d covidb -f /tmp/data.sql
+psql -h /tmp -U postgres -d covidb -f /tmp/triggers.sql
 psql -h /tmp -U postgres -d covidb -f /tmp/views.sql
 echo "finished setting stuff up"

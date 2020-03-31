@@ -85,7 +85,7 @@ page text default null,
 access_time timestamp not null,
 county varchar default null,
 cases integer default null,
-updated timestamp with time zone default null,
+updated timestamp with time zone default now(),
 deaths integer default null,
 presumptive integer default null,
 recovered integer default null,
@@ -159,7 +159,7 @@ url_id integer REFERENCES static.urls (id),
 page_id integer references scraping.pages(id),
 access_time timestamp not null,
 cases integer default null,
-updated timestamp with time zone default null,
+updated date not null,
 deaths integer default null,
 presumptive integer default null,
 recovered integer default null,
@@ -202,8 +202,10 @@ sex_counts integer default null,
 sex_percent varchar default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_country UNIQUE (country_id, provider, page_id, age_range)
+CONSTRAINT const_country UNIQUE (country_id, provider, updated)
 );
+
+
 CREATE TABLE IF NOT EXISTS scraping.state_data
 (
 provider varchar DEFAULT 'UNKNOWN' NOT NULL,
@@ -214,7 +216,7 @@ url_id integer references static.urls(id),
 page_id integer references scraping.pages(id),
 access_time timestamp not null,
 cases integer default null,
-updated timestamp with time zone default null,
+updated date not null,
 deaths integer default null,
 presumptive integer default null,
 recovered integer default null,
@@ -257,7 +259,7 @@ sex_counts integer default null,
 sex_percent varchar default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_state UNIQUE (state_id, provider, page_id, age_range)
+CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated)
 );
 
 CREATE TABLE IF NOT EXISTS scraping.county_data
@@ -272,7 +274,7 @@ page_id integer references scraping.pages(id),
 access_time timestamp not null,
 county varchar default null,
 cases integer default null,
-updated timestamp with time zone default null,
+updated date not null,
 deaths integer default null,
 presumptive integer default null,
 recovered integer default null,
@@ -316,13 +318,10 @@ sex_counts integer default null,
 sex_percent varchar default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_county UNIQUE (county_id, provider, page_id, age_range)
+CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated)
 );
 
 --Functions
-
-
-
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
