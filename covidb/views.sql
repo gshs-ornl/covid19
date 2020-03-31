@@ -1,3 +1,6 @@
+\c covidb
+
+
 create view scraping.vw_country_data as
     select ctry.country,
        provider,
