@@ -1,3 +1,9 @@
+-- =============================================
+-- Author:      Bryan Eaton
+-- Create date:  3/31/2020
+-- Description: Trigger function to update Country, State and County scraping tables.
+-- =============================================
+
 create or replace function scraping.fn_update_scraping() returns trigger
     language plpgsql
 as
@@ -359,7 +365,7 @@ BEGIN
     IF (NEW.state is not null and NEW.county is not null) THEN --County Data
 
 
-        INSERT INTO scraping.county_data (provider, country_id, state_id, county_id, region, access_time, url_id, page_id, cases,
+        INSERT INTO scraping.county_data (provider, country_id, state_id, county_id,fips_id, region, access_time, url_id, page_id, cases,
                                            updated,
                                            deaths,
                                            presumptive,
@@ -408,6 +414,7 @@ BEGIN
                (select id from static.states s where lower(NEW.state) = lower(s.state)),
                (select id from static.county c where lower(NEW.county) = lower(c.county_name) AND c.state_id = (select
                     id from static.states s where lower(NEW.state) = lower(s.state)) ),
+               v_fips,
                NEW.region,
                NEW.access_time,
                v_url,
@@ -506,13 +513,19 @@ BEGIN
                other = NEW.other,
                other_value = NEW.other_value;
     end if;
-
-
+    /****** ENABLE in production ******/
+    --delete from scraping.raw_data;
     RETURN NEW;
+
 END
 $$;
 
-
+-- =============================================
+-- Author:      Bryan Eaton
+-- Create date:  3/31/2020
+-- Description: Trigger object to execute fn_update_scraping
+--              after each insert to raw_data.
+-- =============================================
 DROP TRIGGER IF EXISTS tr_raw_data on scraping.raw_data;
 CREATE TRIGGER tr_raw_data
     AFTER INSERT

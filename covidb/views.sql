@@ -1,73 +1,34 @@
-create view scraping.vw_state_data as
-select ctry.country,
-       ctry.iso2c,
-       ctry.iso3c,
-       s.fips,
-       abb,
-       state,
-       sd.access_time as state_access_time,
-       sd.updated,
-       sd.cases,
-       sd.deaths,
-       sd.presumptive,
-       sd.tested,
-       sd.hospitalized,
-       sd.negative,
-       sd.monitored,
-       sd.no_longer_monitored,
-       sd.inconclusive,
-       sd.pending_tests,
-       sg.scrape_group,
-       icu,
-       lab,
-       lab_tests,
-       lab_positive,
-       lab_negative,
-       age_range,
-       age_cases,
-       age_percent,
-       age_hospitalized,
-       age_hospitalized_percent,
-       age_deaths,
-       age_deaths_percent,
-       other,
-       other_value
-       page,
-       url,
-       hash,
-       p.access_time as page_access_time
-from scraping.state_data sd
-         join static.states s on sd.state_id = s.id
-         join static.country ctry ON ctry.id = s.country_id
-         join scraping.scrape_group sg ON sg.scrape_group = sd.scrape_group
-         join scraping.pages p ON p.id = sd.page_id;
-
-
-create view scraping.vw_county_data as
-select c.country,
-       s.state,
-       cd.access_time as county_access_time,
-       updated,
+create view scraping.vw_country_data as
+    select ctry.country,
+       provider,
+       region,
+       u.url,
+       cd.access_time as country_access_time,
        cases,
+       updated,
        deaths,
        presumptive,
+       recovered,
        tested,
        hospitalized,
        negative,
+       counties,
+       severe,
+       lat,
+       lon,
        monitored,
        no_longer_monitored,
+       pending,
+       active,
        inconclusive,
-       pending_tests,
-       s.fips   as state_fips,
-       abb,
-       county_name,
-       cnt.fips as country_fips,
-       alt_name,
-       non_std,
-       iso2c,
-       iso3c,
-       sg.scrape_group,
+       quarantined,
+       private_tests,
+       state_tests,
+       scrape_group_id,
+       resolution,
        icu,
+       cases_male,
+       cases_female,
        lab,
        lab_tests,
        lab_positive,
@@ -75,24 +36,150 @@ select c.country,
        age_range,
        age_cases,
        age_percent,
-       age_hospitalized,
-       age_hospitalized_percent,
        age_deaths,
+       age_hospitalized,
+       age_tested,
+       age_negative,
+       age_hospitalized_percent,
+       age_negative_percent,
        age_deaths_percent,
+       sex,
+       sex_counts,
+       sex_percent,
        other,
-       other_value
-       page,
-       url,
-       hash,
-       p.access_time as page_access_time
-from scraping.county_data cd
-         join scraping.scrape_group sg ON cd.scrape_group = sg.scrape_group
+       other_value,
+       sg.scrape_group
+from scraping.country_data cd
+         join static.country ctry ON ctry.id = cd.country_id
+         join scraping.scrape_group sg ON sg.id = cd.scrape_group_id
          join scraping.pages p ON p.id = cd.page_id
-         join static.states s on cd.state_id = s.id
-         join static.county cnt ON cnt.id = cd.county_id
-         join static.country c ON c.id = s.country_id;
+         join static.urls u ON u.id = cd.url_id;
+
+
+create view scraping.vw_state_data as
+select ctry.country,
+       s.state,
+       provider,
+       region,
+       u.url,
+       sd.access_time as state_access_time,
+       cases,
+       updated,
+       deaths,
+       presumptive,
+       recovered,
+       tested,
+       hospitalized,
+       negative,
+       counties,
+       severe,
+       lat,
+       lon,
+       monitored,
+       no_longer_monitored,
+       pending,
+       active,
+       inconclusive,
+       quarantined,
+       private_tests,
+       state_tests,
+       scrape_group_id,
+       resolution,
+       icu,
+       cases_male,
+       cases_female,
+       lab,
+       lab_tests,
+       lab_positive,
+       lab_negative,
+       age_range,
+       age_cases,
+       age_percent,
+       age_deaths,
+       age_hospitalized,
+       age_tested,
+       age_negative,
+       age_hospitalized_percent,
+       age_negative_percent,
+       age_deaths_percent,
+       sex,
+       sex_counts,
+       sex_percent,
+       other,
+       other_value,
+       sg.scrape_group
+from scraping.state_data sd
+         join static.states s on sd.state_id = s.id
+         join static.country ctry ON ctry.id = s.country_id
+         join scraping.scrape_group sg ON sg.id = sd.scrape_group_id
+         join scraping.pages p ON p.id = sd.page_id
+         join static.urls u ON u.id = sd.url_id;
+
+
+create view scraping.vw_county_data as
+select ctry.country,
+       s.state,
+       c.county_name,
+       provider,
+       region,
+       u.url,
+       cd.access_time as county_access_time,
+       cases,
+       updated,
+       deaths,
+       presumptive,
+       recovered,
+       tested,
+       hospitalized,
+       negative,
+       counties,
+       severe,
+       lat,
+       lon,
+       monitored,
+       no_longer_monitored,
+       pending,
+       active,
+       inconclusive,
+       quarantined,
+       private_tests,
+       state_tests,
+       scrape_group_id,
+       resolution,
+       icu,
+       cases_male,
+       cases_female,
+       lab,
+       lab_tests,
+       lab_positive,
+       lab_negative,
+       age_range,
+       age_cases,
+       age_percent,
+       age_deaths,
+       age_hospitalized,
+       age_tested,
+       age_negative,
+       age_hospitalized_percent,
+       age_negative_percent,
+       age_deaths_percent,
+       sex,
+       sex_counts,
+       sex_percent,
+       other,
+       other_value,
+       sg.scrape_group
+from scraping.county_data cd
+         join static.fips_lut f ON f.id = cd.fips_id
+         join static.county c ON c.id = f.county_id
+         join static.states s on s.id = f.state_id
+         join static.country ctry ON ctry.id = s.country_id
+         join scraping.scrape_group sg ON sg.id = cd.scrape_group_id
+         join scraping.pages p ON p.id = cd.page_id
+         join static.urls u ON u.id = cd.url_id;
 
 GRANT USAGE ON SCHEMA scraping TO guest;
+GRANT SELECT ON scraping.vw_country_data TO guest;
 GRANT SELECT ON scraping.vw_county_data TO guest;
 GRANT SELECT ON scraping.vw_state_data TO guest;
 

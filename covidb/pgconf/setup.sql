@@ -1,4 +1,10 @@
 --() { :: }; exec psql -f "$0"
+-- =============================================
+-- Author:      Bryan Eaton and Josh Grant
+-- Create date:  3/27/2020
+-- Description: Init sql for creating database
+--              objects for the Covid Scraper project.
+-- =============================================
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
