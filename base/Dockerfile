@@ -6,28 +6,34 @@ COVID-19 confirmed cases"
 
 WORKDIR /tmp
 
+
 ENV PYTHONOPTIMIZE True
 ENV CHROME_DRIVER_VERSION 80.0.3987.106 
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
 ENV R_BASE_VERSION 3.6.3
 ENV R_LIB /usr/lib/R/site-library
 ENV OUTPUT_DIR /tmp/output
 ENV R_HOME /usr/lib/R
 ENV COVIDR_VERS 0.1.1
 ENV COVIDR_URL https://github.com/nset-ornl/covidR/releases/download
-
 # setup the output directory
 RUN mkdir $OUTPUT_DIR
 
+RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
+      locales && \
+    sed -i 's/^E *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
+    locale-gen && echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LANG=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LANGUAGE=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc
+
 # install dependencies
-RUN apt-get update -yqq && apt-get -y install --no-install-recommends \
+RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     xvfb gtk2-engines-pixbuf xfonts-cyrillic xfonts-100dpi xfonts-75dpi \
     xfonts-base xfonts-scalable libfontconfig ed less locales vim-tiny \
     wget ca-certificates fonts-texgyre libnss3 libgconf-2-4 \
     unzip postgresql-client libv8-dev libmagick++-dev libudunits2-dev \
     libgdal-dev gdal-bin libgeos++-dev libgeos-3.7.1 libproj-dev \
-    proj-bin 
+    proj-bin postgresql-client
 
 # install R
 RUN echo "deb http://http.debian.net/debian sid main" > \
