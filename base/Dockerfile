@@ -43,9 +43,6 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
       ln -s $R_LIB/littler/examples/installGithub.r \
         /usr/local/bin/installGithub.R 
 
-# copy over data
-#COPY county_list.csv .
-#COPY url_list.csv .
 
 # install python dependencies
 COPY requirements.txt .
@@ -71,4 +68,5 @@ RUN install.r covidR.tar.gz
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
-      rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+      rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
+      rm covidR.tar.gz

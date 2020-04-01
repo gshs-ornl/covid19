@@ -26,28 +26,15 @@ class Ingest():
 
     def make_csvs_utf(self):
         """Ensure CSVs are utf8."""
-        def get_encoding_type(f):
-            with open(f, 'rb') as f:
-                raw = f.read()
-                from_codec = get_encoding_type(f)
-            return detect(raw)['encoding'], from_codec
-        self.logger.info(
-            f'Retrieved encoding {from_codec}, converting to utf8')
-        try:
-            with open(f, 'r',
-                      encoding=from_codec) as f, open(target, 'w',
-                                                      encoding='utf-8') as e:
-                text = f.read()
-                e.write(text)
-            if ce('PRODUCTION', 'False') == 'True':
-                os.remove(f)
-            target = target + '_utf8.csv'
-            os.rename(f, target)
-            self.csv_utf_list = self.csv_utf_list.append(target)
-        except UnicodeDecodeError as e:
-            self.logger.error(f'Unicode Decoding error {e}')
-        except UnicodeEncodeError as e:
-            self.logger.error(f'Unicode Encoding error {e}')
+        for c in self.csv_list:
+            try:
+                with open(c, 'rb') as f:
+                    content_bytes = f.read()
+                detected = chardet.detect(content_bytes)
+            except UnicodeDecodeError as e:
+                self.logger.error(f'Unicode Decoding error {e}')
+            except UnicodeEncodeError as e:
+                self.logger.error(f'Unicode Encoding error {e}')
 
     def combine_csvs(self, utf=True):
         df_list = []
