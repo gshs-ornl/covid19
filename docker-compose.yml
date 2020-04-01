@@ -22,6 +22,8 @@ services:
       - api/api.env
     volumes:
       - covid_out:/tmp/output
+    expose:
+      - 8888
 
   scraper:
     build: scraper
@@ -32,7 +34,7 @@ services:
       - db.env
       - scraper/scrape.env
     volumes:
-      - pgvolume:/pgdata
+      - covid_out:/tmp/
 
   tidy:
     build: tidy
@@ -81,8 +83,5 @@ services:
     environment:
       - HUB_HOST=hub
       - HUB_PORT=4444
-    expose:
+    ports:
       - "4444:4444"
-    env_file:
-      - api/api.env
-   
