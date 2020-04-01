@@ -15,7 +15,7 @@ Doc = Dict[str, Union[str, int, float, Dict]]
 ESUSER: str = get_var('ESUSER', '')
 ESPASS: str = get_var('ESPASS', '')
 ESHOSTS: str = get_var('ESHOSTS', '')
-ESINDEX: str = get_var('ESINDEX', 'covid-ornl')
+ESINDEX: str = get_var('ESINDEX', 'covid19-ornl')
 host_list: List[str] = ESHOSTS.split(',')
 host_list: List[Dict] = [{'host': host} for host in host_list]
 
