@@ -43,9 +43,6 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
       ln -s $R_LIB/littler/examples/installGithub.r \
         /usr/local/bin/installGithub.R 
 
-# copy over data
-#COPY county_list.csv .
-#COPY url_list.csv .
 
 # install python dependencies
 COPY requirements.txt .
@@ -60,8 +57,8 @@ RUN python setup.py install --prefix=/usr/local
 
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
-      sf maptools stringr jsonlite rebus lubridate shiny httr RSelenium \
-      magick png snakecase V8 DBI remotes
+      sf stringr jsonlite rebus lubridate  \
+      snakecase remotes readxl
 # install covidR
 # saving below for our web releases
 #RUN wget $COVID_URL/$COVID_VERS/covidR_$COVID_VERS.tar.gz && \
@@ -71,4 +68,5 @@ RUN install.r covidR.tar.gz
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
-      rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+      rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
+      rm covidR.tar.gz

@@ -115,7 +115,7 @@ class DictLogger:
                 'stream': 'ext:://sys.stdout'},
             'file': {
                 'class': 'logging.FileHandler',
-                'filename': Files.LOG_FILE,
+                'filename': "LOG_FILE",
                 'formatter': 'utc'},
             'rotate': {
                 'class': 'logging.handlers.RotatingFileHandler',
@@ -158,7 +158,7 @@ class DictLogger:
                 'stream': 'ext://sys.stdout'},
             'file': {
                 'class': 'logging.FileHandler',
-                'filename': Files.LOG_FILE,
+                'filename': "Files.LOG_FILE",
                 'formatter': 'utc'},
             'rotate': {
                 'class': 'logging.handlers.RotatingFileHandler',

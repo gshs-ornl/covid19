@@ -13,6 +13,6 @@ from cvpy.logging import UTCFormatter, DictLogger
 
 
 # find the desired logfile
-LOG_FILE = ce('LOG_FILE', F.ETL_LOG)
-ROTATE_LOG_FILE = ce('ROTATE_LOG', F.ROTATE_LOG)
+LOG_FILE = ce('LOG_FILE', F.LOG_STR)
+ROTATE_LOG_FILE = ce('ROTATE_LOG', F.ROTATE_LOG_STR)
 LC.dictConfig(DictLogger.SIMPLE)

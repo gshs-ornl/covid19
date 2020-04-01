@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+import os
 """ contains common functions used throughout the cvpy package """
 
 

@@ -13,21 +13,26 @@ SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 
 GRANT CONNECT ON DATABASE covidb TO ingester, digester, librarian, historian,
                                     guest;
+COMMENT ON DATABASE covidb IS 'covid-19 data curation database';
 \c covidb
 CREATE EXTENSION pgcrypto;
 CREATE SCHEMA IF NOT EXISTS static AUTHORIZATION jesters;
+COMMENT ON SCHEMA static IS 'provide access to static data';
 CREATE TABLE IF NOT EXISTS static.timezones
- (county_code varchar(2),
+ (country_code varchar(2),
   country_name varchar,
   zone_name varchar,
   tz_abb text,
   dst boolean,
   _offset real);
+/****FIXME why was this county_code? changed to country_code, why is this not 
+ mapped to the country or state(contains provinces) table? -- jng ****/
 CREATE TABLE IF NOT EXISTS static.fips_lut
  (state varchar(2),
   county_name varchar,
   fips varchar(5),
   alt_name varchar);
+/****FIXME why is this also not mapped to state and county tables? ****/
 CREATE TABLE IF NOT EXISTS static.country
  (id SERIAL PRIMARY KEY,
   iso2c varchar(2),
@@ -56,134 +61,165 @@ CREATE TABLE IF NOT EXISTS static.county
 
 CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters;
 CREATE TABLE IF NOT EXISTS scraping.raw_data
-(data_source varchar 
- country varchar,
-state varchar,
-url varchar,
-raw_page text,
-access_time timestamp,
-county varchar DEFAULT NULL,
-cases integer DEFAULT NULL,
-updated timestamp with time zone,
-deaths integer DEFAULT NULL,
-presumptive integer DEFAULT NULL,
-recovered integer DEFAULT NULL,
-tested integer DEFAULT NULL,
-hospitalized integer DEFAULT NULL,
-negative integer DEFAULT NULL,
-counties integer DEFAULT NULL,
-severe integer DEFAULT NULL,
-lat numeric DEFAULT NULL,
-lon numeric DEFAULT NULL,
-parish varchar DEFAULT NULL,
-monitored integer DEFAULT NULL,
-private_test integer DEFAULT NULL,
-state_test integer DEFAULT NULL,
-no_longer_monitored integer DEFAULT NULL,
-pending_tests integer DEFAULT NULL,
-active integer DEFAULT NULL,
-inconclusive integer DEFAULT NULL,
-scrape_group integer NOT NULL,
-icu integer DEFAULT NULL,
-lab varchar DEFAULT NULL,
-lab_tests integer DEFAULT NULL,
-lab_positive integer DEFAULT NULL,
-lab_negative integer DEFAULT NULL,
-age_range varchar DEFAULT NULL,
-age_cases integer DEFAULT NULL,
-age_percent varchar DEFAULT NULL,
-age_hospitalized integer DEFAULT NULL,
-age_hospitalized_percent varchar DEFAULT NULL,
-age_deaths integer DEFAULT NULL,
-age_deaths_percent varchar DEFAULT NULL,
-male_cases integer DEFAULT NULL,
-female_cases integer DEFAULT NULL,
-other varchar DEFAULT NULL,
-other_value varchar DEFAULT NULL
+ (data_source varchar 
+  country varchar,
+  state varchar,
+  url varchar,
+  raw_page text,
+  access_time timestamp,
+  county varchar DEFAULT NULL,
+  cases integer DEFAULT NULL,
+  updated timestamp with time zone,
+  deaths integer DEFAULT NULL,
+  presumptive integer DEFAULT NULL,
+  recovered integer DEFAULT NULL,
+  tested integer DEFAULT NULL,
+  hospitalized integer DEFAULT NULL,
+  negative integer DEFAULT NULL,
+  counties integer DEFAULT NULL,
+  severe integer DEFAULT NULL,
+  lat numeric DEFAULT NULL,
+  lon numeric DEFAULT NULL,
+  parish varchar DEFAULT NULL,
+  monitored integer DEFAULT NULL,
+  private_test integer DEFAULT NULL,
+  state_test integer DEFAULT NULL,
+  no_longer_monitored integer DEFAULT NULL,
+  pending_tests integer DEFAULT NULL,
+  active integer DEFAULT NULL,
+  inconclusive integer DEFAULT NULL,
+  scrape_group integer NOT NULL,
+  icu integer DEFAULT NULL,
+  lab varchar DEFAULT NULL,
+  lab_tests integer DEFAULT NULL,
+  lab_positive integer DEFAULT NULL,
+  lab_negative integer DEFAULT NULL,
+  age_range varchar DEFAULT NULL,
+  age_cases integer DEFAULT NULL,
+  age_percent varchar DEFAULT NULL,
+  age_hospitalized integer DEFAULT NULL,
+  age_hospitalized_percent varchar DEFAULT NULL,
+  age_deaths integer DEFAULT NULL,
+  age_deaths_percent varchar DEFAULT NULL,
+  sex varchar DEFAULT NULL,
+  sex_cases integer DEFAULT NULL,
+  sex_percent varchar DEFAULT NULL,
+  sex_death integer DEFAULT NULL,
+  other varchar DEFAULT NULL,
+  other_value varchar DEFAULT NULL
 );
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
-(id SERIAL PRIMARY KEY,
-age_ranges varchar);
+ (id SERIAL PRIMARY KEY,
+  age_ranges varchar,
+  ages integer
+);
 CREATE TABLE IF NOT EXISTS scraping.pages
-(id SERIAL PRIMARY KEY,
-page text,
-url varchar,
-hash varchar(64),
-access_time timestamp with time zone);
+ (id SERIAL PRIMARY KEY,
+  page text,
+  url varchar,
+  hash varchar(64),
+  access_time timestamp with time zone);
 CREATE TABLE IF NOT EXISTS scraping.scrape_group
-(id SERIAL PRIMARY KEY,
-scrape_group integer NOT NULL);
+ (id SERIAL PRIMARY KEY,
+  scrape_group integer NOT NULL);
 CREATE TABLE IF NOT EXISTS scraping.pages
-(id SERIAL PRIMARY KEY,
-url varchar NOT NULL,
-page text NOT NULL,
-updated timestamp with time zone);
+ (id SERIAL PRIMARY KEY,
+  url varchar NOT NULL,
+  page text NOT NULL,
+  updated timestamp with time zone);
 CREATE TABLE IF NOT EXISTS scraping.state_data
-(country_id integer REFERENCES static.country(id),
-state_id integer REFERENCES static.states(id),
-access_time timestamp,
-updated timestamp with time zone,
-cases integer DEFAULT NULL,
-deaths integer DEFAULT NULL,
-presumptive integer DEFAULT NULL,
-tested integer DEFAULT NULL,
-hospitalized integer DEFAULT NULL,
-negative integer DEFAULT NULL,
-monitored integer DEFAULT NULL,
-no_longer_monitored integer DEFAULT NULL,
-inconclusive integer DEFAULT NULL,
-pending_tests integer DEFAULT NULL,
-active integer DEFAULT NULL,
-scrape_group  integer REFERENCES scraping.scrape_group(id),
-page_id integer REFERENCES scraping.pages(id),
-icu integer DEFAULT NULL,
-lab varchar DEFAULT NULL,
-lab_tests integer DEFAULT NULL,
-lab_positive integer DEFAULT NULL,
-lab_negative integer DEFAULT NULL,
-age_range varchar DEFAULT NULL,
-age_cases integer DEFAULT NULL,
-age_percent varchar DEFAULT NULL,
-age_hospitalized integer DEFAULT NULL,
-age_hospitalized_percent varchar DEFAULT NULL,
-age_deaths integer DEFAULT NULL,
-age_deaths_percent varchar DEFAULT NULL,
-CONSTRAINT const_state_page_id UNIQUE (state_id, page_id)
+ (country_id integer REFERENCES static.country(id),
+  state_id integer REFERENCES static.states(id),
+  access_time timestamp,
+  updated timestamp with time zone,
+  cases integer DEFAULT NULL,
+  deaths integer DEFAULT NULL,
+  presumptive integer DEFAULT NULL,
+  tested integer DEFAULT NULL,
+  hospitalized integer DEFAULT NULL,
+  negative integer DEFAULT NULL,
+  monitored integer DEFAULT NULL,
+  no_longer_monitored integer DEFAULT NULL,
+  inconclusive integer DEFAULT NULL,
+  pending_tests integer DEFAULT NULL,
+  active integer DEFAULT NULL,
+  scrape_group  integer REFERENCES scraping.scrape_group(id),
+  page_id integer REFERENCES scraping.pages(id),
+  icu integer DEFAULT NULL,
+  lab varchar DEFAULT NULL,
+  lab_tests integer DEFAULT NULL,
+  lab_positive integer DEFAULT NULL,
+  lab_negative integer DEFAULT NULL,
+  age_range varchar DEFAULT NULL,
+  age_cases integer DEFAULT NULL,
+  age_percent varchar DEFAULT NULL,
+  age_hospitalized integer DEFAULT NULL,
+  age_hospitalized_percent varchar DEFAULT NULL,
+  age_deaths integer DEFAULT NULL,
+  age_deaths_percent varchar DEFAULT NULL,
+ CONSTRAINT const_state_page_id UNIQUE (state_id, page_id)
 );
 CREATE TABLE IF NOT EXISTS scraping.county_data
-(country_id integer REFERENCES static.country(id),
-state_id integer REFERENCES static.states(id),
-county_id integer REFERENCES static.county(id),
-access_time timestamp,
-updated timestamp with time zone,
-cases integer DEFAULT NULL,
-deaths integer DEFAULT NULL,
-presumptive integer DEFAULT NULL,
-tested integer DEFAULT NULL,
-hospitalized integer DEFAULT NULL,
-negative integer DEFAULT NULL,
-monitored integer DEFAULT NULL,
-no_longer_monitored integer DEFAULT NULL,
-inconclusive integer DEFAULT NULL,
-pending_tests integer DEFAULT NULL,
-active integer DEFAULT NULL,
-scrape_group integer REFERENCES scraping.scrape_group(id),
-page_id integer REFERENCES scraping.pages(id),
-icu integer DEFAULT NULL,
-lab varchar DEFAULT NULL,
-lab_tests integer DEFAULT NULL,
-lab_positive integer DEFAULT NULL,
-lab_negative integer DEFAULT NULL,
-age_range varchar DEFAULT NULL,
-age_cases integer DEFAULT NULL,
-age_percent varchar DEFAULT NULL,
-age_hospitalized integer DEFAULT NULL,
-age_hospitalized_percent varchar DEFAULT NULL,
-age_deaths integer DEFAULT NULL,
-age_deaths_percent varchar DEFAULT NULL,
-CONSTRAINT const_county_page_id UNIQUE (county_id, page_id)
+ (country_id integer REFERENCES static.country(id),
+  state_id integer REFERENCES static.states(id),
+  county_id integer REFERENCES static.county(id),
+  access_time timestamp,
+  updated timestamp with time zone,
+  cases integer DEFAULT NULL,
+  deaths integer DEFAULT NULL,
+  presumptive integer DEFAULT NULL,
+  tested integer DEFAULT NULL,
+  hospitalized integer DEFAULT NULL,
+  negative integer DEFAULT NULL,
+  monitored integer DEFAULT NULL,
+  no_longer_monitored integer DEFAULT NULL,
+  inconclusive integer DEFAULT NULL,
+  pending_tests integer DEFAULT NULL,
+  active integer DEFAULT NULL,
+  scrape_group integer REFERENCES scraping.scrape_group(id),
+  page_id integer REFERENCES scraping.pages(id),
+  icu integer DEFAULT NULL,
+  lab varchar DEFAULT NULL,
+  lab_tests integer DEFAULT NULL,
+  lab_positive integer DEFAULT NULL,
+  lab_negative integer DEFAULT NULL,
+  age_range varchar DEFAULT NULL,
+  age_cases integer DEFAULT NULL,
+  age_percent varchar DEFAULT NULL,
+  age_hospitalized integer DEFAULT NULL,
+  age_hospitalized_percent varchar DEFAULT NULL,
+  age_deaths integer DEFAULT NULL,
+  age_deaths_percent varchar DEFAULT NULL,
+ CONSTRAINT const_county_page_id UNIQUE (county_id, page_id)
 );
 
+CREATE TABLE IF NOT EXISTS scraping.attribute_classes
+ (id SERIAL PRIMARY KEY,
+  name varchar NOT NULL,
+  units varchar,
+  class varchar
+):
+
+CREATE TABLE IF NOT EXISTS scraping.attributes
+ (id SERIAL PRIMARY KEY,
+  attribute varchar NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scraping.melt
+ (country_id integer REFERENCES static.country(id),
+  state_id integer REFERENCES static.country(id),
+  county_id integer REFERENCES static.county(id),
+  updated timestamp with time zone NOT NULL,
+  page_id integer REFERENCES scraping.pages(id),
+  scrape_group integer REFERENCES scraping.scrape_group(id),
+  attribute_class integer REFERENCES scraping.attribute_classes(id),
+  attribute integer REFERENCES scraping.attributes(id),
+  value numeric NOT NULL
+);
+
+/*** FIXME can this be cleaned up so that it is easier to read and stops at
+           line width of <80? let's also keep convention of commands being in
+           caps -- jng ***/
 create or replace function scraping.fn_update_scraping() returns trigger
     language plpgsql
 as
@@ -382,6 +418,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA scraping to ingester;
+/****FIXME surely there is a better way to import this data? --jng ****/
 /**************** Country Data *********************/
 DO
 $$
