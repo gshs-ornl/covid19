@@ -156,21 +156,21 @@ class ElasticParse:
                 'type': 'Point'
             }
             doc['fips'] = self.get_fips(lat=lat, lon=lon)
-        doc['province/state'] = doc.pop('state', None)
-        if isinstance(doc.get('updated'), str):
-            doc['updated'] = datetime.strptime(
-                doc['updated'],
-                '%B %d, %Y'
-            ).timestamp()
+        # doc['province/state'] = doc.pop('state', None)
+        # if isinstance(doc.get('updated'), str):
+        #     doc['updated'] = datetime.strptime(
+        #         doc['updated'],
+        #         '%B %d, %Y'
+        #     ).timestamp()
         if 'page' in doc:
             _ = doc.pop('page')
-        doc['access_time'] = datetime.strptime(
-            doc['access_time'],
-            '%Y-%m-%d %H:%M:%S'
-        ).timestamp()
+        # doc['access_time'] = datetime.strptime(
+        #     doc['access_time'],
+        #     '%Y-%m-%d %H:%M:%S'
+        # ).timestamp()
         return {
             '_index': self._index,
-            '_type': self._type,
+            # '_type': self._type,
             '_id': self.gen_id(entry),
             self.body_name: doc
         }
