@@ -103,6 +103,21 @@ class Headers:
             'deaths_10_19', 'deaths_20_29', 'deaths_30_39',
             'deaths_40_49', 'deaths_50_59', 'deaths_60_69',
             'deaths_70_79', 'deaths_80', 'cases_male', 'cases_female']
+    updated_site = ['provider', 'country', 'state', 'region',
+           'url', 'page', 'access_time', 'county',
+           'cases', 'updated', 'deaths', 'presumptive',
+           'recovered', 'tested', 'hospitalized', 'negative',
+           'counties', 'severe', 'lat', 'lon', 'fips',
+           'monitored', 'no_longer_monitored', 'pending',
+           'active', 'inconclusive', 'quarantined',
+           'private_tests', 'state_tests', 'scrape_group',
+           'resolution', 'icu', 'cases_male', 'cases_female',
+           'lab', 'lab_tests', 'lab_positive', 'lab_negative',
+           'age_range', 'age_cases', 'age_percent', 'age_deaths',
+           'age_hospitalized', 'age_tested', 'age_negative',
+           'age_hospitalized_percent', 'age_negative_percent',
+           'age_deaths_percent', 'sex', 'sex_counts', 'sex_percent',
+           'other', 'other_value']
     tomq = ['County_Name', 'State_Name', 'Confirmed', 'New Death',
             'Fatality_Rate', 'Last_Update', ' Latitude', 'Longitude',
             'New_Death']
