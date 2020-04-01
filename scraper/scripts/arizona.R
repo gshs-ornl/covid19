@@ -2,4 +2,4 @@
 library(covidR)
 library(data.table)
 
-dt <- scrape_arizona()
+dt <- wrap_scraper(scrape_arizona())
