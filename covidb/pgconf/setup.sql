@@ -101,14 +101,18 @@ CREATE TABLE IF NOT EXISTS scraping.raw_data
   age_hospitalized_percent varchar DEFAULT NULL,
   age_deaths integer DEFAULT NULL,
   age_deaths_percent varchar DEFAULT NULL,
-  male_cases integer DEFAULT NULL,
-  female_cases integer DEFAULT NULL,
+  sex varchar DEFAULT NULL,
+  sex_cases integer DEFAULT NULL,
+  sex_percent varchar DEFAULT NULL,
+  sex_death integer DEFAULT NULL,
   other varchar DEFAULT NULL,
   other_value varchar DEFAULT NULL
 );
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
  (id SERIAL PRIMARY KEY,
-  age_ranges varchar);
+  age_ranges varchar,
+  ages integer
+);
 CREATE TABLE IF NOT EXISTS scraping.pages
  (id SERIAL PRIMARY KEY,
   page text,
