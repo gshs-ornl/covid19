@@ -4,7 +4,6 @@ USER root
 RUN sed -i -e "s/create database PG_DATABASE/create database PG_DATABASE WITH ENCODING = 'UTF8' TEMPLATE = template0/g" /opt/cpm/bin/setup.sql
 
 ADD pgconf/setup.sql /tmp/init.sql
-ADD data.sql /tmp/data.sql
 ADD triggers.sql /tmp/triggers.sql
 ADD views.sql /tmp/views.sql
 ADD data /tmp/
