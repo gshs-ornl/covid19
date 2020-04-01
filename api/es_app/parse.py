@@ -164,6 +164,7 @@ class ElasticParse:
         #     ).timestamp()
         if 'page' in doc:
             _ = doc.pop('page')
+        doc['scrape_group'] = str(int(doc['scrape_group']))
         # doc['access_time'] = datetime.strptime(
         #     doc['access_time'],
         #     '%Y-%m-%d %H:%M:%S'
