@@ -13,7 +13,7 @@ COPY ./py_runner.py /tmp/py_runner.py
 RUN ln -s /tmp/bin/bash_scraper.sh /usr/local/bin/bash_scraper.sh && \
       ln -s /tmp/py_runner.py /usr/local/bin/py_runner.py
 
-RUN mkdir /tmp/output
+RUN mkdir -p /tmp/output
 
 COPY entrypoint.sh entrypoint.sh
 
