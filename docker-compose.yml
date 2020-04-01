@@ -74,12 +74,13 @@ services:
   chrome:
     image: selenium/standalone-chrome:latest
     container_name: chrome
-#    depends_on:
-#      - hub
     networks:
       - web
     environment:
       - HUB_HOST=hub
       - HUB_PORT=4444
-#    expose:
-#      - "4444:4444"
+    expose:
+      - "4444:4444"
+    env_file:
+      - api/api.env
+   
