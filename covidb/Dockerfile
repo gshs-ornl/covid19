@@ -7,5 +7,6 @@ ADD pgconf/setup.sql /tmp/init.sql
 ADD data.sql /tmp/data.sql
 ADD triggers.sql /tmp/triggers.sql
 ADD views.sql /tmp/views.sql
+ADD data /tmp/
 ADD pgconf/post-start-hook.sh /pgconf/post-start-hook.sh
 USER postgres
