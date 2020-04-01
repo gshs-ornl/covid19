@@ -5,6 +5,11 @@
 -- Description: Init sql for creating database
 --              objects for the Covid Scraper project.
 -- =============================================
+
+
+-- TODO: Add josh tables
+
+
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
@@ -109,8 +114,6 @@ pending integer default null,
 active integer default null,
 inconclusive integer default null,
 quarantined integer default null,
-private_tests integer default null,
-state_tests integer default null,
 scrape_group integer default null,
 resolution varchar default null,
 icu integer default null,
@@ -133,6 +136,7 @@ age_deaths_percent varchar default null,
 sex varchar default null,
 sex_counts integer default null,
 sex_percent varchar default null,
+sex_death integer default null,
 other  varchar default null,
 other_value integer default null
 );
@@ -182,8 +186,6 @@ pending integer default null,
 active integer default null,
 inconclusive integer default null,
 quarantined integer default null,
-private_tests integer default null,
-state_tests integer default null,
 scrape_group_id integer REFERENCES scraping.scrape_group (id),
 resolution varchar default null,
 icu integer default null,
@@ -206,6 +208,7 @@ age_deaths_percent varchar default null,
 sex varchar default null,
 sex_counts integer default null,
 sex_percent varchar default null,
+sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
 CONSTRAINT const_country UNIQUE (country_id, provider, updated)
@@ -239,8 +242,6 @@ pending integer default null,
 active integer default null,
 inconclusive integer default null,
 quarantined integer default null,
-private_tests integer default null,
-state_tests integer default null,
 scrape_group_id integer references scraping.scrape_group(id),
 resolution varchar default null,
 icu integer default null,
@@ -263,6 +264,7 @@ age_deaths_percent varchar default null,
 sex varchar default null,
 sex_counts integer default null,
 sex_percent varchar default null,
+sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
 CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated)
@@ -298,8 +300,6 @@ pending integer default null,
 active integer default null,
 inconclusive integer default null,
 quarantined integer default null,
-private_tests integer default null,
-state_tests integer default null,
 scrape_group_id integer references scraping.scrape_group(id),
 resolution varchar default null,
 icu integer default null,
@@ -322,6 +322,7 @@ age_deaths_percent varchar default null,
 sex varchar default null,
 sex_counts integer default null,
 sex_percent varchar default null,
+sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
 CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated)
