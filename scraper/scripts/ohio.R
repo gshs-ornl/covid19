@@ -2,8 +2,4 @@
 library(covidR)
 library(data.table)
 
-dt <- scrape_ohio()
-filename <- paste0('../../data/output/ohio_',
-                   format(Sys.Date(),format = '%Y%d%m%H%M'), '.csv')
-dt[, page := NULL]
-fwrite(dt, file = filename)
+dt <- wrap_scraper(scrape_ohio())

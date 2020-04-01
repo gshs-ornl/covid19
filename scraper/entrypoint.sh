@@ -2,5 +2,5 @@
 while true; do
   echo "Executing Python Runner"
   python3 /tmp/py_runner.py
-  sleep 43200
+  sleep 21600
 done
