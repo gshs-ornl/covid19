@@ -4,6 +4,7 @@ import requests
 import datetime
 from numpy import nan
 import pandas as pd
+from cvpy.static import Headers
 
 
 country = 'US'
@@ -11,21 +12,7 @@ date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y
 url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
 state = 'Illinois'
 resolution = 'county'
-columns = ['country', 'state', 'url', 'raw_page', 'access_time', 'county',
-           'cases', 'updated', 'deaths', 'presumptive', 'recovered', 'tested',
-           'hospitalized', 'negative', 'counties', 'severe', 'lat', 'lon',
-           'parish', 'monitored', 'private_test', 'state_test',
-           'no_longer_monitored', 'pending_tests', 'active', 'inconclusive',
-           'scrape_group', 'icu',
-           'cases_0_9', 'cases_10_19', 'cases_20_29',  'cases_30_39',
-           'cases_40_49', 'cases_50_59', 'cases_60_69', 'cases_70_79',
-           'cases_80',
-           'hospitalized_0_9', 'hospitalized_10_19', 'hospitalized_20_29',
-           'hospitalized_30_39', 'hospitalized_40_49', 'hospitalized_50_59',
-           'hospitalized_60_69', 'hospitalized_70_79', 'hospitalized_80',
-           'deaths_0_9', 'deaths_10_19', 'deaths_20_29', 'deaths_30_39',
-           'deaths_40_49', 'deaths_50_59', 'deaths_60_69', 'deaths_70_79',
-           'deaths_80']
+columns = Headers.updated_site
 
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
@@ -33,29 +20,38 @@ row_csv = []
 
 updated_date = raw_data['LastUpdateDate']
 for feature in raw_data['characteristics_by_county']['values']:
-    county = feature['County']
+    county_name = feature['County']
     # This gives the whole state total
-    if county != 'Illinois':
-        cases = feature['confirmed_cases']
-        tested = feature['total_tested']
-        negative = feature['negative']
-        deaths = feature['deaths']
+    if county_name == 'Illinois':
+        resolution = 'state'
+        county = nan
+    else:
+        resolution = 'county'
+        county = county_name
 
-        row_csv.append([
-            country, state, url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan, nan, tested,
-            nan, negative, nan, nan, nan, nan,
-            nan,  nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan, nan])
+    cases = feature['confirmed_cases']
+    tested = feature['total_tested']
+    negative_tests = feature['negative']
+    deaths = feature['deaths']
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, county,
+        cases, nan, deaths, nan,
+        nan, tested, nan, negative_tests,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        nan, nan])
+
+
 
 
 df = pd.DataFrame(row_csv, columns=columns)

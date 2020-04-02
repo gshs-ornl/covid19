@@ -2,5 +2,4 @@
 library(covidR)
 library(data.table)
 
-fxn <- 'scrape_alabama()'
-dt <- wrap_scraper(fxn)
+dt <- wrap_scraper(scrape_alabama())

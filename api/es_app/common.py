@@ -37,3 +37,19 @@ def eval_list(list_: str, element_type: Callable = str) -> List[Any]:
 
 def pretty_time() -> str:
     return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def identity(item: Any) -> Any:
+    return item
+
+
+def make_getter(key: str, *methods: Callable) -> Any:
+    def getter(gettable: Any) -> Any:
+        tmp = gettable.get(key)
+        if tmp is None:
+            return None
+        if methods:
+            for func in methods:
+                tmp = func(tmp)
+        return tmp
+    return getter

@@ -1,10 +1,7 @@
 FROM code.ornl.gov:4567/nset_covid19/covid19scrapers/base:latest
 
-ENV HOME /opt/repo
-ENV NGINX_VERSION 1.15.7-1~stretch
-
 RUN apt-get update \
-    && apt-get install -y \
+    && apt-get install -y -t unstable \
         ca-certificates \
         nginx \
         gettext-base \
@@ -12,10 +9,8 @@ RUN apt-get update \
         uwsgi \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -g 101 -u 1001 nginx  
-
 #configuration configuration
-COPY ./deployment/nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.conf /etc/nginx/nginx.conf
 #RUN rm /etc/nginx/conf.d/default.conf
 RUN mkdir -p /spool/nginx /run/pid \
     && chmod -R 666 \
@@ -33,11 +28,11 @@ COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 WORKDIR /tmp
 
 # copy over required files
-COPY ./es_app .
+COPY ./es_app/* ./es_app/es_app/
 COPY ./requirements.txt .
-COPY .setup.py .
+COPY ./setup.py ./es_app/setup.py
 
-RUN python3 setup.py install
+RUN pip install ./es_app
 
 # install python requirements
 RUN pip install -r requirements.txt
@@ -45,7 +40,7 @@ RUN pip install -r requirements.txt
 WORKDIR /opt/repo
 
 COPY ./es_app/app.py .
-RUN chmod +x app.py && chown -R nginx:101 /opt/repo
+RUN chmod +x app.py
 
 EXPOSE 8888
 
