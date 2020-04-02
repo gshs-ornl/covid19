@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime
 from cvpy.common import check_environment as ce
-from cvpy.common import send_email as email_sender
+from cvpy.emails import send_email as email_sender
 
 
 class ScriptError():

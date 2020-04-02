@@ -4,10 +4,11 @@ import logging
 from datetime import datetime
 from cvpy.common import check_environment as ce
 from cvpy.logging import DictLogger
-from cvpy.common import get_all_scripts, run_script
+from cvpy.common import get_all_scripts
+from cvpy.runners import run_script
 # retrieve the logger
 PY_LOGGER = ce('PY_LOGGER', 'main')
-logging.config(DictLogger.SIMPLE)
+logging.dictConfig(DictLogger.SIMPLE)
 logger = logging.getLogger(PY_LOGGER)
 
 
