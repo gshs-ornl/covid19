@@ -141,8 +141,13 @@ other_value integer default null
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
 (
     id         SERIAL PRIMARY KEY,
-    age_ranges varchar
+    age_ranges varchar,
+    CONSTRAINT cons_url UNIQUE (age_ranges)
 );
+
+INSERT INTO scraping.age_ranges(age_ranges)
+values ('UNKNOWN');
+
 CREATE TABLE IF NOT EXISTS scraping.pages
 (
     id          SERIAL PRIMARY KEY,
@@ -192,7 +197,7 @@ lab varchar default null,
 lab_tests integer default null,
 lab_positive integer default null,
 lab_negative integer default null,
-age_range varchar default null,
+age_range integer REFERENCES scraping.age_ranges(id) default 1,
 age_cases integer default null,
 age_percent varchar default null,
 age_deaths integer default null,
@@ -208,7 +213,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_country UNIQUE (country_id, provider, updated)
+CONSTRAINT const_country UNIQUE (country_id, provider, updated, age_range)
 );
 
 
@@ -248,7 +253,7 @@ lab varchar default null,
 lab_tests integer default null,
 lab_positive integer default null,
 lab_negative integer default null,
-age_range varchar default null,
+age_range integer REFERENCES scraping.age_ranges(id) default 1,
 age_cases integer default null,
 age_percent varchar default null,
 age_deaths integer default null,
@@ -264,7 +269,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated)
+CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated, age_range)
 );
 
 CREATE TABLE IF NOT EXISTS scraping.county_data
@@ -306,7 +311,7 @@ lab varchar default null,
 lab_tests integer default null,
 lab_positive integer default null,
 lab_negative integer default null,
-age_range varchar default null,
+age_range integer REFERENCES scraping.age_ranges(id) default 1,
 age_cases integer default null,
 age_percent varchar default null,
 age_deaths integer default null,
@@ -322,7 +327,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated)
+CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated, age_range)
 );
 
 
