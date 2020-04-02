@@ -2,7 +2,8 @@
 """Contains errors class which will email information regarding errors."""
 import logging
 from datetime import datetime
-from cvpy.static import check_environment as ce
+from cvpy.common import check_environment as ce
+from cvpy.common import send_email as email_sender
 
 
 class ScriptError():
