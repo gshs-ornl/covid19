@@ -34,7 +34,7 @@ create view scraping.vw_country_data as
        lab_tests,
        lab_positive,
        lab_negative,
-       (select age_range from scraping.age_ranges s where s.age_ranges = age_range) as age_range,
+           a.age_ranges
        age_cases,
        age_percent,
        age_deaths,
@@ -55,7 +55,8 @@ from scraping.country_data cd
          join static.country ctry ON ctry.id = cd.country_id
          join scraping.scrape_group sg ON sg.id = cd.scrape_group_id
          join scraping.pages p ON p.id = cd.page_id
-         join static.urls u ON u.id = cd.url_id;
+         join static.urls u ON u.id = cd.url_id
+         join scraping.age_ranges a ON a.id = cd.age_range;
 
 
 create view scraping.vw_state_data as
@@ -92,7 +93,7 @@ select ctry.country,
        lab_tests,
        lab_positive,
        lab_negative,
-       (select age_range from scraping.age_ranges s where s.age_ranges = age_range) as age_range,
+           a.age_ranges
        age_cases,
        age_percent,
        age_deaths,
@@ -114,7 +115,8 @@ from scraping.state_data sd
          join static.country ctry ON ctry.id = s.country_id
          join scraping.scrape_group sg ON sg.id = sd.scrape_group_id
          join scraping.pages p ON p.id = sd.page_id
-         join static.urls u ON u.id = sd.url_id;
+         join static.urls u ON u.id = sd.url_id
+         join scraping.age_ranges a On a.id = sd.age_range;
 
 
 create view scraping.vw_county_data as
@@ -152,7 +154,7 @@ select ctry.country,
        lab_tests,
        lab_positive,
        lab_negative,
-       (select age_range from scraping.age_ranges s where s.age_ranges = age_range) as age_range,
+       a.age_ranges,
        age_cases,
        age_percent,
        age_deaths,
@@ -176,7 +178,9 @@ from scraping.county_data cd
          join static.country ctry ON ctry.id = s.country_id
          join scraping.scrape_group sg ON sg.id = cd.scrape_group_id
          join scraping.pages p ON p.id = cd.page_id
-         join static.urls u ON u.id = cd.url_id;
+         join static.urls u ON u.id = cd.url_id
+         join scraping.age_ranges a On a.id = cd.age_range;
+
 
 GRANT USAGE ON SCHEMA scraping TO guest;
 GRANT SELECT ON scraping.vw_country_data TO guest;
