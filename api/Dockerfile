@@ -28,14 +28,14 @@ COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 WORKDIR /tmp
 
 # copy over required files
-COPY ./es_app/* ./es_app/es_app/
 COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+COPY ./es_app/* ./es_app/es_app/
 COPY ./setup.py ./es_app/setup.py
 
 RUN pip install ./es_app
 
 # install python requirements
-RUN pip install -r requirements.txt
 
 WORKDIR /opt/repo
 
