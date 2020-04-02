@@ -300,6 +300,7 @@ BEGIN
                NEW.age_hospitalized_percent,
                NEW.age_negative_percent,
                NEW.age_deaths_percent,
+               NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
                NEW.sex_death,
