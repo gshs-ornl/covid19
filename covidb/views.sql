@@ -392,19 +392,11 @@ from (
 
     );
 
-
-
-
-
-
-
-
-
-
-
 GRANT USAGE ON SCHEMA scraping TO guest;
 GRANT SELECT ON scraping.vw_country_data TO guest;
 GRANT SELECT ON scraping.vw_county_data TO guest;
 GRANT SELECT ON scraping.vw_state_data TO guest;
-
+GRANT SELECT ON scraping.vw_ps_country_data TO guest;
+GRANT SELECT ON scraping.vw_ps_state_data TO guest;
+GRANT SELECT ON scraping.vw_ps_county_data TO guest;
 
