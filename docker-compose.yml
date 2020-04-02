@@ -6,11 +6,9 @@ volumes:
   covid_out:
     external: true
 
-
 networks:
   web:
  
-
 services:  
 
   api:
@@ -49,6 +47,7 @@ services:
       
   db:
     build: ./covidb
+    container_name: covidb
     environment:
       - PG_DATABASE=covidb
       - PG_PRIMARY_USER=cvadmin
@@ -64,7 +63,6 @@ services:
       - TIMEZONE=UTC
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
-    container_name: covidb
     networks:
       - web
     env_file:
