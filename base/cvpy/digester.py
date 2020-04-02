@@ -2,7 +2,7 @@
 """Contains the Digest() class which will take the assimilated CSVs."""
 import logging
 from cvpy.database import Database
-from cvpy.static import check_environment as ce
+from cvpy.common import check_environment as ce
 
 
 class Digest():
