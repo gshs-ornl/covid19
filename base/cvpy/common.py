@@ -27,9 +27,10 @@ def check_environment(env_var, default=None):
 
 
 def get_all_scripts(script_dir,
-                    logger=logging.getLogger('main')):
+                    logger=logging.getLogger(check_environment('PY_LOGGER',
+                                                               'main'))):
     """Retrieve all scripts in the specified directory."""
-    r_scripts = glob(f'{script_dir}/*.R')
+    r_scripts = glob(f'{script_dir}/*.(r|R)')
     logger.info(f'Retrieved R scripts {r_scripts}')
     py_scripts = glob(f'{script_dir}/*.py')
     logger.info(f'Retrieved Python scripts {py_scripts}')
