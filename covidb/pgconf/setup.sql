@@ -7,9 +7,6 @@
 -- =============================================
 
 
--- TODO: Add josh tables
-
-
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
@@ -327,6 +324,47 @@ other  varchar default null,
 other_value integer default null,
 CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated)
 );
+
+
+--"Melt" Tables
+
+CREATE TABLE IF NOT EXISTS scraping.attribute_classes
+ (id SERIAL PRIMARY KEY,
+  name varchar NOT NULL,
+  units varchar,
+  class varchar
+);
+
+CREATE TABLE IF NOT EXISTS scraping.attributes
+ (id SERIAL PRIMARY KEY,
+  attribute varchar NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scraping.melt
+ (country_id integer REFERENCES static.country(id),
+  state_id integer REFERENCES static.country(id),
+  county_id integer REFERENCES static.county(id),
+  updated timestamp with time zone NOT NULL,
+  page_id integer REFERENCES scraping.pages(id),
+  scrape_group integer REFERENCES scraping.scrape_group(id),
+  attribute_class integer REFERENCES scraping.attribute_classes(id),
+  attribute integer REFERENCES scraping.attributes(id),
+  value numeric NOT NULL
+);
+
+
+
+CREATE TABLE IF NOT EXISTS scraping.melt
+  (country_id integer REFERENCES static.country(id),
+   state_id integer REFERENCES static.country(id),
+   county_id integer REFERENCES static.county(id),
+   updated timestamp with time zone NOT NULL,
+   page_id integer REFERENCES scraping.pages(id),
+   scrape_group integer REFERENCES scraping.scrape_group(id),
+   attribute_class integer REFERENCES scraping.attribute_classes(id),
+   attribute integer REFERENCES scraping.attributes(id),
+   value numeric NOT NULL
+ );
 
 --Functions
 

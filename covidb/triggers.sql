@@ -86,8 +86,6 @@ BEGIN
                                            active,
                                            inconclusive,
                                            quarantined,
-                                           private_tests,
-                                           state_tests,
                                            scrape_group_id,
                                            resolution,
                                            icu,
@@ -110,6 +108,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
+                                           sex_deaths,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -136,8 +135,6 @@ BEGIN
                NEW.active,
                NEW.inconclusive,
                NEW.quarantined,
-               NEW.private_tests,
-               NEW.state_tests,
                v_scrape_group,
                NEW.resolution,
                NEW.icu,
@@ -160,6 +157,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
+               NEW.sex_deaths,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_country
@@ -185,8 +183,6 @@ BEGIN
                active = NEW.active,
                inconclusive = NEW.inconclusive,
                quarantined = NEW.quarantined,
-               private_tests = NEW.private_tests,
-               state_tests = NEW.state_tests,
                scrape_group_id = v_scrape_group,
                resolution = NEW.resolution,
                icu = NEW.icu,
@@ -209,6 +205,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
+               sex_deaths = NEW.sex_deaths,
                other = NEW.other,
                other_value = NEW.other_value;
 
@@ -236,8 +233,6 @@ BEGIN
                                            active,
                                            inconclusive,
                                            quarantined,
-                                           private_tests,
-                                           state_tests,
                                            scrape_group_id,
                                            resolution,
                                            icu,
@@ -260,6 +255,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
+                                         sex_deaths,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -287,8 +283,6 @@ BEGIN
                NEW.active,
                NEW.inconclusive,
                NEW.quarantined,
-               NEW.private_tests,
-               NEW.state_tests,
                v_scrape_group,
                NEW.resolution,
                NEW.icu,
@@ -311,6 +305,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
+               NEW.sex_deaths,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_state
@@ -336,8 +331,6 @@ BEGIN
                active = NEW.active,
                inconclusive = NEW.inconclusive,
                quarantined = NEW.quarantined,
-               private_tests = NEW.private_tests,
-               state_tests = NEW.state_tests,
                scrape_group_id = v_scrape_group,
                resolution = NEW.resolution,
                icu = NEW.icu,
@@ -360,6 +353,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
+                sex_deaths = NEW.sex_deaths,
                other = NEW.other,
                other_value = NEW.other_value;
     end if;
@@ -385,8 +379,6 @@ BEGIN
                                            active,
                                            inconclusive,
                                            quarantined,
-                                           private_tests,
-                                           state_tests,
                                            scrape_group_id,
                                            resolution,
                                            icu,
@@ -409,6 +401,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
+                                          sex_deaths,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -439,8 +432,6 @@ BEGIN
                NEW.active,
                NEW.inconclusive,
                NEW.quarantined,
-               NEW.private_tests,
-               NEW.state_tests,
                v_scrape_group,
                NEW.resolution,
                NEW.icu,
@@ -463,6 +454,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
+               NEW.sex_deaths,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_county
@@ -488,8 +480,6 @@ BEGIN
                active = NEW.active,
                inconclusive = NEW.inconclusive,
                quarantined = NEW.quarantined,
-               private_tests = NEW.private_tests,
-               state_tests = NEW.state_tests,
                scrape_group_id = v_scrape_group,
                resolution = NEW.resolution,
                icu = NEW.icu,
@@ -512,6 +502,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
+               sex_deaths = NEW.sex_deaths,
                other = NEW.other,
                other_value = NEW.other_value;
     end if;
@@ -536,4 +527,4 @@ CREATE TRIGGER tr_raw_data
 EXECUTE PROCEDURE scraping.fn_update_scraping();
 
 
-
+--TODO: Add Melt Trigger Func and obj.
