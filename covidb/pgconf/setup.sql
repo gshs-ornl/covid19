@@ -145,9 +145,6 @@ CREATE TABLE IF NOT EXISTS scraping.age_ranges
     CONSTRAINT cons_url UNIQUE (age_ranges)
 );
 
-INSERT INTO scraping.age_ranges(age_ranges)
-values ('UNKNOWN');
-
 CREATE TABLE IF NOT EXISTS scraping.pages
 (
     id          SERIAL PRIMARY KEY,
