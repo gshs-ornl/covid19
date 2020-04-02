@@ -17,7 +17,14 @@ do
 done
 
 sleep 5
-
+echo "creating covid db objects"
 psql -h /tmp -U postgres -d covidb -f /tmp/init.sql
+# psql -h /tmp -U postgres -d covidb -f /tmp/data.sql
+psql -h /tmp -U postgres -d covidb -f /tmp/triggers.sql
 psql -h /tmp -U postgres -d covidb -f /tmp/views.sql
+echo "loading data"
+psql -d covidb -c "COPY static.country FROM '/tmp/static_country.csv' DELIMITER ',' CSV;"
+psql -d covidb -c "COPY static.states FROM '/tmp/static_states.csv' DELIMITER ',' CSV;"
+psql -d covidb -c "COPY static.county FROM '/tmp/static_county.csv' DELIMITER ',' CSV;"
+psql -d covidb -c "COPY static.fips_lut FROM '/tmp/fips_lut.csv' DELIMITER ',' CSV;"
 echo "finished setting stuff up"
