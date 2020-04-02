@@ -19,7 +19,7 @@ DECLARE
                            where scrape_group = NEW.scrape_group);
     v_age_range    int := (select id
                            from scraping.age_ranges
-                           where age_ranges.age_ranges = NEW.age_range);
+                           where age_ranges.age_ranges = COALESCE(NEW.age_range, 'UNKNOWN'));
     v_url          int := (select id
                            from static.urls
                            where urls.url = NEW.url);
@@ -44,10 +44,11 @@ BEGIN
         returning id into v_scrape_group;
 
     END IF;
+
     IF (v_age_range is null) THEN
         INSERT INTO scraping.age_ranges(age_ranges)
-        select coalesce(NEW.age_range, 'UNKNOWN')
-        returning id into v_url;
+        select COALESCE(NEW.age_range, 'UNKNOWN')
+        returning id into v_age_range;
     end if;
 
     IF (v_url is null) THEN
@@ -523,49 +524,4 @@ CREATE TRIGGER tr_raw_data
 EXECUTE PROCEDURE scraping.fn_update_scraping();
 
 
-
-
--- =============================================
--- Author:      Bryan Eaton
--- Create date:  4/2/2020
--- Description: Trigger function to populate "melt" tables
--- =============================================
-create or replace function scraping.fn_update_scraping_melt() returns trigger
-    language plpgsql
-as
-$$
-DECLARE
-    v_page_id      int := (select id
-                           from scraping.pages
-                           where hash = digest(quote_literal(NEW.page), 'sha256')::varchar(64));
-    v_scrape_group int := (select id
-                           from scraping.scrape_group
-                           where scrape_group = NEW.scrape_group);
-    v_age_range    int := (select id
-                           from scraping.age_ranges
-                           where age_ranges.age_ranges = NEW.age_range);
-    v_url          int := (select id
-                           from static.urls
-                           where urls.url = NEW.url);
-
-    v_fips int := (select id
-                           from static.fips_lut l
-                           where county_id = (select id from static.county where county_name = NEW.county
-                           and state_id = (select id from static.states s where state = NEW.state)));
-
-BEGIN
-    RETURN NEW;
-END
-$$;
--- =============================================
--- Author:      Bryan Eaton
--- Create date:  3/31/2020
--- Description: Trigger object to execute fn_update_scraping_melt
---              after each insert to raw_data.
--- =============================================
-DROP TRIGGER IF EXISTS tr_raw_data on scraping.raw_data;
-CREATE TRIGGER tr_raw_data
-    AFTER INSERT
-    ON scraping.raw_data
-    FOR EACH ROW
-EXECUTE PROCEDURE scraping.fn_update_scraping_melt();
+--TODO: Add Melt Trigger Func and obj.
