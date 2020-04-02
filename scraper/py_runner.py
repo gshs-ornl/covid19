@@ -23,4 +23,5 @@ if __name__ == "__main__":
             results.append(run_script(script, 'py'))
         elif script.endswith('.R'):
             results.append(run_script(script, 'r'))
+    # TODO add an elegant way to handle the results, probably a cvpy method
     print(results)
