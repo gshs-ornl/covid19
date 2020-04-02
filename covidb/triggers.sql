@@ -108,7 +108,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
-                                           sex_deaths,
+                                           sex_death,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -157,7 +157,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
-               NEW.sex_deaths,
+               NEW.sex_death,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_country
@@ -205,7 +205,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
-               sex_deaths = NEW.sex_deaths,
+               sex_death = NEW.sex_death,
                other = NEW.other,
                other_value = NEW.other_value;
 
@@ -255,7 +255,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
-                                         sex_deaths,
+                                         sex_death,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -305,7 +305,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
-               NEW.sex_deaths,
+               NEW.sex_death,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_state
@@ -353,7 +353,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
-                sex_deaths = NEW.sex_deaths,
+                sex_death = NEW.sex_death,
                other = NEW.other,
                other_value = NEW.other_value;
     end if;
@@ -401,7 +401,7 @@ BEGIN
                                            sex,
                                            sex_counts,
                                            sex_percent,
-                                          sex_deaths,
+                                          sex_death,
                                            other,
                                            other_value)
         select NEW.provider,
@@ -454,7 +454,7 @@ BEGIN
                NEW.sex,
                NEW.sex_counts,
                NEW.sex_percent,
-               NEW.sex_deaths,
+               NEW.sex_death,
                NEW.other,
                NEW.other_value
         ON CONFLICT ON CONSTRAINT const_county
@@ -502,7 +502,7 @@ BEGIN
                sex = NEW.sex,
                sex_counts = NEW.sex_counts,
                sex_percent = NEW.sex_percent,
-               sex_deaths = NEW.sex_deaths,
+               sex_death = NEW.sex_death,
                other = NEW.other,
                other_value = NEW.other_value;
     end if;
