@@ -33,6 +33,7 @@ class ScriptError():
         if self.production:
             # TODO fill this in with proper logic
             logging.info(f'Sending message: {msg}')
+            email_sender(self.emails, f'COVID19 Scrapers Error {self.timestamp}', msg)
             pass
         if not self.production:
             # this will always pass, as we don't want to email if not in prod
