@@ -133,9 +133,9 @@ if [ "$RETRIEVE" -eq "1" ]; then
 fi
 if [ "$BUILD" -eq "1" ]; then
   info "Building image $IMAGE_TAG"
-  if [ "$CACHE" -eq "0" ]; then
+  if [ "$CACHE" -eq "1" ]; then
     docker build -t "$IMAGE_TAG" -f base/Dockerfile base/
-  elif [ "$CACHE" -eq "1" ]; then
+  elif [ "$CACHE" -eq "0" ]; then
     docker build --no-cache -t "$IMAGE_TAG" -f base/Dockerfile base/
   fi
 fi
