@@ -27,6 +27,9 @@
 #/   -i|--interactive)
 #/       enter specified container interactively
 #/
+#/   --no-cache)
+#/       build without cache; WARNING this may take > 1 hr depending on specs
+#/
 # 1}}} ------------------------------------------------------------------------
 # environment {{{1 ------------------------------------------------------------
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -39,6 +42,7 @@ UP=0
 INTERACTIVE=0
 DE=0
 RETRIEVE=0
+CACHE=1
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -102,6 +106,10 @@ while :; do
       RETRIEVE=1
       shift
       ;; # 3}}}
+    --no-cache) # {{{3
+      CACHE=0
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -125,7 +133,11 @@ if [ "$RETRIEVE" -eq "1" ]; then
 fi
 if [ "$BUILD" -eq "1" ]; then
   info "Building image $IMAGE_TAG"
-  docker build -t "$IMAGE_TAG" -f base/Dockerfile base/
+  if [ "$CACHE" -eq "0" ]; then
+    docker build -t "$IMAGE_TAG" -f base/Dockerfile base/
+  elif [ "$CACHE" -eq "1" ]; then
+    docker build --no-cache -t "$IMAGE_TAG" -f base/Dockerfile base/
+  fi
 fi
 if [ "$PUSH" -eq "1" ]; then
   info "Pushing image $IMAGE_TAG"
