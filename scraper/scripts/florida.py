@@ -2,6 +2,7 @@
 
 import requests
 import datetime
+import json
 from numpy import nan
 import pandas as pd
 from cvpy.static import Headers
@@ -24,18 +25,75 @@ keys_used = ['County_1','C_FLRes', 'C_NotFLRes', 'C_Hosp_Yes',
              'COUNTY', 'COUNTYNAME', 'DATESTAMP', 'ShapeSTAre',
              'ShapeSTLen', 'OBJECTOD_1', 'State', 'OBJECTID_12',
              'DEPCODE_1', 'COUNTYN', 'Shape__Area', 'Shape__Length']
+gender_keys = ['C_Men', 'C_Women']
+age_keys = ['Age_0_4', 'Age_5_14', 'Age_15_24',
+            'Age_25_34', 'Age_35_44', 'Age_45_54',
+            'Age_55_64', 'Age_65_74', 'Age_75_84',
+            'Age_85plus', 'Age_Unkn']
+
+keys_used.extend(gender_keys)
+keys_used.extend(age_keys)
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
     county = attribute['County_1']
     if county != 'Unknown':
+        key_list = attribute.keys()
         # Get FL Resident and non-resident in FL
         cases = attribute['C_FLRes'] + attribute['C_NotFLRes']
         deaths = attribute['Deaths']
         hospitalized = attribute['C_Hosp_Yes']
         negative_tests = attribute['T_NegRes'] + attribute['T_NegNotFLRes']
         pending = attribute['TPending']
-        key_list = attribute.keys()
+
+        for age_key in age_keys:
+            age_range = age_key.split('Age_')[1]
+            age_tested = attribute[age_key]
+            age_cases_key = "C_"+age_key
+            age_cases_raw = attribute.get(age_cases_key)
+            if age_cases_raw is not None:
+                age_cases = age_cases_raw
+            else:
+                age_cases = nan
+
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, nan, deaths, nan,
+                nan, nan, nan, negative_tests,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                age_range, age_cases, nan, nan,
+                nan, age_tested, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                nan, nan])
+
+        for gender_key in gender_keys:
+            sex = gender_key.split('C_')[1]
+            sex_counts = attribute[gender_key]
+
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, nan, deaths, nan,
+                nan, nan, nan, negative_tests,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, sex, sex_counts, nan,
+                nan, nan])
+
         for key in key_list:
             if key not in keys_used:
                 other = key
@@ -57,6 +115,7 @@ for feature in raw_data['features']:
                     nan, nan, nan, nan,
                     other, other_value])
 
-
+with open('florida_data.json', 'w') as f:
+    json.dump(raw_data, f)
 df = pd.DataFrame(row_csv, columns=Headers.updated_site)
 df.to_csv('florida_.csv', index=False)

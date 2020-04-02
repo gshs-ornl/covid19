@@ -19,7 +19,7 @@ DECLARE
                            where scrape_group = NEW.scrape_group);
     v_age_range    int := (select id
                            from scraping.age_ranges
-                           where age_ranges.age_ranges = NEW.age_range);
+                           where age_ranges.age_ranges = COALESCE(NEW.age_range, 'UNKNOWN'));
     v_url          int := (select id
                            from static.urls
                            where urls.url = NEW.url);
@@ -47,7 +47,7 @@ BEGIN
 
     IF (v_age_range is null) THEN
         INSERT INTO scraping.age_ranges(age_ranges)
-        select NEW.age_range
+        select COALESCE(NEW.age_range, 'UNKNOWN')
         returning id into v_age_range;
     end if;
 
