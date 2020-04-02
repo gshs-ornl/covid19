@@ -30,7 +30,7 @@ services:
       - db.env
       - scraper/scrape.env
     volumes:
-      - covid_out:/tmp/
+      - covid_out:/tmp/output
 
   tidy:
     build: tidy
