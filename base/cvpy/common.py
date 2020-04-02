@@ -6,6 +6,10 @@ from glob import glob
 from cvpy.error import ScriptError
 from tempfile import TemporaryFile
 from subprocess import check_output, CalledProcessError
+# Import the email modules we'll need
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def check_environment(env_var, default=None):
