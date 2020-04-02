@@ -31,6 +31,7 @@ def get_all_scripts(script_dir,
                                                                'main'))):
     """Retrieve all scripts in the specified directory."""
     logger.info(f'Looking for scripts in {script_dir}')
+    logger.info(f'Directory contents: {os.listdir(script_dir)}')
     r_scripts = glob(f'{script_dir}/*.(r|R)')
     logger.info(f'Retrieved R scripts {r_scripts}')
     py_scripts = glob(f'{script_dir}/*.py')
