@@ -2,7 +2,8 @@
 """Contains errors class which will email information regarding errors."""
 import logging
 from datetime import datetime
-from cvpy.static import check_environment as ce
+from cvpy.common import check_environment as ce
+from cvpy.emails import send_email as email_sender
 
 
 class ScriptError():
@@ -32,6 +33,7 @@ class ScriptError():
         if self.production:
             # TODO fill this in with proper logic
             logging.info(f'Sending message: {msg}')
+            email_sender(self.emails, f'COVID19 Scrapers Error {self.timestamp}', msg)
             pass
         if not self.production:
             # this will always pass, as we don't want to email if not in prod

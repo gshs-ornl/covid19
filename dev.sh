@@ -21,6 +21,9 @@
 #/   -u|--up)
 #/       spin up the docker stack
 #/
+#/   -P|--pull)
+#/       get the latest base image
+#/
 #/   -i|--interactive)
 #/       enter specified container interactively
 #/
@@ -35,6 +38,7 @@ PUSH=0
 UP=0
 INTERACTIVE=0
 DE=0
+RETRIEVE=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -94,6 +98,10 @@ while :; do
       UP=1
       shift
       ;; # 3}}}
+    -P|--pull) # {{{3
+      RETRIEVE=1
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -111,6 +119,10 @@ done
 # logic {{{1 ------------------------------------------------------------------
 banner
 IMAGE_TAG="$TAG:$LABEL"
+if [ "$RETRIEVE" -eq "1" ]; then
+  info "Pulling latest image $IMAGE_TAG"
+  docker pull "$IMAGE_TAG"
+fi
 if [ "$BUILD" -eq "1" ]; then
   info "Building image $IMAGE_TAG"
   docker build -t "$IMAGE_TAG" -f base/Dockerfile base/
@@ -121,7 +133,7 @@ if [ "$PUSH" -eq "1" ]; then
 fi
 if [ "$UP" -eq "1" ]; then
   info "Spinning up stack"
-  docker-compose up -d --build scraper tidy covidb api
+  docker-compose up -d --build scraper tidy db api
 fi
 if [ "$INTERACTIVE" -eq "1" ]; then
   info "Dropping into shell of $DE"

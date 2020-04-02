@@ -2,15 +2,11 @@ version: '3.1'
 
 volumes:
   covidb_pg:
-    external: true
   covid_out:
-    external: true
-
 
 networks:
   web:
  
-
 services:  
 
   api:
@@ -34,7 +30,7 @@ services:
       - db.env
       - scraper/scrape.env
     volumes:
-      - covid_out:/tmp/
+      - covid_out:/tmp/output
 
   tidy:
     build: tidy
@@ -49,6 +45,7 @@ services:
       
   db:
     build: ./covidb
+    container_name: covidb
     environment:
       - PG_DATABASE=covidb
       - PG_PRIMARY_USER=cvadmin
@@ -64,7 +61,6 @@ services:
       - TIMEZONE=UTC
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
-    container_name: covidb
     networks:
       - web
     env_file:

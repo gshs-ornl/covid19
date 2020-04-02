@@ -35,11 +35,12 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     libgdal-dev gdal-bin libgeos++-dev libgeos-3.7.1 libproj-dev \
     proj-bin postgresql-client
 
-# install R
+# update apt source to point to the newest version of R
 RUN echo "deb http://http.debian.net/debian sid main" > \
       /etc/apt/sources.list.d/debian-unstable.list && \
       echo 'APT::Default-Release "testing";' > /etc/apt/apt.conf.d/default
 
+# install R
 RUN apt-get update -qqy && apt-get install -t unstable -y \
         --no-install-recommends littler r-cran-littler \
         r-base=${R_BASE_VERSION}-* r-base-dev=${R_BASE_VERSION}-* \
@@ -49,26 +50,22 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
       ln -s $R_LIB/littler/examples/installGithub.r \
         /usr/local/bin/installGithub.R 
 
-
 # install python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
         pip install --no-cache-dir -r requirements.txt
 
-# install our package
-COPY setup.py .
-COPY cvpy ./cvpy
-RUN python setup.py install --prefix=/usr/local
-
-
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
       sf stringr jsonlite rebus lubridate  \
       snakecase remotes readxl
-# install covidR
-# saving below for our web releases
-#RUN wget $COVID_URL/$COVID_VERS/covidR_$COVID_VERS.tar.gz && \
-      #install.r covidR_$COVID_VERS.tar.gz
+
+# install our python package
+COPY setup.py .
+COPY cvpy ./cvpy
+RUN python setup.py install --prefix=/usr/local
+
+# install our R package
 COPY covidR.tar.gz .
 RUN install.r covidR.tar.gz
 
