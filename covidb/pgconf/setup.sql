@@ -376,3 +376,11 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping, static TO jesters, cva
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA scraping to ingester;
+
+--cvadmin ability to backup
+GRANT USAGE ON SCHEMA topology TO cvadmin;
+GRANT SELECT ON ALL TABLES IN SCHEMA topology TO cvadmin;
+GRANT USAGE ON SCHEMA tiger TO cvadmin;
+GRANT SELECT ON ALL TABLES IN SCHEMA tiger TO cvadmin;
+GRANT USAGE ON SCHEMA jesters TO cvadmin;
+GRANT SELECT ON ALL TABLES IN SCHEMA jesters TO cvadmin;
