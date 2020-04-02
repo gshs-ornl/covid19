@@ -2,4 +2,4 @@
 library(covidR)
 library(data.table)
 
-dt <- wrap_scraper(scrape_tomquisel_once())
+scrape_tomquisel_once()

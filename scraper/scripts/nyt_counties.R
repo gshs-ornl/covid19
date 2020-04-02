@@ -2,4 +2,4 @@
 library(covidR)
 library(data.table)
 
-dt <- wrap_scraper(scrape_nyt_counties())
+scrape_nyt_counties()
