@@ -30,3 +30,4 @@ vignettes/*.pdf
 .Renviron
 *.sh[px]
 .idea/*
+tidy/output/
