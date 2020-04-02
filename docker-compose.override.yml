@@ -1,10 +1,8 @@
 version: '3.1'
 
 volumes:
-  covidb_pg:
-    external: true
-  covid_out:
-    external: true
+  covidb_pg_tst:
+  covid_out_tst:
 
 networks:
   web:
@@ -21,7 +19,7 @@ services:
     volumes:
       - covid_out:/tmp/output
     ports:
-      - "8888:8888"
+      - "8234:8888" # changed because 8888 conflicted on my server
 
   scraper:
     build: scraper
@@ -31,8 +29,11 @@ services:
     env_file:
       - db.env
       - scraper/scrape.env
+    environment:
+      - PRODUCTION=False
     volumes:
-      - covid_out:/tmp/output
+      - ./scraper:/tmp/
+      - covid_out_tst:/tmp/
 
   tidy:
     build: tidy
@@ -43,7 +44,8 @@ services:
       - db.env
       - tidy/tidy.env
     volumes:
-      - covid_out:/tmp/output
+      - ./tidy:/tmp/
+      - covid_out_tst:/tmp/output
       
   db:
     build: ./covidb
@@ -67,11 +69,11 @@ services:
       - web
     env_file:
       - db.env
-    expose:
+    expose:       # expose the port to only be internal
       - 5432
     volumes:
-      - covid_out:/tmp/output
-      - covidb_pg:/data
+      - covid_out_tst:/tmp/output
+      - covidb_pg_tst:/data
       
   chrome:
     image: selenium/standalone-chrome:latest
