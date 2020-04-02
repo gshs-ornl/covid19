@@ -210,7 +210,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_country UNIQUE (country_id, provider, updated, age_range)
+CONSTRAINT const_country UNIQUE (country_id, provider, updated, sex, age_range)
 );
 
 
@@ -266,7 +266,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated, age_range)
+CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated, sex, age_range)
 );
 
 CREATE TABLE IF NOT EXISTS scraping.county_data
@@ -324,7 +324,7 @@ sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
 other_value integer default null,
-CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated, age_range)
+CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated, sex, age_range) --TODO: Add Age Bracket
 );
 
 
@@ -353,8 +353,6 @@ CREATE TABLE IF NOT EXISTS scraping.melt
   attribute integer REFERENCES scraping.attributes(id),
   value numeric NOT NULL
 );
-
-
 
 CREATE TABLE IF NOT EXISTS scraping.melt
   (country_id integer REFERENCES static.country(id),
