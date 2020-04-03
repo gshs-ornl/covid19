@@ -29,14 +29,17 @@ class ScriptError():
 
     def email(self):
         """Send email to email recipients."""
-        self.logger.info(f'Sending email to {self.emails}')
-        msg = f'Script {self.script} failed with message: {self.text}'
+        msg = f'Script {self.script} failed with message\r\n: {self.text}'
         if self.production:
             # TODO fill this in with proper logic
-            logging.info(f'Sending message: {msg}')
+            self.logger.info(f'Sending email to {self.emails}')
+            self.logger.info(f'Sending message\r\n: {msg}')
             email_sender(self.emails, f'COVID19 Scrapers Error {self.timestamp}', msg)
             pass
         if not self.production:
+            self.logger.info(f'Error message: {msg}')
+            #Uncomment the code below to spam yourself with emails from your local test instance.
+            #email_sender(['<your_email_here@ornl.gov>'], f'COVID19 Scrapers Error {self.timestamp}', msg)
             # this will always pass, as we don't want to email if not in prod
             pass
 
