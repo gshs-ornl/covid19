@@ -3,6 +3,8 @@ version: '3.1'
 volumes:
   covidb_pg_tst:
   covid_out_tst:
+  covid_in_tst:
+  covid_clean_tst:
 
 networks:
   web:
@@ -17,7 +19,7 @@ services:
     env_file:
       - api/api.env
     volumes:
-      - covid_out:/tmp/output
+      - covid_in:/tmp/input
     ports:
       - "8234:8888" # changed because 8888 conflicted on my server
 
@@ -27,7 +29,6 @@ services:
     networks:
       - web
     env_file:
-      - db.env
       - scraper/scrape.env
     environment:
       - PRODUCTION=False
@@ -41,11 +42,14 @@ services:
     networks:
       - web
     env_file:
-      - db.env
       - tidy/tidy.env
     volumes:
       - ./tidy:/tmp/
       - covid_out_tst:/tmp/output
+      - covid_in_tst:/tmp/input
+      - covid_clean_tst:/tmp/clean
+    environment:
+      - PRODUCTION=False
       
   db:
     build: ./covidb
@@ -67,8 +71,6 @@ services:
       - BACKUP_PATH=latest
     networks:
       - web
-    env_file:
-      - db.env
     expose:       # expose the port to only be internal
       - 5432
     volumes:
