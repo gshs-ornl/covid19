@@ -5,6 +5,10 @@ volumes:
     external: true
   covid_out:
     external: true
+  covid_in:
+    external: true
+  covid_clean:
+    external: true
 
 networks:
   web:
@@ -12,38 +16,39 @@ networks:
 services:  
 
   api:
-    build: api
+    build: ./api
     container_name: api
     networks:
       - web
     env_file:
       - api/api.env
     volumes:
-      - covid_out:/tmp/output
+      - covid_in:/tmp/input
     ports:
       - "8888:8888"
 
   scraper:
-    build: scraper
+    build: ./scraper
     container_name: scraper
     networks:
       - web
     env_file:
-      - db.env
       - scraper/scrape.env
     volumes:
       - covid_out:/tmp/output
+      - covid_in:/tmp/input
 
   tidy:
-    build: tidy
+    build: ./tidy
     container_name: tidy
     networks:
       - web
     env_file:
-      - db.env
       - tidy/tidy.env
     volumes:
       - covid_out:/tmp/output
+      - covid_in:/tmp/input
+      - covid_clean:/tmp/clean
       
   db:
     build: ./covidb
@@ -57,7 +62,7 @@ services:
       - PG_PASSWORD=AngryMoose78
       - PG_ROOT_PASSWORD=AngryMoose77
       - PGDATA_PATH_OVERRIDE=persistent
-      - PGHOST=/tmp
+      - PGHOST=/data
       - MAX_CONNECTIONS=100
       - SHARED_BUFFERS=512MB
       - TIMEZONE=UTC
@@ -65,12 +70,10 @@ services:
       - BACKUP_PATH=latest
     networks:
       - web
-    env_file:
-      - db.env
     expose:
       - 5432
     volumes:
-      - covid_out:/tmp/output
+      - covid_clean:/tmp/clean
       - covidb_pg:/data
       
   chrome:
