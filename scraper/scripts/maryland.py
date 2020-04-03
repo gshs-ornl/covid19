@@ -70,6 +70,7 @@ for feature in raw_data['features']:
         hospitalized = attribute['total_hospitalized']
         cases_male = attribute['Male']
         cases_female = attribute['Female']
+        deaths = attribute['deaths']
 
         for age_key in age_keys:
             age_range = age_key.split('case')[1]
