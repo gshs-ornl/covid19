@@ -9,7 +9,8 @@ from cvpy.static import Headers
 
 country = 'US'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
-url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
+# url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
+url = 'http://www.dph.illinois.gov/sitefiles/COVIDTestResults.json?nocache=1'
 state = 'Illinois'
 resolution = 'county'
 columns = Headers.updated_site
