@@ -30,7 +30,18 @@ def get_all_scripts(script_dir,
                     logger=logging.getLogger(check_environment('PY_LOGGER',
                                                                'main'))):
     """Retrieve all scripts in the specified directory."""
-    r_scripts = glob(f'{script_dir}/*.(r|R)')
+    r_scripts = []
+    logger.info(f'Looking for scripts in {script_dir}')
+    logger.info(f'Directory contents: {os.listdir(script_dir)}')
+    r_scripts = glob(f'{script_dir}/*.r')
+    if r_scripts == []:
+        r_scripts = glob(f'{script_dir}/*.r')
+    if r_scripts == []:
+        r_scripts = glob(f'{script_dir}/*.R')
+    if r_scripts == []:
+        for directory, directories, files in os.walk(script_dir):
+            r_scripts = [os.path.join(script_dir, f) for f in files
+                         if not f.endswith('.py')]
     logger.info(f'Retrieved R scripts {r_scripts}')
     py_scripts = glob(f'{script_dir}/*.py')
     logger.info(f'Retrieved Python scripts {py_scripts}')

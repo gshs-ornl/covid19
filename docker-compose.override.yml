@@ -1,14 +1,10 @@
 version: '3.1'
 
 volumes:
-  covidb_pg:
-    external: true
-  covid_out:
-    external: true
-  covid_in:
-    external: true
-  covid_clean:
-    external: true
+  covidb_pg_tst:
+  covid_out_tst:
+  covid_in_tst:
+  covid_clean_tst:
 
 networks:
   web:
@@ -16,7 +12,7 @@ networks:
 services:  
 
   api:
-    build: ./api
+    build: api
     container_name: api
     networks:
       - web
@@ -25,30 +21,35 @@ services:
     volumes:
       - covid_in:/tmp/input
     ports:
-      - "8888:8888"
+      - "8234:8888" # changed because 8888 conflicted on my server
 
   scraper:
-    build: ./scraper
+    build: scraper
     container_name: scraper
     networks:
       - web
     env_file:
       - scraper/scrape.env
+    environment:
+      - PRODUCTION=False
     volumes:
-      - covid_out:/tmp/output
-      - covid_in:/tmp/input
+      - ./scraper:/tmp/
+      - covid_out_tst:/tmp/
 
   tidy:
-    build: ./tidy
+    build: tidy
     container_name: tidy
     networks:
       - web
     env_file:
       - tidy/tidy.env
     volumes:
-      - covid_out:/tmp/output
-      - covid_in:/tmp/input
-      - covid_clean:/tmp/clean
+      - ./tidy:/tmp/
+      - covid_out_tst:/tmp/output
+      - covid_in_tst:/tmp/input
+      - covid_clean_tst:/tmp/clean
+    environment:
+      - PRODUCTION=False
       
   db:
     build: ./covidb
@@ -62,7 +63,7 @@ services:
       - PG_PASSWORD=AngryMoose78
       - PG_ROOT_PASSWORD=AngryMoose77
       - PGDATA_PATH_OVERRIDE=persistent
-      - PGHOST=/data
+      - PGHOST=/tmp
       - MAX_CONNECTIONS=100
       - SHARED_BUFFERS=512MB
       - TIMEZONE=UTC
@@ -70,11 +71,11 @@ services:
       - BACKUP_PATH=latest
     networks:
       - web
-    expose:
+    expose:       # expose the port to only be internal
       - 5432
     volumes:
-      - covid_clean:/tmp/clean
-      - covidb_pg:/data
+      - covid_out_tst:/tmp/output
+      - covidb_pg_tst:/data
       
   chrome:
     image: selenium/standalone-chrome:latest
