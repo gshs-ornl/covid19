@@ -41,3 +41,13 @@ department  webpages. While the code for this package does not exist in this
 repository, there is a separate workflow for building the source package. 
 It is placed inside base as `covidR.tar.gz` regardless of version number.
 When the base image is built, the package is installed.
+
+## Environment
+The generic database connection information is stored in the base image, with
+specific user and passwords distributed to the built docker containers.
+
+The directories are also defined in the base image:
+- `OUTPUT_DIR` - the directory where the scrapers output the data as CSVs
+- `INPUT_DIR`  - the directory where tidy consolidates and outputs the
+                 aggregated directory
+- `CLEAN_DIR`  - the directory where the cleaned data is stored
