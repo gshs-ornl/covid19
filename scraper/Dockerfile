@@ -10,7 +10,7 @@ WORKDIR /tmp
 COPY scripts/ /tmp/scripts
 COPY bin/ /tmp/bin
 
-RUN ln -s /tmp/py_runner.py /usr/local/bin/py_runner.py
+RUN ln -s /tmp/bin/py_runner.py /usr/local/bin/py_runner.py
 
 COPY entrypoint.sh entrypoint.sh
 
