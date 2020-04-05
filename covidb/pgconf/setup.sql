@@ -135,7 +135,7 @@ sex_counts integer default null,
 sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
-other_value integer default null
+other_value numeric default null
 );
 
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
@@ -384,3 +384,4 @@ GRANT USAGE ON SCHEMA tiger TO cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA tiger TO cvadmin;
 GRANT USAGE ON SCHEMA jesters TO cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA jesters TO cvadmin;
+
