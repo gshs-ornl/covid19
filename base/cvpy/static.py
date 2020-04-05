@@ -91,7 +91,7 @@ class LoggingInfo:
 
 
 class ColumnHeaders:
-    """Provides a list of column headers to expect.""""
+    """Provides a list of column headers to expect."""
     site = ['country', 'state', 'url', 'page', 'access_time',
             'county', 'cases', 'updated', 'deaths', 'presumptive',
             'recovered', 'tested', 'hospitalized', 'negative',

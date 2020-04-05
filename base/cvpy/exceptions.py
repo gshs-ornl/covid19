@@ -9,7 +9,7 @@ from cvpy.errors import ErrorType
 class BaseException(Exception):
     """Provides base exception class for all exceptions."""
     def __init__(self, text, err_type=ErrorType.Unknown,
-                 logger=logging.getLogger(ce('PY_LOGGER', 'main')))
+                 logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
         super().__init__(text, err_type)
         print("-" * 60)
         traceback.print_stack()
