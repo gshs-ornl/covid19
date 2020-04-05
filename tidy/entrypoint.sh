@@ -1,3 +1,3 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 python3 /tmp/bin/scheduler.py
 tail -f /dev/null
