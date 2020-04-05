@@ -12,7 +12,7 @@ RUN chmod u-x,go-rwx /root/.pgpass
 
 COPY bin/ /tmp/bin
 
-RUN ln -s /tmp/bin/bash_scraper.sh /usr/local/bin/bash_scraper.sh && \
+RUN ln -s /tmp/bin/ingester.R /usr/local/bin/ingester.R && \
       ln -s /tmp/bin/slurper.py /usr/local/bin/slurper.py && \
       ln -s /tmp/bin/scheduler.py /usr/local/bin/scheduler.py && \
       ln -s /tmp/bin/create_views.sql /usr/local/bin/create_views.sql
