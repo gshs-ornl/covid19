@@ -2,9 +2,9 @@
 """Provides convenience methods to monitor a folder."""
 import logging
 from cvpy.slurp import Slurp
-from cvpy.ingester import Ingest
 from cvpy.digester import Digest
 from cvpy.common import check_environment as ce
+from cvpy.runners import run_r_script
 from watchdog.events import PatternMatchingEventHandler
 
 
@@ -18,7 +18,9 @@ class ScrapeHandler(PatternMatchingEventHandler):
         """Process a csv file that has been created in the $INPUT_DIR."""
         self.logger.info(f'Source Path:\t{event.src_path}\n' +
                          f'Event Type:\t{event.event_type}\n')
-        Ingest(event.src_path)
+        res = run_r_script('ingester.R')
+        self.logger.info(f'ingester.R exited with code {res[0]} and ' +
+                         'message {res[1]}')
 
     def on_created(self, event):
         """Process event when file is created."""
