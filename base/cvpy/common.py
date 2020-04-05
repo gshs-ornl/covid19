@@ -2,6 +2,7 @@
 """Contains common functions used throughout the cvpy package."""
 import os
 import logging
+import pandas as pd
 from glob import glob
 
 
@@ -46,3 +47,15 @@ def get_all_scripts(script_dir,
     py_scripts = glob(f'{script_dir}/*.py')
     logger.info(f'Retrieved Python scripts {py_scripts}')
     return r_scripts + py_scripts
+
+def get_csv(csv, logger=logging.getLogger(check_environment('PY_LOGGER',
+                                                            'main'))):
+    """Using Pandas, retrieve a CSV with standard defaults."""
+    if not os.path.exists(csv):
+        logger.error(f'CSV file at {csv} does not exist.')
+        pass
+    return pd.read_csv(csv, na_values=[' ', '', 'NA', '<NA>'],
+                       keep_default_na=True, parse_dates=['updated',
+                                                          'access_time'],
+                       infer_datetime_format=True, encoding='utf_8',
+                       error_bad_lines=False)
