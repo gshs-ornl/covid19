@@ -16,8 +16,14 @@ class Directories:
             LOGS: (PosixPath) directory to store logs
 
     """
-    OUTPUT = Path('/tmp/output/')
-    LOGS = Path('/tmp/logs/')
+    OUTPUT_DIR = ce('OUTPUT_DIR', '/tmp/output')
+    OUTPUT = Path(OUTPUT_DIR)
+    INPUT_DIR = ce('INPUT_DIR', '/tmp/input')
+    INPUT = Path(INPUT_DIR)
+    CLEAN_DIR = ce('CLEAN_DIR', '/tmp/clean')
+    CLEAN = Path(CLEAN_DIR)
+    LOGS_DIR = ce('LOGS_DIR', '/tmp/logs')
+    LOGS = Path(LOGS_DIR)
 
 
 class DatabaseConnectionInfo:
@@ -48,16 +54,15 @@ class Colors:
 
 
 class Files:
-    """ define the default file paths in the container """
-
-    LOG = Path('/tmp/cvpy.log')
-    LOG_STR = '/tmp/cvpy.log'
-    ROTATE_LOG = Path('/tmp/cvpy_rotate.log')
-    ROTATE_LOG_STR = '/tmp/cvpy_rotate.log'
-
+    """Define the default file paths in the container."""
+    LOG_FILE = ce('LOG_FILE', '/tmp/logs/main.log')
+    LOG = Path(LOG_FILE)
+    ROTATE_FILE = ce('ROTATE_LOG_FILE', '/tmp/logs/rotate.log')
+    ROTATE = Path(ROTATE_FILE)
 
 
 class LoggingInfo:
+    """Define the logging format information."""
     MASTERFORMAT = f'[{Colors.YELLOW}%(asctime)s{Colors.RESET}]' + \
         f'-({Colors.BEIGE}%(process)d{Colors.RESET})- ' + \
         f'{Colors.GREEN}%(levelname)8s{Colors.RESET} - ' + \
@@ -85,7 +90,8 @@ class LoggingInfo:
         '{%(process)d}:%(filename)s|%(funcName)s:%(lineno)s - %(message)s'
 
 
-class Headers:
+class ColumnHeaders:
+    """Provides a list of column headers to expect.""""
     site = ['country', 'state', 'url', 'page', 'access_time',
             'county', 'cases', 'updated', 'deaths', 'presumptive',
             'recovered', 'tested', 'hospitalized', 'negative',
@@ -131,3 +137,57 @@ class Headers:
                    'unknown', 'update_time', 'something', 'lat', 'lon', 'date']
 
 
+class DbData:
+    RAW = {
+        'provider' = 'string',
+        'country' = 'string',
+        'region' = 'string',
+        'url' = 'string',
+        'page' = 'string',
+        'access_time' = 'datetime',
+        'county' = 'string',
+        'cases' = 'int_',
+        'updated' = 'datetime',
+        'deaths' = 'int_',
+        'presumptive' = 'int_',
+        'recovered' = 'int_',
+        'tested' = 'int_',
+        'hospitalized' = 'int_',
+        'negative' = 'int_',
+        'counties' = 'int_',
+        'severe' = 'int_',
+        'lat' = 'float_',
+        'lon' = 'float_',
+        'fips' = 'string',
+        'monitored' = 'int_',
+        'no_longer_monitored' = 'int_',
+        'pending' = 'int_',
+        'active' = 'int_',
+        'inconclusive' = 'int_',
+        'quarantined' = 'int_',
+        'scrape_group' = 'int_',
+        'resolution' = 'string',
+        'icu' = 'int_',
+        'cases_male' = 'int_',
+        'cases_female' = 'int_',
+        'lab' = 'string',
+        'lab_tests' = 'int_',
+        'lab_positive' = 'int_',
+        'lab_negative' = 'int_',
+        'age_range' = 'string',
+        'age_cases' = 'int_',
+        'age_percent' = 'string',
+        'age_deaths' = 'int_',
+        'age_hospitalized' = 'int_',
+        'age_tested' = 'int_',
+        'age_negative' = 'int_',
+        'age_hospitalized_percent' = 'string',
+        'age_negative_percent' = 'string',
+        'age_deaths_percent' = 'string',
+        'sex' = 'string',
+        'sex_counts' = 'int_',
+        'sex_percent' = 'string',
+        'sex_death' = 'int_',
+        'other' = 'string',
+        'other_value' = 'float_'
+    }
