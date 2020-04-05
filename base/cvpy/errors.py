@@ -34,14 +34,18 @@ class ScriptError():
             # TODO fill this in with proper logic
             self.logger.info(f'Sending email to {self.emails}')
             self.logger.info(f'Sending message\r\n: {msg}')
-            email_sender(self.emails, f'COVID19 Scrapers Error {self.timestamp}', msg)
+            email_sender(self.emails,
+                         f'COVID19 Scrapers Error {self.timestamp}', msg)
             pass
         if not self.production:
             self.logger.info(f'Error message: {msg}')
-            #Uncomment the code below to spam yourself with emails from your local test instance.
-            #email_sender(['<your_email_here@ornl.gov>'], f'COVID19 Scrapers Error {self.timestamp}', msg)
+            # Uncomment the code below to spam yourself with emails from your
+            # local test instance.
+            # email_sender(['<your_email_here@ornl.gov>'],
+            #              f'COVID19 Scrapers Error {self.timestamp}', msg)
             # this will always pass, as we don't want to email if not in prod
             pass
+
 
 class SlurpError():
     """Error class for when the slurper encounters an issue.
@@ -70,10 +74,18 @@ class SlurpError():
         self.logger.info(f'Sending email to {self.emails}')
         msg = f'Script {self.script} failed with message: {self.text}'
         if self.production:
-            # TODO fill this in with proper logic
             logging.info(f'Sending message: {msg}')
-            email_sender(self.emails, f'COVID19 Scrapers Error {self.timestamp}', msg)
+            email_sender(self.emails,
+                         f'COVID19 Scrapers Error {self.timestamp}', msg)
             pass
         if not self.production:
             # this will always pass, as we don't want to email if not in prod
             pass
+
+
+class ErrorType:
+    """Error types used when throwing custom exceptions."""
+    Unknown = 'An unknown error occurred.'
+    Script = 'An error occurred whiel running a script.'
+    Slurp = 'An error was encountered while slurping the cleaned data.'
+    Digest = 'An error occurrred while digesting.'
