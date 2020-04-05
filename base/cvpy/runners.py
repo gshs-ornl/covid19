@@ -23,3 +23,20 @@ def run_script(script, script_type):
                 f"and message {t.read()}"
             ScriptError(script, msg).email()
             return e.returncode, t.read()
+
+
+def run_r_script(script='ingester.R'):
+    """Run the specified R script and capture the output and exit code."""
+    if script == '':
+        raise RuntimeError('No script passed to run_r_script')
+    cmd = script.split()
+    with TemporaryFile() as t:
+        try:
+            out = check_output([cmd], stderr=t)
+            return 0, out
+        except CalledProcessError as e:
+            t.seek(0)
+            msg = f"{script} failed with exit code {e.returncode} " + \
+                f"and message {t.read()}"
+            ScriptError(script, msg).email()
+            return e.returncode, t.read()
