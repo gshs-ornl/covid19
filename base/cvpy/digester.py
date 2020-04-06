@@ -38,7 +38,7 @@ class Digest():
             if process_successful:
                 self.remove()
             else:
-                raise
+                raise DigestException(f'Error processing {self.aggregate}')
 
     def __str__(self):
         """Print the object."""
@@ -71,7 +71,7 @@ class Digest():
                           'Passing . . . . .')
             return False
         fn_out = 'cleaned_' + fn
-        fileout = os.path.join(filepath, fn_out)
+        fileout = os.path.join(self.output_dir, fn_out)
         try:
             self.dat.to_csv(fileout)
         except Exception as e:

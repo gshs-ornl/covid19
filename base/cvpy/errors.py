@@ -89,3 +89,4 @@ class ErrorType:
     Script = 'An error occurred whiel running a script.'
     Slurp = 'An error was encountered while slurping the cleaned data.'
     Digest = 'An error occurrred while digesting.'
+    Ingest = 'An error occurred while ingesting.'
