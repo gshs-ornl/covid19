@@ -40,11 +40,15 @@ for feature in raw_data['features']:
     if county != 'Unknown':
         key_list = attribute.keys()
         # Get FL Resident and non-resident in FL
-        cases = attribute['C_FLRes'] + attribute['C_NotFLRes']
+        cases = attribute['CasesAll']
         deaths = attribute['Deaths']
         hospitalized = attribute['C_Hosp_Yes']
-        negative_tests = attribute['T_NegRes'] + attribute['T_NegNotFLRes']
+        tested = attribute['T_total']
+        negative_tests = attribute['T_negative']
         pending = attribute['TPending']
+        monitored = attribute['MonNow']
+        no_longer_monitored = attribute['EverMon'] - monitored
+        inconclusive = attribute['TInconc']
 
         for age_key in age_keys:
             age_range = age_key.split('Age_')[1]
@@ -60,10 +64,10 @@ for feature in raw_data['features']:
                 'state', country, state, nan,
                 url, str(raw_data), access_time, county,
                 cases, nan, deaths, nan,
-                nan, nan, nan, negative_tests,
+                nan, tested, hospitalized, negative_tests,
                 nan, nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
+                monitored, no_longer_monitored, pending,
+                nan, inconclusive, nan,
                 nan, nan, nan,
                 resolution, nan, nan, nan,
                 nan, nan, nan, nan,
@@ -81,10 +85,10 @@ for feature in raw_data['features']:
                 'state', country, state, nan,
                 url, str(raw_data), access_time, county,
                 cases, nan, deaths, nan,
-                nan, nan, nan, negative_tests,
+                nan, tested, hospitalized, negative_tests,
                 nan, nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
+                monitored, no_longer_monitored, pending,
+                nan, inconclusive, nan,
                 nan, nan, nan,
                 resolution, nan, nan, nan,
                 nan, nan, nan, nan,
@@ -93,7 +97,7 @@ for feature in raw_data['features']:
                 nan, nan,
                 nan, sex, sex_counts, nan,
                 nan, nan])
-
+        '''
         for key in key_list:
             if key not in keys_used:
                 other = key
@@ -114,6 +118,7 @@ for feature in raw_data['features']:
                     nan, nan,
                     nan, nan, nan, nan,
                     other, other_value])
+        '''
 
 with open('florida_data.json', 'w') as f:
     json.dump(raw_data, f)

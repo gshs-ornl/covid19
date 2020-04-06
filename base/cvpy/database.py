@@ -124,5 +124,5 @@ class Database(object):
         """Insert raw data into database."""
         if not hasattr(self, 'engine'):
             self.engine = create_engine(uri)
-        df.to_sql('raw_data', self.engine, scheam='scraping',
+        df.to_sql('raw_data', self.engine, schema='scraping',
                   if_exists='append', index=False, method='multi')
