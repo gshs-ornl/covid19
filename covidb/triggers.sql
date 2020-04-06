@@ -57,13 +57,6 @@ BEGIN
         returning id into v_url;
     end if;
 
-    RAISE NOTICE 'country: %', NEW.country;
-    RAISE NOTICE 'state: %', NEW.state;
-    RAISE NOTICE 'page: %', NEW.page;
-    RAISE NOTICE 'scrape group: %', v_scrape_group;
-    RAISE NOTICE 'age range: %', v_age_range;
-    RAISE NOTICE 'url: %', v_url;
-    RAISE NOTICE 'fips: %', v_fips;
 
     IF (NEW.county is null and NEW.state is null) THEN --Country Data
 
