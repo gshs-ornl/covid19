@@ -354,17 +354,6 @@ CREATE TABLE IF NOT EXISTS scraping.melt
   value numeric NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS scraping.melt
-  (country_id integer REFERENCES static.country(id),
-   state_id integer REFERENCES static.country(id),
-   county_id integer REFERENCES static.county(id),
-   updated timestamp with time zone NOT NULL,
-   page_id integer REFERENCES scraping.pages(id),
-   scrape_group integer REFERENCES scraping.scrape_group(id),
-   attribute_class integer REFERENCES scraping.attribute_classes(id),
-   attribute integer REFERENCES scraping.attributes(id),
-   value numeric NOT NULL
- );
 
 --Functions
 
