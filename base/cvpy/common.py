@@ -48,9 +48,10 @@ def get_all_scripts(script_dir,
     logger.info(f'Retrieved Python scripts {py_scripts}')
     return r_scripts + py_scripts
 
+
 def get_csv(csv, logger=logging.getLogger(check_environment('PY_LOGGER',
                                                             'main'))):
-    """Using Pandas, retrieve a CSV with standard defaults."""
+    """Retrieve a CSV with standard defaults using Pandas."""
     if not os.path.exists(csv):
         logger.error(f'CSV file at {csv} does not exist.')
         pass
@@ -59,3 +60,14 @@ def get_csv(csv, logger=logging.getLogger(check_environment('PY_LOGGER',
                                                           'access_time'],
                        infer_datetime_format=True, encoding='utf_8',
                        error_bad_lines=False)
+
+
+def create_uri(logger=logging.getLogger(check_environment('PY_LOGGER',
+                                                          'main'))):
+    """Create a URI for a connection to the Postgresql database."""
+    user = check_environment('DB_USER', 'guest')
+    pwd = check_environment('DB_PASS', 'abc123')
+    host = check_environment('DB_HOST', 'db')
+    db = check_environment('DB_DB', 'covidb')
+    port = check_environment('DB_PORT', '5432')
+    return f'postgres://{user}:{pwd}@{host}:{port}/{db}'
