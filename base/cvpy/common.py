@@ -70,4 +70,19 @@ def create_uri(logger=logging.getLogger(check_environment('PY_LOGGER',
     host = check_environment('DB_HOST', 'db')
     db = check_environment('DB_DB', 'covidb')
     port = check_environment('DB_PORT', '5432')
-    return f'postgres://{user}:{pwd}@{host}:{port}/{db}'
+    uri = f'postgres://{user}:{pwd}@{host}:{port}/{db}'
+    logger.info(f'Created URI: {uri}')
+    return uri
+
+
+def glob_csvs(directory,
+              logger=logging.getLogger(check_environment('PY_LOGGER',
+                                                         'main'))):
+    """Globs for all CSVs in a directory."""
+    if os.path.exists(directory):
+        logger.info(f'Looking for CSVs in {directory}.')
+        csvs = glob.glob(directory + '*.csv')
+        logger.info(f'Found {len(csvs)} CSV files.')
+        return csvs
+    logger.warning(f'No CSV files found in {directory}.')
+    return []
