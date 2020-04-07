@@ -8,6 +8,7 @@ import pandas as pd
 from datetime import datetime
 from cvpy.common import check_environment as ce
 from cvpy.exceptions import IngestException
+from cvpy.common import glob_csvs
 
 
 class Ingest():
@@ -46,9 +47,13 @@ class Ingest():
     def populate_csv_list(self):
         """Populate the list csv_list element."""
         if os.path.exists(self.output_dir):
-            self.csv_list = glob.glob(self.output_dir + '*.csv')
+            self.csv_list = glob_csvs(self.output_dir, self.logger)
         else:
             msg = 'Output directory {self.output_dir} does not exist!'
+            self.logger.error(msg)
+            raise IngestException(msg)
+        if self.csv_list == []:
+            msg = 'No CSVs found in {self.output_dir}'
             self.logger.error(msg)
             raise IngestException(msg)
 
