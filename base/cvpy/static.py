@@ -57,8 +57,8 @@ class Files:
     """Define the default file paths in the container."""
     LOG_FILE = ce('LOG_FILE', '/tmp/logs/main.log')
     LOG = Path(LOG_FILE)
-    ROTATE_FILE = ce('ROTATE_LOG_FILE', '/tmp/logs/rotate.log')
-    ROTATE = Path(ROTATE_FILE)
+    ROTATE_LOG = ce('ROTATE_LOG_FILE', '/tmp/logs/rotate.log')
+    ROTATE = Path(ROTATE_LOG)
 
 
 class LoggingInfo:
