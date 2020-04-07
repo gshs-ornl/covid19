@@ -2,6 +2,7 @@
 
 import requests
 import datetime
+import json
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
@@ -22,6 +23,9 @@ row_csv = []
 
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
+
+with open('alaska_state_data.json', 'w') as f:
+    json.dump(raw_data, f)
 
 resolution = 'county'
 dict_info = {'provider': provider,'country': country, "url": url,
@@ -150,13 +154,10 @@ row_csv.append([
             nan, nan, nan, nan,
             nan, nan])
 
+now = datetime.datetime.now()
+dt_string = now.strftime("_%Y-%m-%d_%H%M")
+file_name = state + dt_string + '.csv'
 
-
-
-'''
-with open('alaska_state_data.json', 'w') as f:
-    json.dump(raw_data, f)
-'''
 df = pd.DataFrame(row_csv, columns=columns)
 all_df = pd.concat([df, county_level_df])
-all_df.to_csv('alaska_.csv', index=False)
+all_df.to_csv(file_name, index=False)

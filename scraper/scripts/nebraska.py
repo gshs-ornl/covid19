@@ -48,6 +48,8 @@ for feature in raw_data['features']:
             nan, nan, nan, nan,
             nan, nan])
 
+with open('nebraska_state_data.json', 'w') as f:
+    json.dump(raw_data, f)
 
 resolution = 'state'
 raw_data = requests.get(state_url_cases).json()
@@ -115,8 +117,9 @@ row_csv.append([
             nan, nan, nan, nan,
             nan, nan])
 
-# with open('nebraska_state_data.json', 'w') as f:
-#    json.dump(raw_data, f)
+now = datetime.datetime.now()
+dt_string = now.strftime("_%Y-%m-%d_%H%M")
+file_name = state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv('nebraska_.csv', index=False)
+df.to_csv(file_name, index=False)
