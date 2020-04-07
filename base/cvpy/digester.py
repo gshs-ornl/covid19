@@ -16,12 +16,13 @@ class Digest():
     inserts it into the database.
     """
 
-    def __init__(self, production=ce('PRODUCTION', 'False'),
+    def __init__(self, csv=None, production=ce('PRODUCTION', 'False'),
                  logger=logging.getLogger(ce('PY_LOGGER', 'main')),
                  run=False, output_dir=ce("INPUT_DIR", "/tmp/input"),
                  clean_dir=ce("CLEAN_DIR", '/tmp/clean')):
         self.logger = logger
         self.run = run
+        self.csv = None
         if production == 'False':
             self.production = False
         elif production == 'True':
@@ -34,22 +35,37 @@ class Digest():
         self.output_dir = output_dir
         self.clean_dir = clean_dir
         if self.run:
-            self.csv_list = glob_csvs(self.output_dir, self.logger)
-            for c in self.csv_list:
-                process_successful = self.process(c)
-                if process_successful:
-                    self.remove(c)
+            if self.csv is None:
+                self.csv_list = glob_csvs(self.output_dir, self.logger)
+                for c in self.csv_list:
+                    process_successful = self.process(c)
+                    if process_successful:
+                        self.remove(c)
+                    else:
+                        # raise DigestException(
+                        # f'Error processing {self.aggregate}')
+                        self.logger.error(
+                            f'Error processing {c}. . . skipping.')
+            else:
+                self.csv = csv
+                success = self.process(self.csv)
+                if success:
+                    self.remove(self.csv)
+                    self.csv = None
                 else:
-                    # raise DigestException(
-                    # f'Error processing {self.aggregate}')
-                    self.logger.error(f'Error processing {c}. . . skipping.')
+                    self.logger.error(
+                        f'Error processing {self.csv} . . . skipping')
 
     def __str__(self):
         """Print the object."""
-        return f"Digesting {self.aggregate} with PRODUCTION = " + \
+        if self.csv:
+            return f"Digesting {self.csv} with PRODUCTION = " + \
+                f"{self.production}\n" + \
+                f"\tInput Directory:\t{self.ouput_dir}\n\tOutput Directory" + \
+                f":/t{self.clean_dir}"
+        return f"Digesting {len(self.csv_list)} with PRODUCTION = " + \
             f"{self.production}\n" + \
-            f"\tInput Directory:\t{self.ouput_dir}\n\tOutput Directory:\t" + \
-            f"{self.clean_dir}"
+            f"{\tInput Directory:\t{self.output_dir}\n\tOutputDirectory:\t" + \
 
     def remove(self, csv_file):
         """Remove the aggregate file."""

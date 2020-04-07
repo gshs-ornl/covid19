@@ -14,7 +14,8 @@ from cvpy.common import glob_csvs
 class Ingest():
     """Ingests all csvs in the output directory, and writes aggregate to the
        $INPUT_DIR."""
-    def __init__(self, production=ce('PRODUCTION', default='False'),
+    def __init__(self, csv = None,
+                 production=ce('PRODUCTION', default='False'),
                  logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
         """Set up the Ingest class for ingestion of csvs."""
         self.df_list = []
@@ -34,12 +35,18 @@ class Ingest():
         else:
             raise IngestException(
                 f'Unrecognized production value {production}')
+        self.csv = csv
         if production:
-            self.populate_csv_list()
-            self.make_output_filename()
-            self.aggregate_csvs()
-            self.combine_dfs()
-            self.make_output_file()
+            if self.csv is None:
+                self.populate_csv_list()
+                self.make_output_filename()
+                self.aggregate_csvs()
+                self.combine_dfs()
+                self.make_output_file()
+            else:
+                self.output_data = pd.read_csv(self.csv)
+                self.make_output_file()
+
         else:
             self.logger.info(
                 'Not running in production, methods must be called manually.')
