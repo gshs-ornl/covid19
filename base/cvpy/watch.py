@@ -4,6 +4,7 @@ import logging
 from cvpy.slurp import Slurp
 from cvpy.ingester import Ingest
 from cvpy.digester import Digest
+from cvpy.slurper import Slurp
 from cvpy.common import check_environment as ce
 from cvpy.runners import run_r_script
 from watchdog.events import PatternMatchingEventHandler
