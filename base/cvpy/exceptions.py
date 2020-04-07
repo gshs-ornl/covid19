@@ -51,3 +51,17 @@ class IngestException(BaseException):
     def __init__(self, text):
         """Initialize the ingest exception."""
         super().__init__(text, ErrorType.Ingest)
+
+
+class GlobException(BaseException):
+    """An error occurred while globbing for CSVs."""
+    def __init__(self, text):
+        """Initialize the glob exception."""
+        super().__init__(text, ErrorType.Glob)
+
+
+class DatabaseException(BaseException):
+    """An error occurred while using the database."""
+    def __init__(self, text):
+        """Initialize the database exception."""
+        super().__init__(text, ErrorType.Database)
