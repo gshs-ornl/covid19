@@ -30,6 +30,9 @@
 #/   -P|--pull)
 #/       get the latest base image
 #/
+#/   -d|--deploy)
+#/       deploy the stack for PRODUCTION
+#/
 #/   -i|--interactive)
 #/       enter specified container interactively
 #/
@@ -51,6 +54,7 @@ RETRIEVE=0
 CACHE=1
 RUN=0
 LOG_CONTAINER="scraper"
+DEPLOY=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -171,6 +175,9 @@ if [ "$INTERACTIVE" -eq "1" ]; then
   info "Dropping into shell of $DE"
   docker exec -it "${BASE}_${DE}_1" bash
 fi
+if [[ "$RUN" -eq "1" && "$DEPLOY" -eq "1" ]]; then
+  die "Cannot specify both RUN and DEPLOY flags"
+fi
 if [ "$RUN" -eq "1" ]; then
   info "Running"
   docker-compose down && docker-compose up -d --build api db tidy scraper && \
@@ -178,6 +185,7 @@ if [ "$RUN" -eq "1" ]; then
 fi
 if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
-  docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d --build api db tidy scraper
+  docker-compose -f docker-compose.yml down && \
+    docker-compose -f docker-compose.yml up -d --build api db tidy scraper
 fi
 # 1}}} ------------------------------------------------------------------------
