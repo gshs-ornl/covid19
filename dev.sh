@@ -126,6 +126,10 @@ while :; do
       CACHE=0
       shift
       ;; # 3}}}
+    -d|--deploy) # {{{3
+      DEPLOY=1
+      shift
+    ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -171,5 +175,9 @@ if [ "$RUN" -eq "1" ]; then
   info "Running"
   docker-compose down && docker-compose up -d --build api db tidy scraper && \
     docker logs -f "$LOG_CONTAINER"
+fi
+if [ "$DEPLOY" -eq "1" ]; then
+  info "Deploy bypassing overrides file"
+  docker-compose -f docker-compose.yml down && docker-compose -f docker-compose.yml up -d --build api db tidy scraper
 fi
 # 1}}} ------------------------------------------------------------------------
