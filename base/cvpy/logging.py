@@ -158,20 +158,15 @@ class DictLogger:
                 'stream': 'ext://sys.stdout'},
             'file': {
                 'class': 'logging.FileHandler',
-                'filename': "Files.LOG_FILE",
+                'filename': Files.LOG_FILE,
                 'formatter': 'utc'},
-            'rotate': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'utc',
-                'filename': Files.ROTATE_LOG,
-                'maxBytes': 500000,
-                'backupCount': 1000}},
+            },
         'loggers': {
             'main': {
-                'handlers': ['console'],
+                'handlers': ['console', 'file'],
                 'level': 'INFO'},
             'debug': {
                 'handlers': ['console', 'file'],
                 'level': 'DEBUG'},
             'root': {
-                'handlers': ['console', 'rotate']}}}
+                'handlers': ['console']}}}
