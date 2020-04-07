@@ -65,7 +65,8 @@ class Digest():
                 f":/t{self.clean_dir}"
         return f"Digesting {len(self.csv_list)} with PRODUCTION = " + \
             f"{self.production}\n" + \
-            f"{\tInput Directory:\t{self.output_dir}\n\tOutputDirectory:\t" + \
+            f"\tInput Directory:\t{self.output_dir}\n\tOutputDirectory:\t" + \
+            f":/t{self.clean_dir}"
 
     def remove(self, csv_file):
         """Remove the aggregate file."""
