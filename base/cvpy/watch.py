@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Provides convenience methods to monitor a folder."""
 import logging
-from cvpy.slurp import Slurp
 from cvpy.ingester import Ingest
 from cvpy.digester import Digest
 from cvpy.slurper import Slurp
