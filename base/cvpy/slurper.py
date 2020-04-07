@@ -12,20 +12,26 @@ from cvpy.errors import SlurpError
 class Slurp():
     """Slurps an $CLEAN_DIR CSV into the database and creates views."""
 
-    def __init__(self, clean_dir=ce('CLEAN_DIR', '/tmp/clean'),
+    def __init__(self, csv=None, clean_dir=ce('CLEAN_DIR', '/tmp/clean'),
                  logger=logging.getLogger(ce('PY_LOGGER', 'main')),
                  view_creator=ce('VIEW_CREATOR', 'create_views.sql')):
         """Initialize the Slurp."""
         self.view_creator = view_creator
         self.logger = logger
         self.uri = create_uri(self.logger)
-        csvs = glob_csvs(clean_dir, self.logger)
-        for c in csvs:
-            if os.path.exists(c):
+        self.csv = csv
+        if self.csv is None:
+            csvs = glob_csvs(clean_dir, self.logger)
+            for c in csvs:
+                if os.path.exists(c):
+                    df = get_csv(c, self.logger)
+                    self.process(df, c)
+                else:
+                    self.logger.warning(f'File {c} was not found, skipping.')
+        else:
+            if os.path.exists(self.csv):
                 df = get_csv(c, self.logger)
                 self.process(df, c)
-            else:
-                self.logger.warning(f'File {c} was not found, skipping.')
 
     def process(self, df, c):
         """Process the CSV passed during Slurp initialization."""
