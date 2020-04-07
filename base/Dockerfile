@@ -1,6 +1,6 @@
 FROM python:3.8
 LABEL maintainer="Joshua N. Grant <grantjn@ornl.gov>" \
-  version="0.1.4" \
+  version="0.1.5" \
   description="Provides the Scraper images for retrieving county-level \
 COVID-19 confirmed cases"
 
