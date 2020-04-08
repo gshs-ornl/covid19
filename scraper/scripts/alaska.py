@@ -32,6 +32,16 @@ dict_info = {'provider': provider,'country': country, "url": url,
              "state": state, "resolution": resolution,
             "page": raw_data, "access_time": access_time}
 
+
+def apply_age_group(row):
+    if row == '<10':
+        return 'Under_10'
+    elif row == '10-19':
+        return '10_19'
+    else:
+        return row
+
+
 def fill_in_ak_df(df_list, dict_info, columns):
     ak_df = []
     for each_df in df_list:
@@ -51,6 +61,7 @@ def fill_in_ak_df(df_list, dict_info, columns):
         ak_df.append(each_df.reindex(columns=columns))
     return pd.concat(ak_df)
 
+
 row_csv_raw = []
 for feature in raw_data['features']:
     attribute = feature['properties']
@@ -66,12 +77,15 @@ df = pd.DataFrame(row_csv_raw, columns=['county', 'sex', 'age_range',
                                         'count', 'hospitalized'])
 
 gender_cases = df.groupby(
-    ['county','sex']).count().reset_index().drop(
-    ['hospitalized', 'age_range'], axis=1).rename(columns={'count': 'sex_counts'})
+    ['county', 'sex']).count().reset_index().drop(
+    ['hospitalized', 'age_range'], axis=1).rename(
+    columns={'count': 'sex_counts'})
+
 
 age_cases = df.groupby(
-    ['county', 'age_range']).count().reset_index().drop(
-    'hospitalized', axis=1).rename(columns={'count': 'age_cases'})
+    ['county','age_range']).count().reset_index().drop(
+    ['hospitalized', 'sex'], axis=1).rename(columns={'count': 'age_cases'})
+age_cases['age_range'] = df['age_range'].apply(apply_age_group)
 
 county_cases = df.groupby(['county']).count().reset_index().drop(
     ['sex', 'age_range', 'hospitalized'], axis=1).rename(
@@ -79,9 +93,9 @@ county_cases = df.groupby(['county']).count().reset_index().drop(
 
 hospitalized_df = df[df['hospitalized'] == 'Y'].groupby(
     ['county']).count().reset_index().drop(
-    ['count', 'sex', 'age_range'],axis=1)
+    ['count', 'sex', 'age_range'], axis=1)
 
-df_list = [age_cases, county_cases, hospitalized_df]
+df_list = [age_cases, county_cases, hospitalized_df, gender_cases]
 county_level_df = fill_in_ak_df(df_list, dict_info, columns)
 
 resolution = 'state'
