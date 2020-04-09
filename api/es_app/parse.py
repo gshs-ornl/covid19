@@ -40,7 +40,7 @@ class ElasticParse:
     _index = ESINDEX
     _type = 'record'
     _getters = {
-        'access_time': mg('access_time', str),
+        'access_time': mg('county_access_time', str),
         'active': mg('active', float),
         'age_cases': mg('age_cases', float),
         'age_deaths': mg('age_deaths', float),
@@ -54,17 +54,10 @@ class ElasticParse:
         'cases': mg('cases', float),
         'confirmed': mg('???', float),
         'counties': mg('counties', float),
-        'country': mg('country', str),
+        'country': mg('ctry.country', str),
         'country3Letter': mg('???', str),
         'county': mg('county', str),
         'deaths': mg('deaths', float),
-        'geometry': {
-            'coordinates': {
-                'lat': mg('lat', float),
-                'lon': mg('lon', float)
-            },
-            'type': 'Point'
-        },
         'hospitalized': mg('hospitalized', float),
         'icu': mg('icu', float),
         'inconclusive': mg('inconclusive', float),
@@ -72,6 +65,7 @@ class ElasticParse:
         'lab_negative': mg('lab_negative', float),
         'lab_positive': mg('lab_positive', float),
         'lab_tests': mg('lab_tests', float),
+        'lastUpdate': mg('updated', float),
         'lat': mg('lat', float),
         'lon': mg('lon', float),
         'monitored': mg('monitored', float),
@@ -80,19 +74,19 @@ class ElasticParse:
         'other': mg('other', str),
         'other_value': mg('other_value', str),
         'parish': mg('parish', str),
-        'pending_tests': mg('pending_tests', float),
+        'pending_tests': mg('pending', float),
         'presumptive': mg('presumptive', float),
         'private_test': mg('private_tests', float),
-        'provider': mg('???', str),
+        'provider': mg('provider', str),
         'raw_page': mg('raw_page', str),
         'recovered': mg('recovered', float),
-        'scrape_group': mg('scrape_group', int, str),
+        'scrape_group': mg('sg.scrape_group', int, str),
         'severe': mg('severe', float),
         'state': mg('state', str),
         'state_test': mg('???', float),
         'tested': mg('tested', float),
         'updated': mg('updated', str),
-        'url': mg('url', str)
+        'url': mg('u.url', str)
     }
 
     def __init__(self, entries: List[Entry], op_type: str = 'index'):
@@ -140,38 +134,19 @@ class ElasticParse:
             attempts += 1
 
     def entry_to_act(self, entry: Entry) -> Dict:
-        doc: Doc = entry.copy()
-        lat: None = None
-        lon: None = None
-        if 'lat' in doc:
-            lat: float = doc.pop('lat')
-        if 'lon' in doc:
-            lon: float = doc.pop('lon')
-        if lat is not None and lon is not None:
+        doc: Doc = {key: val(entry) for key, val in self._getters.items()}
+        lat = entry.get('lat')
+        lon = entry.get('lon')
+        if lat and lon:
+            fips = self.get_fips(lat, lon)
+            doc['fips'] = fips
             doc['geometry'] = {
-                'coordinates': [
-                    lon,
-                    lat
-                ],
+                'coordinates': [lon, lat],
                 'type': 'Point'
             }
-            doc['fips'] = self.get_fips(lat=lat, lon=lon)
-        # doc['province/state'] = doc.pop('state', None)
-        # if isinstance(doc.get('updated'), str):
-        #     doc['updated'] = datetime.strptime(
-        #         doc['updated'],
-        #         '%B %d, %Y'
-        #     ).timestamp()
-        if 'page' in doc:
-            _ = doc.pop('page')
-        doc['scrape_group'] = str(int(doc['scrape_group']))
-        # doc['access_time'] = datetime.strptime(
-        #     doc['access_time'],
-        #     '%Y-%m-%d %H:%M:%S'
-        # ).timestamp()
+        doc['createdAt'] = datetime.utcnow().timestamp()
         return {
             '_index': self._index,
-            # '_type': self._type,
             '_id': self.gen_id(entry),
             self.body_name: doc
         }
