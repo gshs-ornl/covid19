@@ -1,63 +1,33 @@
 #!/usr/bin/env python3
-
-import requests
-import datetime
-from numpy import nan
+"""Provide a script that parses Kansas."""
+import time
+import logging
 import pandas as pd
+from tempfile import TemporaryFile
+from cvpy.common import check_environment as ce
+from cvpy.webdriver import WebDriver
+from cvpy.logging import DictLogger
+from cvpy.ocr import ReadImage
+
+logging.config.dictConfig(DictLogger.SIMPLE)
+logger = logging.getLogger(ce('PY_LOGGER', 'main'))
+output_dir = ce('OUTPUT_DIR', '/tmp/output')
+url = 'https://public.tableau.com/profile/kdhe.epidemiology#' + \
+    '!/vizhome/COVID-19Data_15851817634470/KSCOVID-19CaseData'
+
+if __name__ == "__main__":
+    with WebDriver(url=url, logger=logger, timeout=60, implicit_wait=30) as wb:
+        wb.wait_for_element('//*[@id="title45763612845643606_' +
+                            '4681463620239426524"]/div[1]', 'xpath',
+                            wait=60)
+        time.sleep(5)
+        image_file_1 = wb.take_screenshot(temp_image_file)
+        logger.info(f'Image saved as {image_file_1}')
+        xpath2 = '//*[@id="view45763612845643606_' + \
+            '9530241477442851964"]/div[1]'
+        wb.wait_for_element(xpath2, 'xpath', 60)
+        temp_image_file2 = TemporaryFile(dir='/mnt/forbin/', suffix='.png')
+        image_file_2 = wb.take_screenshot(temp_image_file2)
 
 
-country = 'US'
-url = 'https://services9.arcgis.com/Q6wTdPdCh608iNrJ/arcgis/rest/services/COVID19_CountyStatus_KDHE/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
-state = 'Kansas'
-resolution = 'county'
-columns = ['country', 'state', 'url', 'raw_page', 'access_time', 'county',
-           'cases', 'updated', 'deaths', 'presumptive', 'recovered', 'tested',
-           'hospitalized', 'negative', 'counties', 'severe', 'lat', 'lon',
-           'parish', 'monitored', 'private_test', 'state_test',
-           'no_longer_monitored', 'pending_tests', 'active', 'inconclusive',
-           'scrape_group', 'icu',
-           'cases_0_9', 'cases_10_19', 'cases_20_29', 'cases_30_39',
-           'cases_40_49', 'cases_50_59', 'cases_60_69', 'cases_70_79',
-           'cases_80',
-           'hospitalized_0_9', 'hospitalized_10_19', 'hospitalized_20_29',
-           'hospitalized_30_39', 'hospitalized_40_49', 'hospitalized_50_59',
-           'hospitalized_60_69', 'hospitalized_70_79', 'hospitalized_80',
-           'deaths_0_9', 'deaths_10_19', 'deaths_20_29', 'deaths_30_39',
-           'deaths_40_49', 'deaths_50_59', 'deaths_60_69', 'deaths_70_79',
-           'deaths_80']
 
-
-raw_data = requests.get(url).json()
-access_time = datetime.datetime.utcnow()
-
-row_csv = []
-
-for feature in raw_data['features']:
-    attribute = feature['attributes']
-
-    county = attribute['COUNTY'].replace(' ^', '').replace(' *', '')
-    presumptive_positive = attribute['Covid_Conf']
-    recovered = attribute['Covid_Reco']
-    deaths = attribute['Covid_Deat']
-    private_test = attribute['PRIVATE_LAB']
-    state_test = attribute['KDHE_LAB']
-
-    row_csv.append([
-        country, state, url, str(raw_data), access_time, county,
-        nan, nan, deaths, presumptive_positive, recovered, nan,
-        nan, nan, nan, nan, nan, nan,
-        nan,  nan, private_test, state_test,
-        nan, nan, nan, nan,
-        nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan,
-        nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan, nan])
-
-
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv('kansas_.csv', index=False)
