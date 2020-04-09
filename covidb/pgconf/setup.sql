@@ -135,7 +135,7 @@ sex_counts integer default null,
 sex_percent varchar default null,
 sex_death integer default null,
 other  varchar default null,
-other_value numeric default null
+other_value varchar default null
 );
 
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
