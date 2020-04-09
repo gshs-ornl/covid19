@@ -6,7 +6,6 @@ COVID-19 confirmed cases"
 
 WORKDIR /tmp
 
-
 ENV PYTHONOPTIMIZE True
 ENV CHROME_DRIVER_VERSION 80.0.3987.106 
 ENV R_BASE_VERSION 3.6.3
@@ -36,7 +35,7 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     wget ca-certificates fonts-texgyre libnss3 libgconf-2-4 \
     unzip postgresql-client libv8-dev libmagick++-dev libudunits2-dev \
     libgdal-dev gdal-bin libgeos++-dev libgeos-3.7.1 libproj-dev \
-    proj-bin postgresql-client
+    proj-bin postgresql-client git make tesseract-ocr
 
 # update apt source to point to the newest version of R
 RUN echo "deb http://http.debian.net/debian sid main" > \
@@ -52,6 +51,11 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
       ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
       ln -s $R_LIB/littler/examples/installGithub.r \
         /usr/local/bin/installGithub.R 
+
+# install tippecanoe
+RUN set -eux && git clone https://github.com/mapbox/tippecanoe.git && \
+      cd tippecanoe && make -j && make install
+
 
 # force en_US.UTF-8 in R
 RUN set -eux && \
@@ -83,5 +87,5 @@ RUN install.r covidR.tar.gz
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
       rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
-      rm covidR.tar.gz
+      rm covidR.tar.gz && rm -rf /tmp/tippecanoe
 
