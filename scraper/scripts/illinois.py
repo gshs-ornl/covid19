@@ -4,8 +4,7 @@ import requests
 import datetime
 from numpy import nan
 import pandas as pd
-from cvpy.static import Headers
-
+from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
@@ -53,7 +52,9 @@ for feature in raw_data['characteristics_by_county']['values']:
         nan, nan])
 
 
-
+now = datetime.datetime.now()
+dt_string = now.strftime("_%Y-%m-%d_%H%M")
+file_name = state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv('illinois_.csv', index=False)
+df.to_csv(file_name, index=False)
