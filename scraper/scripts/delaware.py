@@ -2,10 +2,10 @@
 
 import requests
 import datetime
+import os
 from numpy import nan
 import pandas as pd
-from cvpy.static import Headers
-
+from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 url = 'https://services1.arcgis.com/PlCPCPzGOwulHUHo/ArcGIS/rest/services/DEMA_COVID_County_Boundary_Time_VIEW/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryPoint&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
@@ -69,8 +69,6 @@ for feature in raw_data['features']:
         deaths = attribute['Total_Death']
         hospitalized = attribute['Hospitalizations']
         negative_tests = attribute['NegativeCOVID']
-        cases_male = attribute['Male']
-        cases_female = attribute['Female']
         update_date = attribute['Last_Updated']
         if update_date is None:
             updated = nan
@@ -91,12 +89,36 @@ for feature in raw_data['features']:
                 nan, nan, nan,
                 nan, nan, nan,
                 nan, nan, nan,
-                resolution, nan, cases_male, cases_female,
+                resolution, nan, nan, nan,
                 nan, nan, nan, nan,
                 age_range, age_cases, nan, nan,
                 nan, nan, nan,
                 nan, nan,
                 nan, nan, nan, nan,
+                nan, nan])
+
+        for gender in ['Female', 'Male']:
+            sex = gender
+            if gender == "Male":
+                sex_count = attribute['Male']
+            elif gender == "Female":
+                sex_count = attribute['Female']
+
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                nan, updated, nan, nan,
+                recovered, nan, hospitalized, negative_tests,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, sex, sex_count, nan,
                 nan, nan])
 
 raw_data = requests.get(state_url_death).json()
@@ -141,8 +163,13 @@ row_csv.append([
     nan, nan, nan, nan,
     nan, nan])
 
+now = datetime.datetime.now()
+dt_string = now.strftime("_%Y-%m-%d_%H%M")
+path = os.getenv("OUTPUT_DIR", "")
+file_name = path + state + dt_string + '.csv'
+
 df = pd.DataFrame(row_csv, columns=columns)
 # "Last_Updated" field is not reported all the time so there is a need to fill
 # missing data
 df[['updated']] = df[['updated']].fillna(method='ffill')
-df.to_csv('deleware_.csv', index=False)
+df.to_csv(file_name, index=False)

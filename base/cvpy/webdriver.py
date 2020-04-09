@@ -7,6 +7,7 @@
 import logging
 import requests
 import traceback
+import time
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -26,7 +27,7 @@ from selenium.common.exceptions import ErrorInResponseException
 from selenium.common.exceptions import TimeoutException
 from urllib3.exceptions import HTTPError, ConnectionError
 from datetime import datetime
-from ei.common import check_environment as ce
+from cvpy.common import check_environment as ce
 
 
 class WebDriver():
@@ -68,11 +69,12 @@ class WebDriver():
         self.service_args = service_args
         self.out = None
         self.timeout = timeout
+        self.driver = None
         if script is None:
             self.script = ''
         else:
-            if remote:
-                self.driver
+            # if remote:
+            #   self.driver
             self.script = script
         if driver.lower() in ['requests', 'curl']:
             self.out = self.request_url()
@@ -106,15 +108,6 @@ class WebDriver():
             msg = msg + '\nDriver has been initialized'
         return msg
 
-    def _log(self, text):
-        """ create a simple timestamp log """
-        # TODO remove this and use python base logging
-        out_str = str(datetime.strftime(datetime.utcnow(),
-                                        '%Y-%m-%d %H:%M:%S')) + ': ' + \
-            '(' + self.script + ')' + ', ' + text
-        self.logging.info(text)
-        print(out_str)
-
     def __enter__(self):
         """ return self upon entry via with """
         return self
@@ -135,7 +128,7 @@ class WebDriver():
                     self.driver.close()
                     self.driver.quit()
                 except Exception as e:
-                    self._log(f'Unknown exception when deleting object: {e}')
+                    self.logger.warning(f'Unknown exception when deleting object: {e}')
                 finally:
                     del self.driver
         del self
@@ -146,17 +139,17 @@ class WebDriver():
             response = requests.get(self.url, timeout=10)
             response.raise_for_status()
         except ConnectionError as e:
-            self._log(f'Connection error occurred: {e}')
+            self.logger.error(f'Connection error occurred: {e}')
         except HTTPError as e:
-            self._log(f'HTTP error occurred: {e}')
+            self.logger.error(f'HTTP error occurred: {e}')
         except Exception as e:
-            self._log(f'An Error occurred while processing {self.url}: {e}')
+            self.logger.error(f'An Error occurred while processing {self.url}: {e}')
         if self.output_type == 'text':
             return response.text
         if self.output_type == 'json':
             return response.json()
-        self._log(f'Unknown output_type specified: {self.output_type}')
-        self._log('Returning bare response')
+        self.logger.error(f'Unknown output_type specified: {self.output_type}')
+        self.logger.error('Returning bare response')
         return response
 
     def request_remote(self):
@@ -176,7 +169,7 @@ class WebDriver():
 
     def request_chrome(self):
         """ method to create driver based on chrome """
-        self._log(f'Using chrome to connect to {self.url}')
+        self.logger.info(f'Using chrome to connect to {self.url}')
         self.options = webdriver.ChromeOptions()
         try:
             if self.opts is not None:
@@ -198,9 +191,9 @@ class WebDriver():
                         webdriver.Chrome(self.driver_type,
                                          service_args=self.service_args)
         except WebDriverException as e:
-            self._log(f'Webdriver Exception thrown: {e}')
+            self.logger.error(f'Webdriver Exception thrown: {e}')
         except Exception as e:
-            self._log(f'Unknown exception while creating driver  {e}')
+            self.logger.error(f'Unknown exception while creating driver  {e}')
 
     def get_xpath(self, xpath):
         self.wait_for_element(xpath, 'xpath')
@@ -208,11 +201,11 @@ class WebDriver():
             target = self.driver.find_element_by_xpath(xpath)
             return target
         except NoSuchElementException as e:
-            self._log(f'Unable to find xpath "{xpath}": {e}')
+            self.logger.error(f'Unable to find xpath "{xpath}": {e}')
         except WebDriverException as e:
-            self._log(f'Webdriver error occurred: {e}')
+            self.logger.error(f'Webdriver error occurred: {e}')
         except StaleElementReferenceException as e:
-            self._log(f'Element seems stale: {e}')
+            self.logger.error(f'Element seems stale: {e}')
 
     def get_tag(self, tag):
         self.wait_for_element(tag, 'tag')
@@ -220,11 +213,11 @@ class WebDriver():
             target = self.driver.find_element_by_tag_name(tag)
             return target
         except NoSuchElementException as e:
-            self._log(f'The tag {tag} does not exist: {e}')
+            self.logger.error(f'The tag {tag} does not exist: {e}')
         except WebDriverException as e:
-            self._log(f'Webdriver error occurred: {e}')
+            self.logger.error(f'Webdriver error occurred: {e}')
         except StaleElementReferenceException as e:
-            self._log(f'Element seems stale: {e}')
+            self.logger.error(f'Element seems stale: {e}')
 
     def get_id(self, id_name):
         self.wait_for_element(id_name, 'id')
@@ -232,11 +225,11 @@ class WebDriver():
             target = self.driver.find_element_by_id(id_name)
             return target
         except NoSuchElementException as e:
-            self._log(f'The tag {id_name} does not exist: {e}')
+            self.logger.error(f'The tag {id_name} does not exist: {e}')
         except WebDriverException as e:
-            self._log(f'Webdriver error occurred: {e}')
+            self.logger.error(f'Webdriver error occurred: {e}')
         except StaleElementReferenceException as e:
-            self._log(f'Element seems stale: {e}')
+            self.logger.error(f'Element seems stale: {e}')
 
     def get_class(self, class_name):
         self.wait_for_element(class_name, 'class')
@@ -244,11 +237,11 @@ class WebDriver():
             target = self.driver.find_element_by_class_name(class_name)
             return target
         except NoSuchElementException as e:
-            self._log(f'The class {class_name} does not exist: {e}')
+            self.logger.error(f'The class {class_name} does not exist: {e}')
         except WebDriverException as e:
-            self._log(f'Webdriver error occurred: {e}')
+            self.logger.error(f'Webdriver error occurred: {e}')
         except StaleElementReferenceException as e:
-            self._log(f'Element seems stale: {e}')
+            self.logger.error(f'Element seems stale: {e}')
 
     def move_to_element(self, target):
         """ perform action chains move to element and click """
@@ -256,13 +249,13 @@ class WebDriver():
             action_chains = ActionChains(self.driver).move_to_element(target)
             action_chains.click(target).perform()
         except NoSuchElementException as e:
-            self._log(f'The element {target} does not exist: {e}')
+            self.logger.error(f'The element {target} does not exist: {e}')
         except TimeoutException as e:
-            self._log(f'Connection timed out: {self.url}')
+            self.logger.error(f'Connection timed out: {self.url}')
         except WebDriverException as e:
-            self._log('Webdriver error occurred: {e}')
+            self.logger.error('Webdriver error occurred: {e}')
         except StaleElementReferenceException as e:
-            self._log(f'Element seems stale: {e}')
+            self.logger.error(f'Element seems stale: {e}')
 
     def request_phantomjs(self):
         """ method to create driver based on PhantomJS """
@@ -276,8 +269,12 @@ class WebDriver():
         """ dump self.driver attribute """
         return self.driver
 
-    def wait_for_element(self, elem, elem_type, wait=self.timeout):
-        """ wait for element is available in the page """
+    def wait_for_element(self, elem, elem_type, wait=None):
+        """Wait until element is available in the page."""
+        if wait is None:
+            wait = self.timeout
+        self.logger.info(f'Waiting {wait} seconds for {elem_type} ' +
+                         f'with value of {elem}.')
         try:
             if elem_type.lower() == 'xpath':
                 element_present = EC.presence_of_element_located((By.XPATH,
@@ -314,18 +311,27 @@ class WebDriver():
             else:
                 raise ParserError(f'{elem_type} is not a supported type')
         except KeyError as e:
-            self._log(f'KeyError thrown {e}')
+            self.logger.error(f'KeyError thrown {e}')
         except WebDriverException as e:
-            self._log(f'WebDriver threw an exception {e}')
+            self.logger.error(f'WebDriver threw an exception {e}')
         except TimeoutException as e:
-            self._log(f'Timed out locating {elem}')
+            self.logger.error(f'Timed out locating {elem}')
         except NoSuchElementException as e:
             msg = f'Element {elem} not found on page after '
             msg = msg + f'{wait} seconds: {e}'
-            self._log(msg)
+            self.logger.error(msg)
             raise ParserError(msg)
         except Exception as e:
-            self._log(f'Unknown exception while waiting for element: {e}')
+            self.logger.error(f'Unknown exception while waiting for element: {e}')
+
+    def take_screenshot(self, output_file):
+        """Take a screenshot of the screen."""
+        self.logger.info(f'Sleeping for {self.timeout} seconds.')
+        time.sleep(self.timeout)
+        self.logger.info('Finished sleeping, taking screenshot and storing ' +
+                         f'{output_file}')
+        self.driver.save_screenshot(output_file)
+        return output_file
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import logging
 import traceback
 from cvpy.static import DbData
 from cvpy.common import check_environment as ce
-from cvpy.common import get_csv
+from cvpy.common import get_csv, glob_csvs
 from cvpy.exceptions import DigestException
 
 
@@ -16,53 +16,71 @@ class Digest():
     inserts it into the database.
     """
 
-    def __init__(self, aggregate_csv, production=ce('PRODUCTION', 'False'),
+    def __init__(self, csv=None, production=ce('PRODUCTION', 'False'),
                  logger=logging.getLogger(ce('PY_LOGGER', 'main')),
-                 run=False, output_dir=ce("OUTPUT_DIR", "/tmp/output"),
+                 run=False, output_dir=ce("INPUT_DIR", "/tmp/input"),
                  clean_dir=ce("CLEAN_DIR", '/tmp/clean')):
         self.logger = logger
-        self.aggregate = aggregate_csv
+        self.run = run
+        self.csv = None
         if production == 'False':
             self.production = False
         elif production == 'True':
             self.production = True
+            self.run = True
         else:
             self.logger.warning(f'Unknown PRODUCTION content: {production}. ' +
                                 'Defaulting to False')
             self.production = False
         self.output_dir = output_dir
         self.clean_dir = clean_dir
-        if run:
-            self.read()
-            process_successful = self.process()
-            if process_successful:
-                self.remove()
+        if self.run:
+            if self.csv is None:
+                self.csv_list = glob_csvs(self.output_dir, self.logger)
+                for c in self.csv_list:
+                    process_successful = self.process(c)
+                    if process_successful:
+                        self.remove(c)
+                    else:
+                        # raise DigestException(
+                        # f'Error processing {self.aggregate}')
+                        self.logger.error(
+                            f'Error processing {c}. . . skipping.')
             else:
-                raise
+                self.csv = csv
+                success = self.process(self.csv)
+                if success:
+                    self.remove(self.csv)
+                    self.csv = None
+                else:
+                    self.logger.error(
+                        f'Error processing {self.csv} . . . skipping')
 
     def __str__(self):
         """Print the object."""
-        return f"Digesting {self.aggregate} with PRODUCTION = " + \
+        if self.csv:
+            return f"Digesting {self.csv} with PRODUCTION = " + \
+                f"{self.production}\n" + \
+                f"\tInput Directory:\t{self.ouput_dir}\n\tOutput Directory" + \
+                f":/t{self.clean_dir}"
+        return f"Digesting {len(self.csv_list)} with PRODUCTION = " + \
             f"{self.production}\n" + \
-            f"\tInput Directory:\t{self.ouput_dir}\n\tOutput Directory:\t" + \
-            f"{self.clean_dir}"
+            f"\tInput Directory:\t{self.output_dir}\n\tOutputDirectory:\t" + \
+            f":/t{self.clean_dir}"
 
-    def remove(self):
+    def remove(self, csv_file):
         """Remove the aggregate file."""
         try:
-            os.remove(self.aggregate)
+            os.remove(csv_file)
         except OSError as e:
             self.logger.error(
-                f'Problem removing aggregate {self.aggregate}: {e}')
+                f'Problem removing aggregate {csv_file}: {e}')
 
-    def read(self):
-        """Read the aggregate into pandas."""
-        self.dat = get_csv(self.aggregate, logger=self.logger)
-
-    def process(self):
+    def process(self, csv_file):
         """Process the aggregate into a file and write to the output dir."""
         # TODO add better exception handling here
-        self.dat.astype(DbData.RAW)
+        dat = get_csv(csv_file, self.logger)
+        dat.astype(DbData.RAW)
         filepath, fn = os.path.split(self.aggregate)
         if filepath != self.output_dir:
             traceback.print_stack()
@@ -71,9 +89,9 @@ class Digest():
                           'Passing . . . . .')
             return False
         fn_out = 'cleaned_' + fn
-        fileout = os.path.join(filepath, fn_out)
+        fileout = os.path.join(self.clean_dir, fn_out)
         try:
-            self.dat.to_csv(fileout)
+            dat.to_csv(fileout)
         except Exception as e:
             raise DigestException(f'Digestion error {e} occurred.')
             return False

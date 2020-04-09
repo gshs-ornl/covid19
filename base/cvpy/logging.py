@@ -92,53 +92,6 @@ class ClientLogging(logging.Handler):
 
 
 class DictLogger:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'utc': {
-                '()': UTCFormatter,
-                'format': LoggingInfo.MASTERFORMAT,
-                'datefmt': LoggingInfo.DATEFMT},
-            'local': {
-                '()': UTCFormatter,
-                'format': LoggingInfo.SHORT_FORMAT,
-                'datefmt': LoggingInfo.DATEFMT},
-            'server': {
-                '()': UTCFormatter,
-                'format': LoggingInfo.ROTATE_FORMAT,
-                'datefmt': LoggingInfo.DATEFMT}
-        }, 'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'local',
-                'stream': 'ext:://sys.stdout'},
-            'file': {
-                'class': 'logging.FileHandler',
-                'filename': "LOG_FILE",
-                'formatter': 'utc'},
-            'rotate': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'server',
-                'filename': Files.ROTATE_LOG,
-                'maxBytes': 500000,
-                'backupCount': 1000}
-        }, 'loggers': {
-            'server': {
-                'handlers': ['rotate'],
-                'level': 'INFO'},
-            'main': {
-                'handlers': ['console'],
-                'level': 'INFO',
-                'propogate': True},
-            'root': {
-                'handlers': ['console', 'rotate'],
-                'level': 'INFO'},
-            'debug': {
-                'handlers': ['console', 'file'],
-                'level': 'DEBUG',
-                'propogate': True}
-        }}
     SIMPLE = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -158,20 +111,15 @@ class DictLogger:
                 'stream': 'ext://sys.stdout'},
             'file': {
                 'class': 'logging.FileHandler',
-                'filename': "Files.LOG_FILE",
+                'filename': '/tmp/covid.log',
                 'formatter': 'utc'},
-            'rotate': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'utc',
-                'filename': Files.ROTATE_LOG,
-                'maxBytes': 500000,
-                'backupCount': 1000}},
+            },
         'loggers': {
             'main': {
-                'handlers': ['console'],
+                'handlers': ['console', 'file'],
                 'level': 'INFO'},
             'debug': {
                 'handlers': ['console', 'file'],
                 'level': 'DEBUG'},
             'root': {
-                'handlers': ['console', 'rotate']}}}
+                'handlers': ['console']}}}

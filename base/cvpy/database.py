@@ -4,11 +4,11 @@
 import logging
 import psycopg2
 import traceback
-import sqlalchemy
 import pandas as pd
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from cvpy.common import check_environment as ce
+from cvpy.common import create_uri
+from cvpy.exceptions import DatabaseException
 
 
 class Database(object):
@@ -28,6 +28,7 @@ class Database(object):
         self.port = int(ce('DB_PORT', '5432'))
         self.con = None
         self.cur = None
+        self.uri = None
         self.logger = logger
         self.recipients = email_list
         self.logger.debug('Initiated Database Object')
@@ -85,6 +86,8 @@ class Database(object):
             self.con = None
         if hasattr(self, 'engine') and self.engine is not None:
             self.logger.debug('Closig sqlalchemy connection')
+            self.engine.dispose()
+        self.logger.debug('Database object successfully closed.')
 
     def query(self, query):
         """Send a query to the database and retrieve the results."""
@@ -120,8 +123,16 @@ class Database(object):
             res = self.query(query)
         return res
 
-    def insert_raw_data(self, df, uri):
+    def insert_raw_data(self, df, uri=None):
         """Insert raw data into database."""
+        if not isinstance(df, pd.DataFrame):
+            msg = f'Object passed was of type {type(df)}, not a ' + \
+                'Pandas DataFrame'
+            self.logger.error(msg)
+            raise DatabaseException(msg)
+        if uri is None:
+            self.logger.warning('URI was not passed, please pass explicitly.')
+            uri = create_uri(self.logger)
         if not hasattr(self, 'engine'):
             self.engine = create_engine(uri)
         df.to_sql('raw_data', self.engine, schema='scraping',

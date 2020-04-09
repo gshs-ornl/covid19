@@ -5,8 +5,7 @@ import datetime
 import json
 from numpy import nan
 import pandas as pd
-from cvpy.static import Headers
-
+from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 url = 'https://services.arcgis.com/njFNhDsUCentVYJW/arcgis/rest/services/MD_COVID19_Case_Counts_by_County/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
@@ -116,5 +115,9 @@ for feature in raw_data['features']:
 with open('maryland_state_data.json', 'w') as f:
     json.dump(raw_data, f)
 
+now = datetime.datetime.now()
+dt_string = now.strftime("_%Y-%m-%d_%H%M")
+file_name = state + dt_string + '.csv'
+
 df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv('maryland_.csv', index=False)
+df.to_csv(file_name, index=False)

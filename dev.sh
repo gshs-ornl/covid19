@@ -6,6 +6,12 @@
 #/   -h|-?|--help)
 #/       show this help and exit
 #/
+#/   -r|--run)
+#/       spin up the containers
+#/
+#/   -L|--log-container)
+#/       specify which container to log (defaults to scraper)
+#/
 #/   -b|--build-base)
 #/       build the base image
 #/
@@ -23,6 +29,9 @@
 #/
 #/   -P|--pull)
 #/       get the latest base image
+#/
+#/   -d|--deploy)
+#/       deploy the stack for PRODUCTION
 #/
 #/   -i|--interactive)
 #/       enter specified container interactively
@@ -43,6 +52,9 @@ INTERACTIVE=0
 DE=0
 RETRIEVE=0
 CACHE=1
+RUN=0
+LOG_CONTAINER="scraper"
+DEPLOY=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -98,6 +110,10 @@ while :; do
       LABEL=$2
       shift 2
       ;; # 3}}}
+    -L|--log-container) # {{{3
+      LOG_CONTAINER=$2
+      shift 2
+      ;; # 3}}}
     -u|--up) # {{{3
       UP=1
       shift
@@ -106,10 +122,18 @@ while :; do
       RETRIEVE=1
       shift
       ;; # 3}}}
+    -r|--run) # {{{3
+      RUN=1
+      shift
+      ;; # 3}}}
     --no-cache) # {{{3
       CACHE=0
       shift
       ;; # 3}}}
+    -d|--deploy) # {{{3
+      DEPLOY=1
+      shift
+    ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -150,5 +174,18 @@ fi
 if [ "$INTERACTIVE" -eq "1" ]; then
   info "Dropping into shell of $DE"
   docker exec -it "${BASE}_${DE}_1" bash
+fi
+if [[ "$RUN" -eq "1" && "$DEPLOY" -eq "1" ]]; then
+  die "Cannot specify both RUN and DEPLOY flags"
+fi
+if [ "$RUN" -eq "1" ]; then
+  info "Running"
+  docker-compose down && docker-compose up -d --build api db tidy scraper && \
+    docker logs -f "$LOG_CONTAINER"
+fi
+if [ "$DEPLOY" -eq "1" ]; then
+  info "Deploy bypassing overrides file"
+  docker-compose -f docker-compose.yml down && \
+    docker-compose -f docker-compose.yml up -d --build api db tidy scraper
 fi
 # 1}}} ------------------------------------------------------------------------

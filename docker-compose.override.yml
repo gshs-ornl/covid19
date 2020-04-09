@@ -33,8 +33,9 @@ services:
     environment:
       - PRODUCTION=False
     volumes:
-      - ./scraper:/tmp/
-      - covid_out_tst:/tmp/
+      - ./scraper/bin:/tmp/bin
+      - ./scraper/scripts:/tmp/scripts
+      - covid_out_tst:/tmp
 
   tidy:
     build: tidy
@@ -44,7 +45,7 @@ services:
     env_file:
       - tidy/tidy.env
     volumes:
-      - ./tidy:/tmp/
+      - ./tidy/bin:/tmp/bin
       - covid_out_tst:/tmp/output
       - covid_in_tst:/tmp/input
       - covid_clean_tst:/tmp/clean
