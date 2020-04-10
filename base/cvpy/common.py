@@ -81,7 +81,7 @@ def glob_csvs(directory,
     """Globs for all CSVs in a directory."""
     if os.path.exists(directory):
         logger.info(f'Looking for CSVs in {directory}.')
-        csvs = glob.glob(directory + '*.csv')
+        csvs = glob(directory + '*.csv')
         logger.info(f'Found {len(csvs)} CSV files.')
         return csvs
     logger.warning(f'No CSV files found in {directory}.')
