@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" here is the setup file for cvr, the COVID-19 web scraping implementation
+""" here is the setup file for cvpy, the COVID-19 web scraping implementation
 """
 from distutils.core import setup
 
