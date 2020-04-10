@@ -1,8 +1,8 @@
 FROM python:3.8
 LABEL maintainer="Joshua N. Grant <grantjn@ornl.gov>" \
-  version="0.1.5" \
-  description="Provides the Scraper images for retrieving county-level \
-COVID-19 confirmed cases"
+  version="0.1.6" \
+  description="Provides the base image for retrieving country-level \
+  state-level, county-level COVID-19 asssociated data."
 
 WORKDIR /tmp
 
@@ -13,12 +13,13 @@ ENV R_LIB /usr/lib/R/site-library
 ENV OUTPUT_DIR /tmp/output
 ENV INPUT_DIR /tmp/input
 ENV CLEAN_DIR /tmp/clean
+ENV PIC_DIR /tmp/screenshots
 ENV R_HOME /usr/lib/R
 # Commenting out until we move to using the releases from github
-#ENV COVIDR_VERS 0.1.1
+#ENV COVIDR_VERS 0.1.16
 #ENV COVIDR_URL https://github.com/nset-ornl/covidR/releases/download
 # setup the output directory
-RUN mkdir -p $OUTPUT_DIR $INPUT_DIR $CLEAN_DIR
+RUN mkdir -p $OUTPUT_DIR $INPUT_DIR $CLEAN_DIR $PIC_DIR
 
 RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
       locales && \
@@ -61,12 +62,10 @@ RUN apt-get update -qqy && apt-get install -t unstable -y \
 RUN set -eux && git clone https://github.com/mapbox/tippecanoe.git && \
       cd tippecanoe && make -j && make install
 
-
 # force en_US.UTF-8 in R
 RUN set -eux && \
       R --slave -e 'Sys.setenv(LANG="en_US.UTF-8")' && \
       R --slave -e 'Sys.setenv(LC_ALL="en_US.UTF-8")'
-
 
 # set default database env files
 ENV DB_HOST db
@@ -94,4 +93,3 @@ RUN install.r covidR.tar.gz
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
       rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
       rm covidR.tar.gz && rm -rf /tmp/tippecanoe
-
