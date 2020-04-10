@@ -91,4 +91,5 @@ class ErrorType:
     Digest = 'An error occurrred while digesting.'
     Ingest = 'An error occurred while ingesting.'
     Glob = 'An error occurred while globbing for CSV files.'
-    Database = 'An error occurred whiel using Database().'
+    Database = 'An error occurred while using Database().'
+    Image = 'An error occured while using ReadImage().'
