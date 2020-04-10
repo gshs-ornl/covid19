@@ -188,3 +188,19 @@ class DbData:
         'other': 'string',
         'other_value': 'float_'
     }
+
+
+class ImageConfig:
+    """Static dictionaries and values for OCR of images."""
+    PD = {
+        'skipinitialspace': True,
+        'na_values': [' ', '  ', 'na', 'nan'],
+        'keep_default_na': True,
+        'skip_blank_links': True,
+        'parse_dates': True,
+        'infer_datetime_format': True,
+        'thousands': ',',
+        'decimal': '.',
+        'error_bad_lines': False,
+        'warn_bad_lines': True
+    }
