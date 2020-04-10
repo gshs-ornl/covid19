@@ -29,6 +29,7 @@ from selenium.common.exceptions import TimeoutException
 from urllib3.exceptions import HTTPError, ConnectionError
 from datetime import datetime
 from cvpy.common import check_environment as ce
+from cvpy.exceptions import IngestException
 
 
 class WebDriver():
@@ -57,6 +58,7 @@ class WebDriver():
                           'headless'],
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
+                 window_height=1080, window_width=1920,
                  timeout=30, implicit_wait=5, remote=True,
                  logger=logging.getLogger(ce('LOGGER', 'main'))):
         """
@@ -96,16 +98,16 @@ class WebDriver():
             raise KeyError('No driver type ' + driver)
         if hasattr(self, 'driver') and self.driver is not None:
             self.driver.implicitly_wait(implicit_wait)
-            self.driver.set_window_size(1024, 768)
+            self.driver.set_window_size(window_width, window_height)
             self.logger.info('Connecting to %s' % self.url)
             self.driver.get(self.url)
             self.logger.info('Connected to %s' % self.url)
 
     def __str__(self):
-        """ creates a simple string object """
+        """Create a simple string object."""
         msg = 'WebDriver() Class with the following attributes:\n\tURL:'
         msg = msg + '%s\n\tDriver: %s\n' % (self.url, self.driver_type)
-        if hasattr(self, driver) and self.driver is not None:
+        if hasattr(self, 'driver') and self.driver is not None:
             msg = msg + '\nDriver has been initialized'
         return msg
 
@@ -129,7 +131,8 @@ class WebDriver():
                     self.driver.close()
                     self.driver.quit()
                 except Exception as e:
-                    self.logger.warning(f'Unknown exception when deleting object: {e}')
+                    self.logger.warning(
+                        f'Unknown exception when deleting object: {e}')
                 finally:
                     del self.driver
         del self
@@ -144,7 +147,8 @@ class WebDriver():
         except HTTPError as e:
             self.logger.error(f'HTTP error occurred: {e}')
         except Exception as e:
-            self.logger.error(f'An Error occurred while processing {self.url}: {e}')
+            self.logger.error(
+                f'An Error occurred while processing {self.url}: {e}')
         if self.output_type == 'text':
             return response.text
         if self.output_type == 'json':
@@ -310,20 +314,21 @@ class WebDriver():
                     By.PARTIAL_LINK_TEXT, elem))
                 WebDriverWait(self.driver, wait).until(element_present)
             else:
-                raise ParserError(f'{elem_type} is not a supported type')
+                raise IngestException(f'{elem_type} is not a supported type')
         except KeyError as e:
             self.logger.error(f'KeyError thrown {e}')
         except WebDriverException as e:
             self.logger.error(f'WebDriver threw an exception {e}')
         except TimeoutException as e:
-            self.logger.error(f'Timed out locating {elem}')
+            self.logger.error(f'Timed out locating {elem}: {e}')
         except NoSuchElementException as e:
             msg = f'Element {elem} not found on page after '
             msg = msg + f'{wait} seconds: {e}'
             self.logger.error(msg)
-            raise ParserError(msg)
+            raise IngestException(msg)
         except Exception as e:
-            self.logger.error(f'Unknown exception while waiting for element: {e}')
+            self.logger.error(
+                f'Unknown exception while waiting for element: {e}')
 
     def take_screenshot(self, output_file):
         """Take a screenshot of the screen."""
@@ -335,10 +340,10 @@ class WebDriver():
         return output_file
 
     def page_down(self):
-        """Simulate Page Down key in browser."""
+        """Send page down key."""
+        self.logger.info('Simulating Page Down key press')
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.PAGE_DOWN)
-        actions.perform()
 
 
 if __name__ == "__main__":
