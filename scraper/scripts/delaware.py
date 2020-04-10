@@ -2,6 +2,7 @@
 
 import requests
 import datetime
+import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
@@ -68,8 +69,6 @@ for feature in raw_data['features']:
         deaths = attribute['Total_Death']
         hospitalized = attribute['Hospitalizations']
         negative_tests = attribute['NegativeCOVID']
-        cases_male = attribute['Male']
-        cases_female = attribute['Female']
         update_date = attribute['Last_Updated']
         if update_date is None:
             updated = nan
@@ -90,12 +89,36 @@ for feature in raw_data['features']:
                 nan, nan, nan,
                 nan, nan, nan,
                 nan, nan, nan,
-                resolution, nan, cases_male, cases_female,
+                resolution, nan, nan, nan,
                 nan, nan, nan, nan,
                 age_range, age_cases, nan, nan,
                 nan, nan, nan,
                 nan, nan,
                 nan, nan, nan, nan,
+                nan, nan])
+
+        for gender in ['Female', 'Male']:
+            sex = gender
+            if gender == "Male":
+                sex_count = attribute['Male']
+            elif gender == "Female":
+                sex_count = attribute['Female']
+
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                nan, updated, nan, nan,
+                recovered, nan, hospitalized, negative_tests,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, sex, sex_count, nan,
                 nan, nan])
 
 raw_data = requests.get(state_url_death).json()
@@ -142,7 +165,8 @@ row_csv.append([
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
-file_name = state + dt_string + '.csv'
+path = os.getenv("OUTPUT_DIR", "")
+file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
 # "Last_Updated" field is not reported all the time so there is a need to fill

@@ -11,10 +11,10 @@ SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
 CREATE USER cvadmin WITH CREATEDB CREATEROLE PASSWORD 'LovingLungfish';
-CREATE USER ingester WITH PASSWORD 'AngryMoose' IN ROLE jesters;
-CREATE USER digester WITH PASSWORD 'LittlePumpkin' IN ROLE jesters;
-CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters;
-CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters;
+CREATE USER ingester WITH PASSWORD 'AngryMoose' IN ROLE jesters; -- INGEST TO RAW DATA SOURCES
+CREATE USER digester WITH PASSWORD 'LittlePumpkin' IN ROLE jesters; -- raw CSV
+CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters; -- updating static tables
+CREATE USER historian WITH PASSWORD 'SmallGoose' IN ROLE reporters; -- mostly read-only
 CREATE USER guest WITH PASSWORD 'abc123';
 SELECT 'CREATE DATABASE covidb WITH OWNER cvadmin'
 WHERE NOT EXISTS(SELECT FROM pg_database WHERE datname = 'covidb')
