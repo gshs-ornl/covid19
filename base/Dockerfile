@@ -35,7 +35,12 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     wget ca-certificates fonts-texgyre libnss3 libgconf-2-4 \
     unzip postgresql-client libv8-dev libmagick++-dev libudunits2-dev \
     libgdal-dev gdal-bin libgeos++-dev libgeos-3.7.1 libproj-dev \
-    proj-bin postgresql-client git make tesseract-ocr
+    proj-bin postgresql-client git make tesseract-ocr autoconf-archive \
+    libtiff5 libtiff5-dev libpng16-16 libpng-dev zlib1g zlib1g-dev \
+    leptonica-progs libleptonica-dev 
+
+# confirm tesseract version
+RUN set -eux && tesseract --version
 
 # update apt source to point to the newest version of R
 RUN echo "deb http://http.debian.net/debian sid main" > \
@@ -62,13 +67,14 @@ RUN set -eux && \
       R --slave -e 'Sys.setenv(LANG="en_US.UTF-8")' && \
       R --slave -e 'Sys.setenv(LC_ALL="en_US.UTF-8")'
 
+
 # set default database env files
 ENV DB_HOST db
 ENV DB_DB covidb
 ENV DB_PORT 5432
 # install python dependencies
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
+RUN set -eux && pip install --upgrade pip && \
         pip install --no-cache-dir -r requirements.txt
 
 # install R packages
@@ -78,7 +84,7 @@ RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
 # install our python package
 COPY setup.py .
 COPY cvpy ./cvpy
-RUN python setup.py install --prefix=/usr/local
+RUN set -eux && python setup.py install --prefix=/usr/local
 
 # install our R package
 COPY covidR.tar.gz .
