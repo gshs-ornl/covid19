@@ -12,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
@@ -332,6 +333,12 @@ class WebDriver():
                          f'{output_file}')
         self.driver.save_screenshot(output_file)
         return output_file
+
+    def page_down(self):
+        """Simulate Page Down key in browser."""
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.PAGE_DOWN)
+        actions.perform()
 
 
 if __name__ == "__main__":
