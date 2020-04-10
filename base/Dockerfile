@@ -79,7 +79,7 @@ RUN set -eux && pip install --upgrade pip && \
 
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
-      sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl  
+      sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl zip
 
 # install our python package
 COPY setup.py .
