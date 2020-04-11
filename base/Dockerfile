@@ -38,7 +38,8 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     libgdal-dev gdal-bin libgeos++-dev libgeos-3.7.1 libproj-dev \
     proj-bin postgresql-client git make tesseract-ocr autoconf-archive \
     libtiff5 libtiff5-dev libpng16-16 libpng-dev zlib1g zlib1g-dev \
-    leptonica-progs libleptonica-dev 
+    leptonica-progs libleptonica-dev libudunits2-0 libudunits2-data \
+    libudunits2-dev gdal-bin libgdal-dev libproj-dev 
 
 # confirm tesseract version
 RUN set -eux && tesseract --version
@@ -52,7 +53,7 @@ RUN echo "deb http://http.debian.net/debian sid main" > \
 RUN apt-get update -qqy && apt-get install -t unstable -y \
         --no-install-recommends littler r-cran-littler \
         r-base=${R_BASE_VERSION}-* r-base-dev=${R_BASE_VERSION}-* \
-        r-recommended=${R_BASE_VERSION}-* && \
+        r-recommended=${R_BASE_VERSION}-* r-cran-gdal && \
       ln -s $R_LIB/littler/examples/install.r /usr/local/bin/install.r && \
       ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
       ln -s $R_LIB/littler/examples/installGithub.r \
@@ -78,7 +79,8 @@ RUN set -eux && pip install --upgrade pip && \
 
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
-      sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl zip
+      sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl \
+      zip tidycensus
 
 # install our python package
 COPY setup.py .
