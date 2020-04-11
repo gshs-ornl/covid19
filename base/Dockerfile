@@ -53,7 +53,7 @@ RUN echo "deb http://http.debian.net/debian sid main" > \
 RUN apt-get update -qqy && apt-get install -t unstable -y \
         --no-install-recommends littler r-cran-littler \
         r-base=${R_BASE_VERSION}-* r-base-dev=${R_BASE_VERSION}-* \
-        r-recommended=${R_BASE_VERSION}-* r-cran-gdal && \
+        r-recommended=${R_BASE_VERSION}-* && \
       ln -s $R_LIB/littler/examples/install.r /usr/local/bin/install.r && \
       ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
       ln -s $R_LIB/littler/examples/installGithub.r \
@@ -80,7 +80,7 @@ RUN set -eux && pip install --upgrade pip && \
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
       sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl \
-      zip tidycensus
+      zip rgdal tidycensus
 
 # install our python package
 COPY setup.py .
