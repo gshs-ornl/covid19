@@ -21,6 +21,7 @@ class Slurp():
         self.logger = logger
         self.uri = create_uri(self.logger)
         self.path = path
+        self.logger.info(f'Path passed: {self.path}')
         if self.path is None:
             csvs = glob_csvs(clean_dir, self.logger)
             for c in csvs:
