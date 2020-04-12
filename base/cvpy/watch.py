@@ -59,7 +59,7 @@ class SlurpHandler(PatternMatchingEventHandler):
         """Process a csv file that has been created."""
         self.logger.info(f'Source Path:\t{event.src_path}\n' +
                          f'Event Type:\t{event.event_type}\n')
-        Slurp(event.src_path)
+        slurper = Slurp(event.src_path)
 
     def on_created(self, event):
         """Process event when file is created."""
