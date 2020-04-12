@@ -44,7 +44,7 @@ class Slurp():
     def process(self, df, c):
         """Process the CSV passed during Slurp initialization."""
         # TODO fill in with better logic
-        self.logger.info(f'Proceeding with file {self.csv}')
+        self.logger.info(f'Proceeding with file {self.path}')
         try:
             with Database() as db:
                 db.insert_raw_data(df)
