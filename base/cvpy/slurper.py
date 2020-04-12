@@ -29,12 +29,17 @@ class Slurp():
                     self.process(df)
                 else:
                     self.logger.warning(f'File {c} was not found, skipping.')
-        else:
+        elif os.path.isdir(self.path):
             if os.path.exists(self.path):
                 csvs = glob_csvs(clean_dir, self.logger)
                 for c in csvs:
                     df = get_csv(c, self.logger)
                     self.process(df, c)
+        elif os.path.isfile(self.path):
+            df = get_csv(self.path, self.logger)
+            self.process(df, self.path)
+        else:
+            raise SlurperError(f'Unknown way to process: {self.path}')
 
     def process(self, df, c):
         """Process the CSV passed during Slurp initialization."""
