@@ -3,6 +3,7 @@
 import os
 import logging
 import traceback
+from subprocess import check_output
 from cvpy.database import Database
 from cvpy.common import check_environment as ce
 from cvpy.common import glob_csvs, get_csv, create_uri
@@ -19,7 +20,6 @@ class Slurp():
         self.view_creator = view_creator
         self.logger = logger
         self.uri = create_uri(self.logger)
-        self.csv = csv
         if self.path is None:
             csvs = glob_csvs(clean_dir, self.logger)
             for c in csvs:
@@ -52,3 +52,13 @@ class Slurp():
             self.logger.error(f'Problem slurping {c}: {e}')
             raise SlurpError(f'Slurper: {c}',
                              'Slurping of CSV failed with error: {e}')
+        try:
+            self.logger.info(
+                f'Attempting to create views with {self.view_creator}')
+            cmd = [self.view_creator]
+            res = check_output(cmd)
+            self.logger.info(f'Results from self.view_creator: {res}')
+        except Exception as e:
+            traceback.print_stack()
+            self.logger.error(f'Problem creating views: {e}')
+            raise SlurpError(f'Slurper error: {e}')
