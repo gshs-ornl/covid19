@@ -7,7 +7,7 @@ from subprocess import check_output
 from cvpy.database import Database
 from cvpy.common import check_environment as ce
 from cvpy.common import glob_csvs, get_csv, create_uri
-from cvpy.errors import SlurpError
+from cvpy.exceptions import SlurpException
 
 
 class Slurp():
@@ -39,7 +39,8 @@ class Slurp():
             df = get_csv(self.path, self.logger)
             self.process(df, self.path)
         else:
-            raise SlurperError(f'Unknown way to process: {self.path}')
+            traceback.print_stack()
+            raise SlurpException(f'Unknown way to process: {self.path}')
 
     def process(self, df, c):
         """Process the CSV passed during Slurp initialization."""
@@ -56,8 +57,8 @@ class Slurp():
         except Exception as e:
             traceback.print_stack()
             self.logger.error(f'Problem slurping {c}: {e}')
-            raise SlurpError(f'Slurper: {c}',
-                             'Slurping of CSV failed with error: {e}')
+            raise SlurpException(f'Slurper: {e}' +
+                                 f'Slurping of CSV failed with error: {e}')
         try:
             self.logger.info(
                 f'Attempting to create views with {self.view_creator}')
@@ -67,4 +68,4 @@ class Slurp():
         except Exception as e:
             traceback.print_stack()
             self.logger.error(f'Problem creating views: {e}')
-            raise SlurpError(f'Slurper error: {e}')
+            raise SlurpException(f'Slurper error: {e}')

@@ -59,7 +59,7 @@ class Database(object):
                 f'User: {self.user}\n'
             self.logger.debug(msg)
             self.con = psycopg2.connect(
-                datase=self.database,
+                database=self.database,
                 user=self.user,
                 password=self.passwd,
                 host=self.host,
