@@ -11,7 +11,7 @@ from cvpy.database import Database
 # get the standard cvpy logger
 logger = logging.getLogger(DictLogger.SIMPLE)
 # assign the output directory
-OUTPUT_DIR = ce('OUTPUT_DIR', '/tmp/clean')
+OUTPUT_DIR = ce('OUTPUT_DIR', '/tmp/output')
 
 
 def insert_csv(csv, db):
