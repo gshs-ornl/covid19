@@ -20,6 +20,7 @@ class Slurp():
         self.view_creator = view_creator
         self.logger = logger
         self.uri = create_uri(self.logger)
+        self.path = path
         if self.path is None:
             csvs = glob_csvs(clean_dir, self.logger)
             for c in csvs:
