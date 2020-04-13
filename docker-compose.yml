@@ -52,7 +52,7 @@ services:
       
   db:
     build: ./covidb
-    container_name: covidb
+    container_name: db
     environment:
       - PG_DATABASE=covidb
       - PG_PRIMARY_USER=cvadmin
