@@ -1,5 +1,14 @@
 #!/usr/bin/env Rscript
-library(covidR)
+library(covidR)  # load the covidR package
+
+options(echo=TRUE)  # see commands in output
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  zip_path = getwd()
+} else {
+  zip_path = args[1]
+}
+message(gettextf('Output Zip File will be in %s', zip_path))
 
 scrape_alabama()
 scrape_arizona()
@@ -53,4 +62,4 @@ scrape_dh()
 scrape_ihme()
 scrape_capacity_predictor()
 scrape_latimes()
-zip_temp_write(getwd())
+zip_temp_write(zip_path)
