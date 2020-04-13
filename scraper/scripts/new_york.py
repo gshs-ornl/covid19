@@ -64,14 +64,16 @@ def fill_in_df(df_list, dict_info, columns):
 
 df = pd.DataFrame(raw_data).sort_values('test_date', ascending=False)
 df['test_date'] = pd.to_datetime(df['test_date'])
-df['test_date'] = df['test_date'].dt.strftime('%Y-%m-%d')
-day_before = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime(
-    '%Y-%m-%d')
-df[df['test_date'] == day_before].sort_values('county').drop(
-    ['new_positives', 'total_number_of_tests', 'test_date'], axis = 1)
 
-df = df[df['test_date'] == day_before].sort_values('county').drop(
-    ['new_positives', 'total_number_of_tests', 'test_date'], axis = 1)
+date_list = sorted(list(df.groupby('test_date').groups.keys()))
+recent_date = date_list[-1].to_pydatetime().strftime('%Y-%m-%d')
+
+df['test_date'] = df['test_date'].dt.strftime('%Y-%m-%d')
+# day_before = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime(
+#     '%Y-%m-%d')
+
+df = df[df['test_date'] == recent_date].sort_values('county').drop(
+    ['new_positives', 'total_number_of_tests', 'test_date'], axis=1)
 df.columns = ['county', 'cases', 'tested']
 
 dict_info_county = {'provider': 'state', 'country': country, "url": url,
