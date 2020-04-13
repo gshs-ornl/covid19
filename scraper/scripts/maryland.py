@@ -53,7 +53,7 @@ for feature in raw_data['features']:
 
 with open('maryland_county_data.json', 'w') as f:
     json.dump(raw_data, f)
-
+'''
 raw_data = requests.get(state_url).json()
 access_time = datetime.datetime.utcnow()
 
@@ -114,7 +114,7 @@ for feature in raw_data['features']:
 
 with open('maryland_state_data.json', 'w') as f:
     json.dump(raw_data, f)
-
+'''
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 file_name = state + dt_string + '.csv'
