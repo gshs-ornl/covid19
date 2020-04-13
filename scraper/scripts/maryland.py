@@ -3,6 +3,7 @@
 import requests
 import datetime
 import json
+import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
@@ -117,7 +118,8 @@ with open('maryland_state_data.json', 'w') as f:
 '''
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
-file_name = state + dt_string + '.csv'
+path = os.getenv("OUTPUT_DIR", "")
+file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
 df.to_csv(file_name, index=False)
