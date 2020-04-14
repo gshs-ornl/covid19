@@ -42,7 +42,7 @@ for feature in raw_data['features']:
         # Get FL Resident and non-resident in FL
         cases = attribute['CasesAll']
         deaths = attribute['Deaths']
-        hospitalized = attribute['C_Hosp_Yes']
+        hospitalized = attribute['C_HospYes_Res'] + attribute['C_HospYes_NonRes']
         tested = attribute['T_total']
         negative_tests = attribute['T_negative']
         pending = attribute['TPending']
