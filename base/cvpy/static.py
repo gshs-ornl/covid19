@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ this file contains static information """
+import re
 import os
 from pathlib import Path
 from cvpy.common import check_environment as ce
@@ -196,7 +197,7 @@ class ImageConfig:
         'skipinitialspace': True,
         'na_values': [' ', '  ', 'na', 'nan'],
         'keep_default_na': True,
-        'skip_blank_links': True,
+        'skip_blank_lines': True,
         'parse_dates': True,
         'infer_datetime_format': True,
         'thousands': ',',
@@ -204,3 +205,10 @@ class ImageConfig:
         'error_bad_lines': False,
         'warn_bad_lines': True
     }
+
+
+class UrlRegex:
+    """Define a URL Regex."""
+    # https://stackoverflow.com/a/48689681/2060081
+    RE = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\." +
+                    r"([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*")

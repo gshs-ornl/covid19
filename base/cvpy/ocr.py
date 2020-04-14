@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Provides methods for reading images and recognizing characters."""
+import re
 import logging
 import pandas as pd
+import urllib.request
 from PIL import Image
 from PIL import UnidentifiedImageError
 from pytesseract import image_to_data
 from pytesseract import Output
+from urllib.error import HTTPError
 from cvpy.common import check_environment as ce
-from cvpy.static import ImageConfig
+from cvpy.static import ImageConfig, UrlRegex
 from cvpy.exceptions import ReadImageException
 
 
@@ -20,7 +23,10 @@ class ReadImage():
         self.timeout = timeout
         self.image_file = image_file
         try:
-            self.image = Image.open(self.image_file)
+            if re.match(UrlRegex.RE, image_file):
+                self.image = Image.open(urllib.request.urlopen(image_file))
+            else:
+                self.image = Image.open(self.image_file)
         except FileNotFoundError as e:
             msg = f'File {image_file} not found: {e}'
             self.logger.error(msg)
@@ -32,6 +38,10 @@ class ReadImage():
         except ValueError as e:
             msg = f'File {image_file} mode is not ' + \
                 f'"r" or a StringIO was passed. {e}'
+            self.logger.error(msg)
+            raise ReadImageException(msg)
+        except HTTPError as e:
+            msg = f'URL {image_file} raised exception: {e}'
             self.logger.error(msg)
             raise ReadImageException(msg)
         except Exception as e:
@@ -69,3 +79,9 @@ class ReadImage():
                 f'type: {type(self.text)}.'
             self.logger.error(msg)
             raise ReadImageException(msg)
+
+
+class ReadPDF():
+    """Provide module performing OCR for PDFs."""
+    # TODO finish this
+    pass

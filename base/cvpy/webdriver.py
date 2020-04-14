@@ -345,6 +345,35 @@ class WebDriver():
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.PAGE_DOWN)
 
+    def get_images(self):
+        """Retrieve all images in a web page."""
+        self.logger.info(f'Retrieving all images from {self.url}')
+        imgs = self.driver.find_elements_by_tag_name('img')
+        img_srcs = list()
+        for i in imgs:
+            img_srcs.append(i.get_attribute('src'))
+        self.logger.info(f'Found {len(img_srcs)} images.')
+        return img_srcs
+
+    def get_image(self, xpath=None, tag=None, id_name=None,
+                  class_name=None):
+        """Retrieve an image in a web page."""
+        if xpath is None and tag is None and id_name is None and \
+                class_name is None:
+            raise IngestException('Webdriver.get_image() requires one of ' +
+                                  'xpath|tag|id_name|class_name.')
+        if xpath is not None:
+            img = self.get_xpath(xpath)
+        elif tag is not None:
+            img = self.get_tag(tag)
+        elif id_name is not None:
+            img = self.get_id(id_name)
+        elif class_name is not None:
+            img = self.get_class(class_name)
+        else:
+            raise IngestException('Bad logic passed to WebDriver.get_image()')
+        return img.get_attribute('src')
+
 
 if __name__ == "__main__":
     import time
