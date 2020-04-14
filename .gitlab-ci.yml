@@ -7,9 +7,9 @@ image: docker:stable
 # services:
 #   - docker:stable-dind
 variables:
-    DOCKER_HOST: tcp://localhost:2376
-    DOCKER_DRIVER: overlay2
-    #DOCKER_TLS_CERTDIR: ""
+    # DOCKER_HOST: tcp://localhost:2376
+    # DOCKER_DRIVER: overlay2
+    # DOCKER_TLS_CERTDIR: ""
     DOCKER_REGISTRY: camden.ornl.gov
     GITLAB_REGISTRY: code.ornl.gov:4567
 
@@ -27,7 +27,7 @@ build:api:
   variables:
     IMAGENAME: base
   script: 
-    - set -x
+    - set +x
     # Moves to working directory where Dockerfile is located.
     - cd api
 
@@ -67,7 +67,7 @@ build:base:
     #Python 3.8
     IMAGENAME: base
   script: 
-    - set -x
+    - set +x
     # Moves to working directory where Dockerfile is located.
     - cd base
 
@@ -97,7 +97,7 @@ build:covidb:
   when: manual
 
   script: 
-    - set -x
+    - set +x
     # Moves to working directory where Dockerfile is located.
     - cd covidb
 
@@ -124,7 +124,7 @@ build:scraper:
   when: manual
 
   script: 
-    - set -x
+    - set +x
     # Moves to working directory where Dockerfile is located.
     - cd scraper
 
@@ -160,7 +160,7 @@ build:tidy:
   when: manual
 
   script: 
-    - set -x
+    - set +x
     # Moves to working directory where Dockerfile is located.
     - cd tidy
 
@@ -200,7 +200,7 @@ deploy:develop:
   when: manual
 
   script:
-      - set -x
+      - set +x
 #     - yum install -y yum-utils device-mapper-persistent-data lvm2
 #     - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #     - yum install -y docker-ce docker-ce-cli containerd.io
