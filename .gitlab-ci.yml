@@ -5,7 +5,7 @@ stages:
   - deploy 
 
 variables:
-  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_HOST: unix:///var/lib/docker.sock
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
   DOCKER_REGISTRY: camden.ornl.gov
