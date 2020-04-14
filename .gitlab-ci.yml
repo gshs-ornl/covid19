@@ -3,29 +3,24 @@
 stages:
   - build
   - deploy 
-image: docker:stable
-# services:
-#   - docker:stable-dind
-variables:
-    DOCKER_HOST: tcp://localhost:2376
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_REGISTRY: camden.ornl.gov
-    GITLAB_REGISTRY: code.ornl.gov:4567
+  
+variables: 
+  DOCKER_REGISTRY: camden.ornl.gov
+  GITLAB_REGISTRY: code.ornl.gov:4567
 
 ### BUILD STAGES ###
 
 build:api:
+  image: docker:stable
+  variables:
+    IMAGENAME: base
   stage: build
   tags:
     - covid19-runner
   only:
     refs:
       - gitlab-ci
-
   when: manual
-  variables:
-    IMAGENAME: base
   script: 
     - set +x
     # Moves to working directory where Dockerfile is located.
@@ -55,6 +50,11 @@ build:api:
 
 build:base:
   stage: build
+  image: docker:stable
+  variables:
+    DOCKER_REGISTRY: camden.ornl.gov
+    GITLAB_REGISTRY: code.ornl.gov:4567
+    IMAGENAME: base
   tags:
     - covid19-runner
   only:
@@ -62,10 +62,6 @@ build:base:
       - gitlab-ci
 
   when: manual
-
-  variables:
-    #Python 3.8
-    IMAGENAME: base
   script: 
     - set +x
     # Moves to working directory where Dockerfile is located.
