@@ -5,7 +5,7 @@ stages:
   - deploy 
 
 variables:
-  DOCKER_HOST: unix:///var/lib/docker.sock
+  DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
   DOCKER_REGISTRY: camden.ornl.gov
@@ -25,7 +25,6 @@ build:api:
       - gitlab-ci
   when: manual
   script: 
-    - sleep 3000
     - set +x
     # Moves to working directory where Dockerfile is located.
     - cd api
