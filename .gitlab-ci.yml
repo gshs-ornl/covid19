@@ -7,9 +7,9 @@ image: docker:stable
 # services:
 #   - docker:stable-dind
 variables:
-    # DOCKER_HOST: tcp://localhost:2376
-    # DOCKER_DRIVER: overlay2
-    # DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://localhost:2376
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_REGISTRY: camden.ornl.gov
     GITLAB_REGISTRY: code.ornl.gov:4567
 
