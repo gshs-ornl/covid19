@@ -23,9 +23,11 @@ class ReadImage():
         self.timeout = timeout
         self.image_file = image_file
         try:
-            if re.match(UrlRegex.RE, image_file):
-                self.image = Image.open(urllib.request.urlopen(image_file))
-            else:
+            try:
+                if re.match(UrlRegex.RE, image_file):
+                    self.image = Image.open(urllib.request.urlopen(image_file))
+            except Exception as e:
+                self.logger.info(f'Image was not a URL: {e}')
                 self.image = Image.open(self.image_file)
         except FileNotFoundError as e:
             msg = f'File {image_file} not found: {e}'

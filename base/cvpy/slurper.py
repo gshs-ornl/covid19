@@ -27,7 +27,7 @@ class Slurp():
             for c in csvs:
                 if os.path.exists(c):
                     df = get_csv(c, self.logger)
-                    self.process(df)
+                    self.process(df, c)
                 else:
                     self.logger.warning(f'File {c} was not found, skipping.')
         elif os.path.isdir(self.path):

@@ -3,6 +3,7 @@
 import requests
 import datetime
 import os
+import re
 from numpy import nan
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -139,8 +140,9 @@ for race_row in race_list:
     for each_percent in percent_list:
         focused_row = percent_list_rows[index]
         other = race_name + '_' + each_percent
-        other_value = str(
-            demo_image_df.iloc[focused_row + count]['text']).replace(']', '1').replace('l', '1')
+        other_value_raw = str(
+            demo_image_df.iloc[focused_row + count]['text'])
+        other_value = re.sub(r'(l|\[|\])', '1', other_value_raw)
         count = count + 1
 
         row_csv.append([
