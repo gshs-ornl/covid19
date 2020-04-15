@@ -1,10 +1,15 @@
-from flask import Flask, request
+from os import path
 
+from flask import Flask, request
+from werkzeug.utils import secure_filename
+
+from cvpy.slurper import Slurp
 from es_app.common import get_var, pretty_time
 from es_app.parse import ElasticParse
 
 flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
 flask_debug = get_var('FLASK_DEBUG', True)
+csv_dir = get_var('CSV_DIR', '/tmp/input')
 
 app = Flask(flask_app_name, static_url_path='')
 
@@ -39,6 +44,50 @@ def check_input(uid):
 @app.route('/es/help')
 def default():
     return 'Use /put/<uid> to do things and /test-put/<uid> to test things'
+
+
+landing_html = """
+    <!doctype html>
+    <h1>covid-19_scrapers</h1>
+    <h2>Upload Input Files</h2>
+    <p>Please select the file to upload.</p>
+    <form method=post enctype=multipart/form-data>
+        <p>Select CSV</p>
+        <input type=file name=CSVFile>
+        <label>
+        <br><br>
+        <input type=checkbox name=testmode>Enable test mode
+        </label>
+        <br><br>
+        <input type=submit value=Upload>
+    </form>
+    <h2>Once submitted, do not close the browser window!</h2>
+    <p>You will be see a message upon completion</p>
+    </html>
+ 
+"""
+
+
+@app.route('/', methods=['GET', 'POST'])
+def landing():
+    if not request.method == 'POST':
+        return landing_html
+    upload = request.files.get('CSVFile')
+    if upload is None:
+        raise FileNotFoundError
+    file_name = secure_filename(upload.filename)
+    local_save = path.join(csv_dir, file_name)
+    upload.save(local_save)
+    if request.form.get('testmode'):
+        with open(local_save, encoding='utf-8') as f_test:
+            contents = f_test.read()
+        return {
+            'saved_file': local_save,
+            'upload_contents': upload.read().decode('utf-8'),
+            'saved_contents': contents
+        }
+    Slurp(local_save)
+    return "File slurped"
 
 
 if __name__ == '__main__':
