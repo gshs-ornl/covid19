@@ -4,3 +4,4 @@ psycopg2-binary==2.8.4
 pytest
 uwsgi
 requests
+Werkzeug
