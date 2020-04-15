@@ -46,10 +46,14 @@ build:api:
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
-    # Docker push to Camden:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY
+    # Tags the version of the image to a version to push to Camden:latest.
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
+    # Tags the image from Camden:latest to Camden:Commit.
+    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:Commit.
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
 
 
 build:base:
@@ -72,13 +76,13 @@ build:base:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
-    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
+    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$IMAGENAME:latest
     # Docker push to Camden:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:latest.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
 
 
 build:covidb:
@@ -102,13 +106,13 @@ build:covidb:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
-    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
+    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$IMAGENAME:latest
     # Docker push to Camden:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:latest.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
 
 
 build:scraper:
@@ -142,10 +146,14 @@ build:scraper:
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
-    # Docker push to Camden:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY
+    # Tags the version of the image to a version to push to Camden:latest.
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
+    # Tags the image from Camden:latest to Camden:Commit hash.
+    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:Commit hash.
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
 
 build:tidy:
   stage: build
@@ -178,10 +186,14 @@ build:tidy:
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
-    # Docker push to Camden:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY
+    # Tags the version of the image to a version to push to Camden:latest.
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
+    # Tags the image from Camden:latest to Camden:Commit hash.
+    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:Commit hash.
+    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
 
 ### DEPLOY STAGES###
 
