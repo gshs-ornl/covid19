@@ -1,5 +1,6 @@
 elasticsearch>7
 Flask
+psycopg2-binary==2.8.4
 pytest
 uwsgi
 requests
