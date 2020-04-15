@@ -9,7 +9,7 @@ flask_debug = get_var('FLASK_DEBUG', True)
 app = Flask(flask_app_name, static_url_path='')
 
 
-@app.route('/put/<uid>', methods=['POST', 'PUT'])
+@app.route('/es/put/<uid>', methods=['POST', 'PUT'])
 def process_input(uid):
     start_time = pretty_time()
     content = request.get_json()
@@ -22,7 +22,7 @@ def process_input(uid):
     }
 
 
-@app.route('/test-put/<uid>', methods=['POST', 'PUT'])
+@app.route('/es/test-put/<uid>', methods=['POST', 'PUT'])
 def check_input(uid):
     start_time = pretty_time()
     content = request.get_json()
@@ -36,7 +36,7 @@ def check_input(uid):
     }
 
 
-@app.route('/')
+@app.route('/es/help')
 def default():
     return 'Use /put/<uid> to do things and /test-put/<uid> to test things'
 
