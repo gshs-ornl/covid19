@@ -136,13 +136,13 @@ build:scraper:
     # Pulls the image from the Gitlab repo for local caching.
     - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # Docker push to Gitlab:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # Docker push to Gitlab:latest
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
+    # # Docker push to Gitlab:Commit Hash.
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # # Docker push to Gitlab:latest
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
