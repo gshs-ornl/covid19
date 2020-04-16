@@ -57,6 +57,7 @@ build:api:
 
 
 build:base:
+  image: docker:stable
   stage: build
   tags:
     - covid19-runner
@@ -85,6 +86,7 @@ build:base:
 
 
 build:covidb:
+  image: docker:stable
   stage: build
   tags:
     - covid19-runner
