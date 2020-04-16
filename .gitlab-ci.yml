@@ -10,13 +10,13 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_REGISTRY: camden.ornl.gov
   GITLAB_REGISTRY: code.ornl.gov:4567
+  IMAGENAME: base
+  CAMDENIMAGENAME: covid19/base
 
 ### BUILD STAGES ###
 
 build:api:
   image: docker:stable
-  variables:
-    IMAGENAME: base
   stage: build
   tags:
     - covid19-runner
@@ -46,13 +46,13 @@ build:api:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Tags the version of the image to a version to push to Camden:latest.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
+    - docker push $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest 
     # Tags the image from Camden:latest to Camden:Commit.
-    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker image tag $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest $DOCKER_REGISTRY/$CAMDENIMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:Commit.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$CAMDENIMAGENAME:$CI_COMMIT_SHORT_SHA
 
 
 build:base:
