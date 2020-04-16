@@ -90,26 +90,27 @@ for feature in raw_data['county_demographics']:
             other, other_value])
 
     for race in feature['demographics']['race']:
-        for text in ['count', 'tested']:
-            other = race['description']+'_'+text
-            other_value = race[text]
+        other = "Race"
+        other_value = race
+        cases = race['count']
+        tested = race['tested']
 
-            row_csv.append([
-                'state', country, state, nan,
-                url, str(raw_data), access_time, county,
-                cases, nan, deaths, nan,
-                nan, tested, nan, nan,
-                nan, nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
-                resolution, nan, nan, nan,
-                nan, nan, nan, nan,
-                nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan,
-                nan, nan, nan, nan,
-                other, other_value])
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, county,
+            cases, nan, deaths, nan,
+            nan, tested, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
 
     for gender in feature['demographics']['gender']:
         sex = gender['description']
@@ -119,8 +120,8 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
-            nan, tested, nan, nan,
+            nan, nan, deaths, nan,
+            nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
             nan, nan, nan,
