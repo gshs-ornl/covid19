@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+
+  api:
+    image: camden.ornl.gov/covid19/api:latest
+
+  scraper:
+    image: camden.ornl.gov/covid19/base:latest
+
+  tidy:
+    image: camden.ornl.gov/covid19/tidy:latest
+
+  db:
+    image: camden.ornl.gov/covid19/covidb:latest

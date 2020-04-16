@@ -21,7 +21,6 @@ build:api:
   only:
     refs:
       - gitlab-ci
-  when: manual
   variables:
     IMAGENAME: api
     DOCKERIMAGENAME: covid19/api
@@ -67,7 +66,6 @@ build:base:
   variables:
     IMAGENAME: base
     DOCKERIMAGENAME: covid19/base
-  when: manual
   script: 
     - set -x
     # Moves to working directory where Dockerfile is located.
@@ -97,7 +95,6 @@ build:covidb:
     #Crunchy Postgres
     IMAGENAME: covidb
     DOCKERIMAGENAME: covid19/covidb
-  when: manual
   script: 
     - set -x
     # Moves to working directory where Dockerfile is located.
@@ -122,7 +119,6 @@ build:scraper:
   only:
     refs:
       - gitlab-ci
-  when: manual
   variables:
     IMAGENAME: scraper
     DOCKERIMAGENAME: covid19/scraper
@@ -164,7 +160,6 @@ build:tidy:
   only:
     refs:
       - gitlab-ci
-  when: manual
   variables:
     IMAGENAME: tidy
     DOCKERIMAGENAME: covid19/tidy
@@ -214,13 +209,13 @@ deploy:develop:
   when: manual
 
   script:
-      - set +x
-#     - yum install -y yum-utils device-mapper-persistent-data lvm2
-#     - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-#     - yum install -y docker-ce docker-ce-cli containerd.io
-#     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-#     - chmod +x /usr/local/bin/docker-compose
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - set -x
+    - yum install -y yum-utils device-mapper-persistent-data lvm2
+    - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    - yum install -y docker-ce docker-ce-cli containerd.io
+    - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - chmod +x /usr/local/bin/docker-compose
+    - docker login -u $ROBOT_USER -p $ROBOT_TOKEN $DOCKER_REGISTRY
 #     - docker pull $CI_REGISTRY/$CI_PROJECT_PATH:latest
 #     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml down
 #     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
