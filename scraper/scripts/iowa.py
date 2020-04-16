@@ -52,7 +52,7 @@ access_time = datetime.datetime.utcnow()
 resolution = 'state'
 age_keys = ['Child_0_17', 'Adult_18_40', 'Middle_Age_41_60',
             'Older_Adult_61_80', 'Elderly_81']
-other_keys = 'NeverHospitalized'
+# other_keys = 'NeverHospitalized'
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -62,8 +62,9 @@ for feature in raw_data['features']:
     recovered = attribute['DischRecov']
     hospitalized = attribute['CurrHospitalized']
     deaths = attribute['Deceased']
-    other = other_keys
-    other_value = attribute[other_keys]
+    tested = attribute['PeopleTested']
+    # other = other_keys
+    # other_value = attribute[other_keys]
 
     for key in age_keys:
         age_range = key
@@ -73,7 +74,7 @@ for feature in raw_data['features']:
             'state', country, state, nan,
             url_state, str(raw_data), access_time, nan,
             cases, nan, deaths, nan,
-            recovered, nan, hospitalized, nan,
+            recovered, tested, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan,  nan, nan,
             nan, nan, nan,
@@ -84,7 +85,7 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            other, other_value])
+            nan, nan])
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
