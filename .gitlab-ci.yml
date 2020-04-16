@@ -76,7 +76,7 @@ build:base:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
-    - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:Commit Hash.
@@ -106,7 +106,7 @@ build:covidb:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
-    - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:Commit Hash.
