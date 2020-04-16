@@ -10,9 +10,7 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_REGISTRY: camden.ornl.gov
   GITLAB_REGISTRY: code.ornl.gov:4567
-  IMAGENAME: base
-  CAMDENIMAGENAME: covid19/base
-
+ 
 ### BUILD STAGES ###
 
 build:api:
@@ -24,6 +22,9 @@ build:api:
     refs:
       - gitlab-ci
   when: manual
+  variables:
+    IMAGENAME: api
+    DOCKERIMAGENAME: covid19/api
   script: 
     - set -x
     # Moves to working directory where Dockerfile is located.
@@ -46,42 +47,41 @@ build:api:
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Tags the version of the image to a version to push to Camden:latest.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest 
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
     # Tags the image from Camden:latest to Camden:Commit.
-    - docker image tag $DOCKER_REGISTRY/$CAMDENIMAGENAME:latest $DOCKER_REGISTRY/$CAMDENIMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:Commit.
-    - docker push $DOCKER_REGISTRY/$CAMDENIMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
 
 
 build:base:
   stage: build
-  image: docker:stable
-  variables:
-    IMAGENAME: base
   tags:
     - covid19-runner
   only:
     refs:
       - gitlab-ci
-
+  variables:
+    IMAGENAME: base
+    DOCKERIMAGENAME: covid19/base
   when: manual
   script: 
-    - set +x
+    - set -x
     # Moves to working directory where Dockerfile is located.
-    - cd base
+    - cd covidb
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
     - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
-    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$IMAGENAME:latest
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:Commit Hash.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
 
 
 build:covidb:
@@ -94,11 +94,10 @@ build:covidb:
   variables:
     #Crunchy Postgres
     IMAGENAME: covidb
-
+    DOCKERIMAGENAME: covid19/covidb
   when: manual
-
   script: 
-    - set +x
+    - set -x
     # Moves to working directory where Dockerfile is located.
     - cd covidb
 
@@ -107,92 +106,96 @@ build:covidb:
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
     - docker build --tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
-    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$IMAGENAME:latest
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA $CDOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:Commit Hash.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
-
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
 
 build:scraper:
+  image: docker:stable
   stage: build
   tags:
     - covid19-runner
   only:
     refs:
       - gitlab-ci
-
   when: manual
-
+  variables:
+    IMAGENAME: scraper
+    DOCKERIMAGENAME: covid19/scraper
   script: 
-    - set +x
+    - set -x
     # Moves to working directory where Dockerfile is located.
-    - cd scraper
+    - cd api
 
     ## Use this only if the image exists in the Gitlab Registry
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
     - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # Docker push to Gitlab:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # Docker push to Gitlab:latest
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
+    # # Docker push to Gitlab:Commit Hash.
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # # Docker push to Gitlab:latest
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Tags the version of the image to a version to push to Camden:latest.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
-    # Tags the image from Camden:latest to Camden:Commit hash.
-    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # Docker push to Camden:Commit hash.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
+    # Tags the image from Camden:latest to Camden:Commit.
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:Commit.
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
 
 build:tidy:
+  image: docker:stable
   stage: build
   tags:
     - covid19-runner
   only:
     refs:
       - gitlab-ci
-  
   when: manual
-
+  variables:
+    IMAGENAME: tidy
+    DOCKERIMAGENAME: covid19/tidy
   script: 
-    - set +x
+    - set -x
     # Moves to working directory where Dockerfile is located.
-    - cd tidy
+    - cd api
 
     ## Use this only if the image exists in the Gitlab Registry
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
     - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA .
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # Docker push to Gitlab:Commit Hash.
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # Docker push to Gitlab:latest
-    - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
+    # # Docker push to Gitlab:Commit Hash.
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    # # Docker push to Gitlab:latest
+    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
     # Tags the version of the image to a version to push to Camden:latest.
-    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$IMAGENAME:latest
+    - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
     # Docker push to Camden:latest.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:latest 
-    # Tags the image from Camden:latest to Camden:Commit hash.
-    - docker image tag $DOCKER_REGISTRY/$IMAGENAME:latest $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # Docker push to Camden:Commit hash.
-    - docker push $DOCKER_REGISTRY/$IMAGENAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
+    # Tags the image from Camden:latest to Camden:Commit.
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:Commit.
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
+
 
 ### DEPLOY STAGES###
 
