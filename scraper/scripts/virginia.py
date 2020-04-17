@@ -11,6 +11,7 @@ county_cases_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/0
 state_age_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Age-Group.csv'
 state_gender_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
 state_race_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
+health_dist_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/04/VDH-COVID-19-PublicUseDataset-Cases_By-District-Death-Hospitalization.csv'
 state = 'Virginia'
 columns = Headers.updated_site
 
@@ -103,6 +104,17 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
+# health_dist_url
+df = pd.read_csv(health_dist_url, header=0, names=['updated', 'region',
+                                                   'cases', 'hospitalized',
+                                                   'deaths'])
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": state_race_url, "state": state,
+                         "resolution": "health district", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
