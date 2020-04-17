@@ -73,8 +73,9 @@ df['test_date'] = df['test_date'].dt.strftime('%Y-%m-%d')
 #     '%Y-%m-%d')
 
 df = df[df['test_date'] == recent_date].sort_values('county').drop(
-    ['new_positives', 'total_number_of_tests', 'test_date'], axis=1)
-df.columns = ['county', 'cases', 'tested']
+    ['total_number_of_tests', 'test_date'], axis=1)
+df.columns = ['county', 'cases', 'tested', 'other_value']
+df['other'] = 'new_positives'
 
 dict_info_county = {'provider': 'state', 'country': country, "url": url,
                    "state": state, "resolution": "county",

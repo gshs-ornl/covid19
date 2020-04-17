@@ -10,7 +10,7 @@ from cvpy.static import ColumnHeaders as Headers
 country = 'US'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
 # url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
-county_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDTestResults.json?nocache=1'
+county_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
 county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocache=1'
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
 state = 'Illinois'
@@ -42,7 +42,7 @@ for feature in raw_data['characteristics_by_county']['values']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, deaths, nan,
+        cases, updated_date, deaths, nan,
         nan, tested, nan, negative_tests,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -64,7 +64,7 @@ access_time = datetime.datetime.utcnow()
 
 updated_date = raw_data['LastUpdateDate']
 for feature in raw_data['county_demographics']:
-    county_name = feature['County']
+    county = feature['County']
     cases = feature['confirmed_cases']
     tested = feature['total_tested']
     for age in feature['demographics']['age']:
@@ -90,26 +90,27 @@ for feature in raw_data['county_demographics']:
             other, other_value])
 
     for race in feature['demographics']['race']:
-        for text in ['count', 'tested']:
-            other = race['description']+'_'+text
-            other_value = race[text]
+        other = "Race"
+        other_value = race
+        cases = race['count']
+        tested = race['tested']
 
-            row_csv.append([
-                'state', country, state, nan,
-                url, str(raw_data), access_time, county,
-                cases, nan, deaths, nan,
-                nan, tested, nan, nan,
-                nan, nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
-                nan, nan, nan,
-                resolution, nan, nan, nan,
-                nan, nan, nan, nan,
-                nan, nan, nan, nan,
-                nan, nan, nan,
-                nan, nan,
-                nan, nan, nan, nan,
-                other, other_value])
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, county,
+            cases, nan, deaths, nan,
+            nan, tested, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
 
     for gender in feature['demographics']['gender']:
         sex = gender['description']
@@ -118,9 +119,9 @@ for feature in raw_data['county_demographics']:
         other_value = gender['tested']
         row_csv.append([
             'state', country, state, nan,
-             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
-            nan, tested, nan, nan,
+            url, str(raw_data), access_time, county,
+            nan, nan, deaths, nan,
+            nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
             nan, nan, nan,
