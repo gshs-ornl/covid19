@@ -49,6 +49,14 @@ services:
       - covid_out:/tmp/output
       - covid_in:/tmp/input
       - covid_clean:/tmp/clean
+
+  shiny:
+    build: ./shiny
+    container_name: shiny
+    networks:
+      - web
+    env_file:
+      - shiny/shiny.env
       
   db:
     build: ./covidb
