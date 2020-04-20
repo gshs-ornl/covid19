@@ -6,7 +6,7 @@ import pandas as pd
 import urllib.request
 from PIL import Image
 from PIL import UnidentifiedImageError
-from pytesseract import image_to_data
+from pytesseract import image_to_data, image_to_string
 from pytesseract import Output
 from urllib.error import HTTPError
 from cvpy.common import check_environment as ce
@@ -52,13 +52,18 @@ class ReadImage():
             self.logger.error(msg)
             raise ReadImageException(msg)
 
-    def process(self):
+    def process(self, ptype='data'):
         """Process the read image into a string."""
         try:
-            self.text = image_to_data(self.image, lang='eng', nice=1,
-                                      output_type=Output.DATAFRAME,
-                                      timeout=self.timeout,
-                                      pandas_config=ImageConfig.PD)
+            if ptype == 'data':
+                self.text = image_to_data(self.image, lang='eng', nice=1,
+                                          output_type=Output.DATAFRAME,
+                                          timeout=self.timeout,
+                                          pandas_config=ImageConfig.PD)
+            elif ptype == 'string':
+                self.text = image_to_string(self.image, timeout=self.timeout)
+            else:
+                raise ReadImageException(f'Unrecognized ptype: {ptype}')
         except RuntimeError as e:
             msg = f'Image file {self.image_file} timed out with timeout of ' +\
                 f'{self.timeout}. Consider increasing timeout. {e}'
