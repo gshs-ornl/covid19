@@ -78,7 +78,7 @@ access_time = datetime.datetime.utcnow()
 age_group.append('ageNR')
 gender_list.append('genderNR')
 race_other_list = ['amInd', 'asian', 'black', 'hawaiian', 'unknown', 'other',
-                   'white', 'hispanic', 'currentHospitalizations']
+                   'white', 'hispanic']
 
 data = raw_data['data']
 cases = data['cases']
@@ -86,6 +86,26 @@ tested = data['tests']
 hospitalized = data['totalHospitalizations']
 deaths = data['deaths']
 recovered = data['recovered']
+
+other = 'currentHospitalizations'
+other_value = data[other]
+
+row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        cases, nan, deaths, nan,
+        recovered, tested, hospitalized, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
 
 for age in age_group:
     age_range = age
@@ -127,12 +147,13 @@ for gender in gender_list:
                     nan, nan])
 
 for race in race_other_list:
-    other = race
-    other_value = data[other]
+    other = 'Race'
+    other_value = race
+    cases = data[race]
     row_csv.append(['state', country, state, nan,
                     url, str(raw_data), access_time, nan,
-                    cases, nan, deaths, nan,
-                    recovered, tested, hospitalized, nan,
+                    cases, nan, nan, nan,
+                    nan, nan, nan, nan,
                     nan, nan, nan, nan, nan,
                     nan, nan, nan,
                     nan, nan, nan,
