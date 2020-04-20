@@ -20,7 +20,7 @@ RUN mkdir -p /spool/nginx /run/pid \
         /run/pid \
         /spool/nginx
 
-COPY ./uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
+#COPY ./uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
 RUN ln -s /etc/uwsgi/apps-available/uwsgi.ini /etc/uwsgi/apps-enabled/uwsgi.ini
 COPY ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
