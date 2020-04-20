@@ -33,9 +33,9 @@ build:api:
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    # - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -125,15 +125,15 @@ build:scraper:
   script: 
     - set -x
     # Moves to working directory where Dockerfile is located.
-    - cd api
+    - cd scraper
 
     ## Use this only if the image exists in the Gitlab Registry
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    #- docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -166,15 +166,15 @@ build:tidy:
   script: 
     - set -x
     # Moves to working directory where Dockerfile is located.
-    - cd api
+    - cd tidy
 
     ## Use this only if the image exists in the Gitlab Registry
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    #- docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -216,53 +216,5 @@ deploy:develop:
     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
     - docker login -u $ROBOT_USER -p $ROBOT_TOKEN $DOCKER_REGISTRY
-#     - docker pull $CI_REGISTRY/$CI_PROJECT_PATH:latest
-#     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml down
-#     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-
-
-# build_jhipster:prod:
-#   stage: build
-#   only:
-#     refs:
-#       - master
-#     # changes:
-#     #   - src/**/*
-#   tags:
-#     - eat01-cades-dev
-#   image: jhipster/jhipster:v6.5.1
-#   script:
-#     - echo jhipster | sudo -S apt-get update -y 
-#     - echo jhipster | sudo -S apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-#     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg > gpg.key
-#     - echo jhipster | sudo -S  apt-key add gpg.key
-#     - echo jhipster | sudo -S add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs)     stable"
-#     - echo jhipster | sudo -S apt-get update -y 
-#     - echo jhipster | sudo -S apt-get install -y docker-ce docker-ce-cli containerd.io
-#     - ./mvnw package -Pprod verify jib:dockerBuild -DskipTests
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#     - docker tag eat:latest $CI_REGISTRY/$CI_PROJECT_PATH:prod
-#     - docker tag eat:latest $CI_REGISTRY/$CI_PROJECT_PATH:$CI_COMMIT_SHORT_SHA
-#     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$CI_COMMIT_SHORT_SHA
-#     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:prod
-# deploy:develop:
-#   stage: deploy
-#   only:
-#     refs:
-#       - develop
-#     # changes:
-#     #   - src/**/*
-#   tags:
-#     - eat01-cades-dev
-#   image: centos:7
-#   script:
-#     - yum install -y yum-utils device-mapper-persistent-data lvm2
-#     - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-#     - yum install -y docker-ce docker-ce-cli containerd.io
-#     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-#     - chmod +x /usr/local/bin/docker-compose
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#     - docker pull $CI_REGISTRY/$CI_PROJECT_PATH:latest
-#     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml down
-#     - docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-
+#     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml down
+#     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml up -d
