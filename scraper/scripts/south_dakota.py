@@ -86,9 +86,11 @@ state_dfs = [state_cases_df, age_group_df, gender_df]
 # County-level data: cases, recovered, deaths
 county_level_df = df[2]
 county_deaths = df[5]
-county_level_df.columns = ['county', 'cases', 'recovered']
+ignored_row = '*Laboratories report COVID-19 testing results to SD-DOH and include patient address that they have received from the medical provider, if available. SD-DOH reports information that we receive from the laboratories, which includes unassigned counties.'
+county_level_df.columns = ['county', 'cases', 'negative', 'recovered']
 county_deaths.columns = ['county', 'deaths']
 county_level_df = county_level_df.merge(county_deaths, on='county', how='outer')
+county_level_df = county_level_df[county_level_df['county'] != ignored_row]
 
 # Clean-up data frames
 dict_info_state = {'provider': 'state', 'country': country, "url": url,

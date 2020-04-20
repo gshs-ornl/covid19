@@ -9,14 +9,15 @@ from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 url = 'https://services5.arcgis.com/f2aRfVsQG7TInso2/ArcGIS/rest/services/County_COVID19/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
+county_csv = 'https://coronavirus.in.gov/map-test/covid_report_county.csv'
+state_cases = 'https://www.coronavirus.in.gov/map-test/covid-19-indiana-daily-report-current.topojson'
 state = 'Indiana'
 resolution = 'county'
 columns = Headers.updated_site
+row_csv = []
 
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
-
-row_csv = []
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -81,16 +82,97 @@ def fill_in_df(df_list, dict_info, columns):
     return final_df
 
 
-url = 'https://coronavirus.in.gov/map-test/covid_report_county.csv'
+url = county_csv
 raw_data = pd.read_csv(url)
 access_time = datetime.datetime.utcnow()
 raw_data.columns = ['county', 'cases', 'deaths', 'tested']
 
 dict_info_county = {'provider': 'state', 'country': country, "url": url,
-                   "state": state, "resolution": "county",
-                   "page": str(raw_data), "access_time": access_time}
+                    "state": state, "resolution": "county",
+                    "page": str(raw_data), "access_time": access_time}
 
 county_df = fill_in_df(raw_data, dict_info_county, columns)
+
+
+url = state_cases
+resolution = 'state'
+raw_data = requests.get(url).json()
+access_time = datetime.datetime.utcnow()
+
+feature = raw_data['objects']
+for gender in feature['viz_gender']:
+    sex = gender['GENDER']
+    sex_counts = gender['COVID_COUNT']
+    sex_percent = gender['COVID_COUNT_PCT']
+    deaths = gender['COVID_DEATHS']
+    other = 'COVID_DEATHS_PCT'
+    other_value = gender[other]
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        nan, nan, deaths, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, sex, sex_counts, sex_percent,
+        other, other_value])
+
+for age_group in feature['viz_agegrp']:
+    age_range = age_group['AGEGRP']
+    age_cases = age_group['COVID_COUNT']
+    age_percent = age_group['COVID_COUNT_PCT']
+    age_deaths = age_group['COVID_DEATHS']
+    age_deaths_percent = age_group['COVID_DEATHS_PCT']
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        age_range, age_cases, age_percent, age_deaths,
+        nan, nan, nan,
+        nan, nan,
+        age_deaths_percent, nan, nan, nan,
+        nan, nan])
+
+for race in feature['viz_race']:
+    for key in ['RACE', 'POPULATION_PCT', 'COVID_COUNT_PCT',
+                'COVID_DEATHS_PCT']:
+        other = key
+        other_value = race[other]
+        cases = race['COVID_COUNT']
+        deaths = race['COVID_DEATHS']
+
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, nan,
+            cases, nan, deaths, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
 
 
 now = datetime.datetime.now()

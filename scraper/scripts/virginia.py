@@ -11,6 +11,7 @@ county_cases_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/0
 state_age_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Age-Group.csv'
 state_gender_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
 state_race_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
+health_dist_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/04/VDH-COVID-19-PublicUseDataset-Cases_By-District-Death-Hospitalization.csv'
 state = 'Virginia'
 columns = Headers.updated_site
 
@@ -23,7 +24,7 @@ def fill_in_df(df_list, dict_info, columns):
             each_df['country'] = dict_info['country']
             each_df['state'] = dict_info['state']
             each_df['resolution'] = dict_info['resolution']
-            # each_df['url'] = dict_info['url']
+            each_df['url'] = dict_info['url']
             each_df['page'] = str(dict_info['page'])
             each_df['access_time'] = dict_info['access_time']
             df_columns = list(each_df.columns)
@@ -39,7 +40,7 @@ def fill_in_df(df_list, dict_info, columns):
         df_list['country'] = dict_info['country']
         df_list['state'] = dict_info['state']
         df_list['resolution'] = dict_info['resolution']
-        # df_list['url'] = dict_info['url']
+        df_list['url'] = dict_info['url']
         df_list['page'] = str(dict_info['page'])
         df_list['access_time'] = dict_info['access_time']
         df_columns = list(df_list.columns)
@@ -55,7 +56,7 @@ def fill_in_df(df_list, dict_info, columns):
 all_df = []
 # county_cases_url
 df = pd.read_csv(county_cases_url, header=0, names=['updated', 'fips', 'county',
-                                            'health_district', 'cases'])
+                                                    'health_district', 'cases'])
 access_time = datetime.datetime.utcnow()
 dict_info_county_cases = {'provider': 'state', 'country': country,
                           "url": county_cases_url,
@@ -64,10 +65,11 @@ dict_info_county_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_county_cases, columns))
 
 # state_age_url
-df = pd.read_csv(state_age_url, header=0, names=['updated', 'age_range', 'age_cases',
-                                         'other_value', 'age_deaths'])
+df = pd.read_csv(state_age_url, header=0, names=['updated', 'age_range',
+                                                 'age_cases',
+                                                 'age_hospitalized',
+                                                 'age_deaths'])
 access_time = datetime.datetime.utcnow()
-df['other'] = 'age_hospitalized'
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_age_url, "state": state,
@@ -76,43 +78,43 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 # state_gender_url
-df = pd.read_csv(state_gender_url, header=0, names=['updated', 'sex', 'sex_counts',
-                                            'hospitalized', 'deaths'])
+df = pd.read_csv(state_gender_url, header=0, names=['updated', 'sex',
+                                                    'sex_counts',
+                                                    'hospitalized',
+                                                    'sex_death'])
 access_time = datetime.datetime.utcnow()
-df1 = df[['updated', 'sex', 'sex_counts', 'hospitalized']].rename(
-    columns={'hospitalized': "other_value"})
-df1['other'] = 'sex_hospitalized'
-
-df2 = df[['updated', 'sex', 'sex_counts', 'deaths']].rename(
-    columns={'deaths': "other_value"})
-df2['other'] = 'sex_deaths'
-df['other'] = 'age_hospitalizations'
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_gender_url, "state": state,
                          "resolution": "state", "page": str(df),
                          "access_time": access_time}
-all_df.append(fill_in_df(pd.concat([df1, df2]), dict_info_state_cases,
+all_df.append(fill_in_df(df, dict_info_state_cases,
                          columns))
 
 # state_race_url
-df = pd.read_csv(state_race_url, header=0, names=['updated', 'race', 'cases',
-                                            'hospitalized', 'deaths'])
-row_csv = []
-for idx in range(0, len(df)):
-    row = []
-    for key in ['race', 'cases', 'hospitalized', 'deaths']:
-        row_csv.append([df.iloc[idx]['updated'], key,
-                        df.iloc[idx][key]])
+df = pd.read_csv(state_race_url, header=0, names=['updated', 'other_value',
+                                                  'cases', 'hospitalized',
+                                                  'deaths'])
+access_time = datetime.datetime.utcnow()
+df['other'] = 'Race'
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_race_url, "state": state,
                          "resolution": "state", "page": str(df),
                          "access_time": access_time}
-all_df.append(fill_in_df(pd.DataFrame(
-    row_csv, columns=['updated', 'other', 'other_value']),
-    dict_info_state_cases, columns))
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
+# health_dist_url
+df = pd.read_csv(health_dist_url, header=0, names=['updated', 'region',
+                                                   'cases', 'hospitalized',
+                                                   'deaths'])
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": state_race_url, "state": state,
+                         "resolution": "health district", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")

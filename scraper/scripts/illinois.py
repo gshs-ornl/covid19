@@ -91,7 +91,7 @@ for feature in raw_data['county_demographics']:
 
     for race in feature['demographics']['race']:
         other = "Race"
-        other_value = race
+        other_value = race['description']
         cases = race['count']
         tested = race['tested']
 
