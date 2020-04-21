@@ -20,7 +20,7 @@ build:api:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   variables:
     IMAGENAME: api
     DOCKERIMAGENAME: covid19/api
@@ -62,7 +62,7 @@ build:base:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   variables:
     IMAGENAME: base
     DOCKERIMAGENAME: covid19/base
@@ -90,7 +90,7 @@ build:covidb:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   variables:
     #Crunchy Postgres
     IMAGENAME: covidb
@@ -118,7 +118,7 @@ build:scraper:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   variables:
     IMAGENAME: scraper
     DOCKERIMAGENAME: covid19/scraper
@@ -159,7 +159,7 @@ build:tidy:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   variables:
     IMAGENAME: tidy
     DOCKERIMAGENAME: covid19/tidy
@@ -204,10 +204,8 @@ deploy:develop:
     - covid19-runner
   only:
     refs:
-      - gitlab-ci
+      - develop
   
-  when: manual
-
   script:
     - set -x
     - yum install -y yum-utils device-mapper-persistent-data lvm2
