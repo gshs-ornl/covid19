@@ -169,7 +169,7 @@ if [ "$PUSH" -eq "1" ]; then
 fi
 if [ "$UP" -eq "1" ]; then
   info "Spinning up stack"
-  docker-compose up -d --build scraper tidy db api
+  docker-compose up -d --build scraper tidy db api shiny
 fi
 if [ "$INTERACTIVE" -eq "1" ]; then
   info "Dropping into shell of $DE"
