@@ -111,6 +111,35 @@ build:covidb:
     # Docker push to Camden:latest.
     - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
 
+build:shiny:
+  image: docker:stable
+  stage: build
+  tags:
+    - covid19-runner
+  only:
+    refs:
+      - develop
+  variables:
+    #Rocker-shiny
+    IMAGENAME: shiny
+    DOCKERIMAGENAME: covid19/shiny
+  script: 
+    - set -x
+    # Moves to working directory where Dockerfile is located.
+    - cd shiny
+
+    # Logs into camden.ornl.gov using service robot user.
+    - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
+    # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value.
+    - docker build --tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA .
+    # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
+    - docker image tag $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest
+    # Docker push to Camden:Commit Hash.
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:$CI_COMMIT_SHORT_SHA
+    # Docker push to Camden:latest.
+    - docker push $DOCKER_REGISTRY/$DOCKERIMAGENAME:latest 
+
+
 build:scraper:
   image: docker:stable
   stage: build
