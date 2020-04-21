@@ -15,7 +15,7 @@ ENV DB_PORT 5432
 
 # system libraries
 RUN apt-get update -yqq && apt-get install -yqq --no-install-rcommends \
-      sudo pandoc pandoc-citeproc libcurl4-gnutils-dev libcairo2-dev \
+      sudo pandoc pandoc-citeproc libcurl4-gnutls-dev libcairo2-dev \
       libxt-dev libssl-dev libssh2-1-dev r-cran-littler postgresql-client \
       libgeos-3.7.1 && \
       gdal-bin libgdal-dev libproj-dev libudunits2-0 libudunits2-dev && \
