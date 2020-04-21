@@ -8,8 +8,10 @@ import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
+date_url_xlsx = (datetime.datetime.today()).strftime('%Y%m%d')
 url = 'https://services5.arcgis.com/f2aRfVsQG7TInso2/ArcGIS/rest/services/County_COVID19/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
-county_csv = 'https://coronavirus.in.gov/map-test/covid_report_county.csv'
+# county_csv = 'https://coronavirus.in.gov/map-test/covid_report_county.csv'
+county_xlsx = 'https://hub.mph.in.gov/dataset/89cfa2e3-3319-4d31-a60d-710f76856588/resource/8b8e6cd7-ede2-4c41-a9bd-4266df783145/download/covid_report_county_'+date_url_xlsx+'.xlsx'
 state_cases = 'https://www.coronavirus.in.gov/map-test/covid-19-indiana-daily-report-current.topojson'
 state = 'Indiana'
 resolution = 'county'
@@ -82,8 +84,8 @@ def fill_in_df(df_list, dict_info, columns):
     return final_df
 
 
-url = county_csv
-raw_data = pd.read_csv(url)
+url = county_xlsx
+raw_data = pd.read_excel(url, sheet_name='Report')
 access_time = datetime.datetime.utcnow()
 raw_data.columns = ['county', 'cases', 'deaths', 'tested']
 
