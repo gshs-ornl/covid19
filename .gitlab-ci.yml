@@ -33,9 +33,9 @@ build:api:
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    # - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -131,9 +131,9 @@ build:scraper:
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    #- docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -172,9 +172,9 @@ build:tidy:
     # Logs into the Gitlab Container Registry assigned to this Gitlab repo.
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $GITLAB_REGISTRY
     # Pulls the image from the Gitlab repo for local caching.
-    - docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
+    #- docker pull $CI_REGISTRY_IMAGE/$IMAGENAME:latest || true
     # Builds Docker image using Dockerfile and tags with the image name with a Gitlab commit hash value. Uses pulled cached image to reduce build times.
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . 
+    - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
     # # Docker push to Gitlab:Commit Hash.
@@ -216,5 +216,5 @@ deploy:develop:
     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
     - docker login -u $ROBOT_USER -p $ROBOT_TOKEN $DOCKER_REGISTRY
-#     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml down
-#     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml up -d
+    - docker-compose -f docker-compose.yml down #-f docker-compose-override-cicd.yml
+    - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml up -d
