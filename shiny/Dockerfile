@@ -14,7 +14,7 @@ ENV DB_DB covidb
 ENV DB_PORT 5432
 
 # system libraries
-RUN apt-get update -yqq && apt-get install -yqq --no-install-rcommends \
+RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
       sudo pandoc pandoc-citeproc libcurl4-gnutls-dev libcairo2-dev \
       libxt-dev libssl-dev libssh2-1-dev r-cran-littler postgresql-client \
       libgeos-3.7.1 && \
