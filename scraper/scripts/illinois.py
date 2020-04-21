@@ -9,10 +9,13 @@ from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
+date_url_xlsx = (datetime.datetime.today()).strftime('%Y-%m-%d')
 # url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
 county_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
 county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocache=1'
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
+race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/'+\
+               date_url_xlsx+'/case_deaths_rate_charts_data_website.xlsx'
 state = 'Illinois'
 columns = Headers.updated_site
 row_csv = []
@@ -190,10 +193,82 @@ for feature in raw_data['zip_values']:
                 other, other_value])
 
 
+def fill_in_df(df_list, dict_info, columns):
+    if isinstance(df_list, list):
+        all_df = []
+        for each_df in df_list:
+            each_df['provider'] = dict_info['provider']
+            each_df['country'] = dict_info['country']
+            each_df['state'] = dict_info['state']
+            each_df['resolution'] = dict_info['resolution']
+            each_df['url'] = dict_info['url']
+            each_df['page'] = str(dict_info['page'])
+            each_df['access_time'] = dict_info['access_time']
+            df_columns = list(each_df.columns)
+            for column in columns:
+                if column not in df_columns:
+                    each_df[column] = nan
+                else:
+                    pass
+            all_df.append(each_df.reindex(columns=columns))
+        final_df = pd.concat(all_df)
+    else:
+        df_list['provider'] = dict_info['provider']
+        df_list['country'] = dict_info['country']
+        df_list['state'] = dict_info['state']
+        df_list['resolution'] = dict_info['resolution']
+        df_list['url'] = dict_info['url']
+        df_list['page'] = str(dict_info['page'])
+        df_list['access_time'] = dict_info['access_time']
+        df_columns = list(df_list.columns)
+        for column in columns:
+            if column not in df_columns:
+                df_list[column] = nan
+            else:
+                pass
+        final_df = df_list.reindex(columns=columns)
+    return final_df
+
+all_df = []
+
+df_column_list = ['updated', 'cases_rate-Latinx', 'cases_rate-Black-non-Latinx',
+                  'cases_rate-White-non-Latinx',  'cases_rate-Asian non-Latinx',
+                  'cases_rate-Other-non-Latinx', 'deaths_rate-Latinx',
+                  'deaths_rate-Black-non-Latinx',
+                  'deaths_rate-White-non-Latinx',
+                  'deaths_rate-Asian non-Latinx',
+                  'deaths_rate-Other-non-Latinx']
+url = race_eth_url
+df = pd.read_excel(url, sheetname=0, names=df_column_list)
+access_time = datetime.datetime.utcnow()
+dict_info_chicago = {'provider': 'state', 'country': country, "url": url,
+                     "state": state, "resolution": "city",
+                     "region": "Chicago",
+                     "page": str(df), "access_time": access_time}
+for column in df_column_list[1:]:
+    placeholder = df[['updated']]
+    placeholder['other'] = 'race_ethnicity'
+    placeholder['other_value'] = column.replace(
+        'cases_rate-', '').replace(
+        'deaths_rate-', '')
+    tmp_df = df[['updated', column]]
+    tmp_df = tmp_df.dropna()
+    if 'cases_rate' in column:
+        other_name = 'cases_rate'
+    else:
+        other_name = 'deaths_rate'
+    tmp_df['other'] = other_name
+    tmp_df = tmp_df.rename(columns={column: 'other_value'})
+    all_df.append(pd.concat([tmp_df, placeholder]).sort_values(
+        ['updated', 'other_value']))
+
+chicago_df = state_df = fill_in_df(all_df, dict_info_chicago, columns)
+
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, index=False)
+dfs = pd.concat([df, chicago_df])
+dfs.to_csv(file_name, index=False)
