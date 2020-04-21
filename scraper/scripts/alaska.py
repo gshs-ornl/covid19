@@ -29,18 +29,9 @@ with open('alaska_state_data.json', 'w') as f:
     json.dump(raw_data, f)
 
 resolution = 'county'
-dict_info = {'provider': provider,'country': country, "url": url,
+dict_info = {'provider': provider, 'country': country, "url": url,
              "state": state, "resolution": resolution,
             "page": raw_data, "access_time": access_time}
-
-
-def apply_age_group(row):
-    if row == '<10':
-        return 'Under_10'
-    elif row == '10-19':
-        return '10_19'
-    else:
-        return row
 
 
 def fill_in_ak_df(df_list, dict_info, columns):
@@ -86,7 +77,10 @@ gender_cases = df.groupby(
 age_cases = df.groupby(
     ['county','age_range']).count().reset_index().drop(
     ['hospitalized', 'sex'], axis=1).rename(columns={'count': 'age_cases'})
-age_cases['age_range'] = df['age_range'].apply(apply_age_group)
+age_cases['age_range'].replace(to_replace=['<10'], value='Under_10',
+                               inplace=True)
+age_cases['age_range'].replace(to_replace=['10-19'], value='10_19',
+                               inplace=True)
 
 county_cases = df.groupby(['county']).count().reset_index().drop(
     ['sex', 'age_range', 'hospitalized'], axis=1).rename(

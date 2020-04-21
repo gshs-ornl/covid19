@@ -192,7 +192,7 @@ for feature in raw_data['zip_values']:
                 nan, nan, nan, nan,
                 other, other_value])
 
-
+'''
 def fill_in_df(df_list, dict_info, columns):
     if isinstance(df_list, list):
         all_df = []
@@ -263,12 +263,11 @@ for column in df_column_list[1:]:
         ['updated', 'other_value']))
 
 chicago_df = state_df = fill_in_df(all_df, dict_info_chicago, columns)
-
+'''
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
-dfs = pd.concat([df, chicago_df])
-dfs.to_csv(file_name, index=False)
+df.to_csv(file_name, index=False)
