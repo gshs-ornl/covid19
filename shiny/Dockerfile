@@ -17,8 +17,8 @@ ENV DB_PORT 5432
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
       sudo pandoc pandoc-citeproc libcurl4-gnutls-dev libcairo2-dev \
       libxt-dev libssl-dev libssh2-1-dev r-cran-littler postgresql-client \
-      libgeos-3.7.1 && \
-      gdal-bin libgdal-dev libproj-dev libudunits2-0 libudunits2-dev && \
+      libgeos-3.7.1 gdal-bin libgdal-dev libproj-dev libudunits2-0 \
+      libudunits2-dev && \
       ln -s $R_LIB/littler/examples/install.r /usr/local/bin/install.r && \
       ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
       ln -s $R_LIB/littler/examples/installGithub.r \
