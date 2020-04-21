@@ -244,5 +244,6 @@ deploy:develop:
     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
     - docker login -u $ROBOT_USER -p $ROBOT_TOKEN $DOCKER_REGISTRY
+    - docker run --rm -v covid_out:/volume -v `pwd`/backup:/backup busybox sh -c 'cp -r /volume /backup'
     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml down 
     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml up -d
