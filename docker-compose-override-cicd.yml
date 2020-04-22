@@ -13,3 +13,6 @@ services:
 
   db:
     image: "camden.ornl.gov/covid19/covidb:${CI_COMMIT_SHORT_SHA}"
+
+  shiny:
+    image: "camden.ornl.gov/covid19/shiny:${CI_COMMIT_SHORT_SHA}"
