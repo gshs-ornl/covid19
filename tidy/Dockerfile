@@ -17,8 +17,6 @@ RUN ln -s /tmp/bin/ingester.R /usr/local/bin/ingester.R && \
       ln -s /tmp/bin/scheduler.py /usr/local/bin/scheduler.py && \
       ln -s /tmp/bin/create_views.sql /usr/local/bin/create_views.sql 
 
-RUN apt-get upgrade -y
-
 COPY entrypoint.sh entrypoint.sh
 
 ENTRYPOINT /tmp/entrypoint.sh

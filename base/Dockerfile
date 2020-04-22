@@ -91,9 +91,6 @@ RUN set -eux && python setup.py install --prefix=/usr/local
 COPY covidR.tar.gz .
 RUN install.r covidR.tar.gz
 
-# Patch update
-RUN apt-get upgrade -y
-
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
       rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
