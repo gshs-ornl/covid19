@@ -56,7 +56,7 @@ def fill_in_df(df_list, dict_info, columns):
 all_df = []
 # county_cases_url
 df = pd.read_csv(county_cases_url, header=0, names=['updated', 'fips',
-                                                    'locality',
+                                                    'county',
                                                     'health_district', 'cases',
                                                     'hospitalized', 'deaths'])
 df = df.rename(columns={'health_district': 'region'})

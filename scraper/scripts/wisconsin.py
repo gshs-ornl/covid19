@@ -9,7 +9,7 @@ from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 state_data_url = 'https://opendata.arcgis.com/datasets/a4741a982aae496486fe928239dec691_3.geojson'
-county_data_url = 'https://services1.arcgis.com/ISZ89Z51ft1G16OK/ArcGIS/rest/services/COVID19_WI/FeatureServer/5/query?where=1%3D1&outFields=NAME,POSITIVE,NEGATIVE,DEATHS,DATE,OBJECTID,GEOID&returnGeometry=false&orderByFields=DATE%20DESC&outSR=&f=json'
+county_data_url = 'https://services1.arcgis.com/ISZ89Z51ft1G16OK/ArcGIS/rest/services/COVID19_WI/FeatureServer/5/query?where=1%3D1&outFields=NAME,POSITIVE,NEGATIVE,DEATHS,OBJECTID,GEOID,LoadDttm&returnGeometry=false&orderByFields=LoadDttm DESC&outSR=&f=json'
 state = 'Wisconsin'
 columns = Headers.updated_site
 row_csv = []
@@ -208,13 +208,14 @@ for feature in raw_data['features']:
     county = attribute['NAME']
     cases = attribute['POSITIVE']
     negative = attribute['NEGATIVE']
+    deaths = attribute['DEATHS']
     fips = attribute['GEOID']
-    update_date = float(attribute['DATE'])
+    update_date = float(attribute['LoadDttm'])
     updated = str(datetime.datetime.fromtimestamp(update_date / 1000.0))
-    tmp_row_csv.append([county, cases, negative, fips, updated])
+    tmp_row_csv.append([county, cases, negative, deaths, fips, updated])
 
 county_df = pd.DataFrame(tmp_row_csv, columns=[
-    'county', 'cases', 'negative', 'fips', 'updated']).sort_values(
+    'county', 'cases', 'negative',  'fips', 'deaths', 'updated']).sort_values(
     'updated', ascending=False)
 county_df['updated'] = pd.to_datetime(county_df['updated'])
 
