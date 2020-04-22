@@ -176,6 +176,79 @@ for race in feature['viz_race']:
             nan, nan, nan, nan,
             other, other_value])
 
+for ethnicity in feature['viz_ethnicity']:
+    cases = ethnicity['COVID_COUNT']
+    deaths = ethnicity['COVID_DEATHS']
+    for key in ['ETHNICITY', 'POPULATION_PCT', 'COVID_COUNT_PCT',
+                'COVID_DEATHS_PCT']:
+        other = key
+        other_value = ethnicity[other]
+
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, nan,
+            cases, nan, deaths, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
+
+vent = feature['viz_ventbed']
+for key in vent.keys():
+    other = key
+    other_value = vent[other]
+
+    row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
+
+stat = feature['daily_statistics']
+cases = stat['total_case']
+deaths = stat['total_death']
+tested = stat['total_test']
+for key in ['new_case_day', 'new_death_day', 'new_test_day', 'new_case',
+            'new_death', 'new_test']:
+    other = key
+    other_value = stat[other]
+
+    row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, nan,
+            cases, nan, deaths, nan,
+            nan, tested, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
+
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
