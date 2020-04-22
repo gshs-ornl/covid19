@@ -76,6 +76,7 @@ services:
       - TIMEZONE=UTC
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
+      - PGMODE=primary
     networks:
       - web
     ports:
