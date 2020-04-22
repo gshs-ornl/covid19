@@ -45,7 +45,7 @@ RUN chmod u-x,go-rwx /home/shiny/.pgpass
 COPY project.Rproj /srv/shiny-server/
 COPY app.R /srv/shiny-server/
 COPY fxns.R /srv/shiny-server/
-COPY data /srv/shiny-server/data
+COPY data/ /srv/shiny-server/data
 
 # copy over entry command
 COPY shiny_run.sh /usr/bin/shiny_run.sh

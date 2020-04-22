@@ -7,9 +7,13 @@ services:
 
   scraper:
     image: "camden.ornl.gov/covid19/base:${CI_COMMIT_SHORT_SHA}"
+    restart: unless-stopped
 
   tidy:
     image: "camden.ornl.gov/covid19/tidy:${CI_COMMIT_SHORT_SHA}"
 
   db:
     image: "camden.ornl.gov/covid19/covidb:${CI_COMMIT_SHORT_SHA}"
+
+  shiny:
+    image: "camden.ornl.gov/covid19/shiny:${CI_COMMIT_SHORT_SHA}"
