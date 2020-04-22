@@ -55,8 +55,11 @@ def fill_in_df(df_list, dict_info, columns):
 
 all_df = []
 # county_cases_url
-df = pd.read_csv(county_cases_url, header=0, names=['updated', 'fips', 'county',
-                                                    'health_district', 'cases'])
+df = pd.read_csv(county_cases_url, header=0, names=['updated', 'fips',
+                                                    'locality',
+                                                    'health_district', 'cases',
+                                                    'hospitalized', 'deaths'])
+df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 dict_info_county_cases = {'provider': 'state', 'country': country,
                           "url": county_cases_url,
@@ -68,12 +71,15 @@ all_df.append(fill_in_df(df, dict_info_county_cases, columns))
 df = pd.read_csv(state_age_url, header=0, names=['updated', 'age_range',
                                                  'age_cases',
                                                  'age_hospitalized',
-                                                 'age_deaths'])
+                                                 'age_deaths',
+                                                 'health_district'])
+df = df.rename(columns={'health_district': 'region'})
+
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_age_url, "state": state,
-                         "resolution": "state", "page": str(df),
+                         "resolution": "health district", "page": str(df),
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
@@ -81,12 +87,14 @@ all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 df = pd.read_csv(state_gender_url, header=0, names=['updated', 'sex',
                                                     'sex_counts',
                                                     'hospitalized',
-                                                    'sex_death'])
+                                                    'sex_death',
+                                                    'health_district'])
+df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_gender_url, "state": state,
-                         "resolution": "state", "page": str(df),
+                         "resolution": "health district", "page": str(df),
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases,
                          columns))
@@ -94,13 +102,14 @@ all_df.append(fill_in_df(df, dict_info_state_cases,
 # state_race_url
 df = pd.read_csv(state_race_url, header=0, names=['updated', 'other_value',
                                                   'cases', 'hospitalized',
-                                                  'deaths'])
+                                                  'deaths','health_district'])
+df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 df['other'] = 'Race'
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
                          "url": state_race_url, "state": state,
-                         "resolution": "state", "page": str(df),
+                         "resolution": "health district", "page": str(df),
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
