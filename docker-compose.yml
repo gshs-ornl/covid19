@@ -37,6 +37,7 @@ services:
     volumes:
       - covid_out:/tmp/output
       - covid_in:/tmp/input
+    
 
   tidy:
     build: ./tidy
@@ -76,8 +77,7 @@ services:
       - TIMEZONE=UTC
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
-      - PGMODE=primary
-      - PGROOT=/var/lib/postgresql
+
     networks:
       - web
     ports:
