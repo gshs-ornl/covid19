@@ -77,6 +77,7 @@ services:
       - PG_PRIMARY_PORT=5432
       - BACKUP_PATH=latest
       - PGMODE=primary
+      - PGROOT=/var/lib/postgresql
     networks:
       - web
     ports:
