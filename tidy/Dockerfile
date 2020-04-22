@@ -15,7 +15,9 @@ COPY bin/ /tmp/bin
 RUN ln -s /tmp/bin/ingester.R /usr/local/bin/ingester.R && \
       ln -s /tmp/bin/slurper.py /usr/local/bin/slurper.py && \
       ln -s /tmp/bin/scheduler.py /usr/local/bin/scheduler.py && \
-      ln -s /tmp/bin/create_views.sql /usr/local/bin/create_views.sql
+      ln -s /tmp/bin/create_views.sql /usr/local/bin/create_views.sql 
+
+RUN apt-get upgrade -y
 
 COPY entrypoint.sh entrypoint.sh
 

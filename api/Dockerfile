@@ -41,6 +41,7 @@ WORKDIR /opt/repo
 COPY ./es_app/app.py .
 RUN chmod +x app.py
 RUN chown -R www-data:www-data /tmp/input
+RUN apt-get upgrade -y
 
 EXPOSE 8888
 
