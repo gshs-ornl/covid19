@@ -8,6 +8,7 @@ import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
+state = 'Illinois'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
 date_url_xlsx = (datetime.datetime.today()).strftime('%Y-%m-%d')
 # url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
@@ -16,7 +17,7 @@ county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocach
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
 race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/'+\
                date_url_xlsx+'/case_deaths_rate_charts_data_website.xlsx'
-state = 'Illinois'
+
 columns = Headers.updated_site
 row_csv = []
 
