@@ -63,7 +63,6 @@ exposure_types = {'ExpsrCrzShp': 'Travel',
                   'ExpsrAnthrState': "Community Unknown",
                   'ExpsrInMN': "Community Spread", 'ExpsrMsng': "Unknown"}
 resident_types = {'ResPriv': 'Private', 'ResLTCF': 'LCTF/Assisted Living',
-                  'ResLngTrm': 'Long-term?', 'ResAssLvg': 'Assisted Living?',
                   'ResHmlShelt': 'Homeless', 'ResJail': "Jail",
                   'ResCollDrm':'Residential Behavioural Health',
                   'ResOther': 'Other', 'ResMsng': 'Missing'}
