@@ -126,7 +126,7 @@ for feature in raw_data['features']:
             nan, nan])
 
 # State-level data - genders cases
-url = state_death_gender_url
+url = state_cases_gender_url
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
 

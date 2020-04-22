@@ -20,8 +20,10 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
       libgeos-3.7.1 gdal-bin libgdal-dev libproj-dev libudunits2-0 \
       libudunits2-dev && \
       ln -s $R_LIB/littler/examples/install.r /usr/local/bin/install.r && \
-      ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
-      ln -s $R_LIB/littler/examples/installGithub.r \
+      ### Breaks (Exist) ###
+      #ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
+      ### Breaks (Exist) ###
+      #ln -s $R_LIB/littler/examples/installGithub.r \
         /usr/local/bin/installGithub.r
 
 # force en_US.UTF-8 in R

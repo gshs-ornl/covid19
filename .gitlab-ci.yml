@@ -38,10 +38,6 @@ build:api:
     - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # # Docker push to Gitlab:Commit Hash.
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # # Docker push to Gitlab:latest
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
@@ -166,10 +162,6 @@ build:scraper:
     - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # # Docker push to Gitlab:Commit Hash.
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # # Docker push to Gitlab:latest
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
@@ -207,10 +199,6 @@ build:tidy:
     - docker build --tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA . #--cache-from $CI_REGISTRY_IMAGE:latest
     # Adds a latest tag to our new image so it will push a "latest" and a Commit branch tag.
     - docker image tag $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/$IMAGENAME:latest
-    # # Docker push to Gitlab:Commit Hash.
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:$CI_COMMIT_SHORT_SHA
-    # # Docker push to Gitlab:latest
-    # - docker push $CI_REGISTRY_IMAGE/$IMAGENAME:latest
 
     # Logs into camden.ornl.gov using service robot user.
     - docker login -u "$ROBOT_USER" -p "$ROBOT_TOKEN" $DOCKER_REGISTRY
@@ -244,5 +232,6 @@ deploy:develop:
     - curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
     - docker login -u $ROBOT_USER -p $ROBOT_TOKEN $DOCKER_REGISTRY
+    - docker run --rm -v covid_out:/volume -v `pwd`/backup:/backup busybox sh -c 'cp -r /volume /backup'
     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml down 
     - docker-compose -f docker-compose.yml -f docker-compose-override-cicd.yml up -d

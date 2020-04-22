@@ -9,11 +9,50 @@ from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
 state_data_url = 'https://opendata.arcgis.com/datasets/a4741a982aae496486fe928239dec691_3.geojson'
+county_data_url = 'https://services1.arcgis.com/ISZ89Z51ft1G16OK/ArcGIS/rest/services/COVID19_WI/FeatureServer/5/query?where=1%3D1&outFields=NAME,POSITIVE,NEGATIVE,DEATHS,DATE,OBJECTID,GEOID&returnGeometry=false&orderByFields=DATE%20DESC&outSR=&f=json'
 state = 'Wisconsin'
 columns = Headers.updated_site
 row_csv = []
 
-# state level
+
+def fill_in_df(df_list, dict_info, columns):
+    if isinstance(df_list, list):
+        all_df = []
+        for each_df in df_list:
+            each_df['provider'] = dict_info['provider']
+            each_df['country'] = dict_info['country']
+            each_df['state'] = dict_info['state']
+            each_df['resolution'] = dict_info['resolution']
+            each_df['url'] = dict_info['url']
+            each_df['page'] = str(dict_info['page'])
+            each_df['access_time'] = dict_info['access_time']
+            df_columns = list(each_df.columns)
+            for column in columns:
+                if column not in df_columns:
+                    each_df[column] = nan
+                else:
+                    pass
+            all_df.append(each_df.reindex(columns=columns))
+        final_df = pd.concat(all_df)
+    else:
+        df_list['provider'] = dict_info['provider']
+        df_list['country'] = dict_info['country']
+        df_list['state'] = dict_info['state']
+        df_list['resolution'] = dict_info['resolution']
+        df_list['url'] = dict_info['url']
+        df_list['page'] = str(dict_info['page'])
+        df_list['access_time'] = dict_info['access_time']
+        df_columns = list(df_list.columns)
+        for column in columns:
+            if column not in df_columns:
+                df_list[column] = nan
+            else:
+                pass
+        final_df = df_list.reindex(columns=columns)
+    return final_df
+
+
+# state-level
 url = state_data_url
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
@@ -32,7 +71,6 @@ other_name = ['people with healthcare', 'Unknown hospitalized',
               'Not hospitalized']
 other_dict_age = {'IP_N_': "not hospitalized", # 'IC_Y_': 'ICU',
                   "IP_U_": "in patient unknown"}
-
 
 cases = feature['POSITIVE']
 negative = feature['NEGATIVE']
@@ -157,10 +195,43 @@ for ethnicity in race_list:
             nan, nan, nan, nan,
             other, other_value])
 
+
+# county-level
+tmp_row_csv = []
+url = county_data_url
+raw_data = requests.get(url).json()
+access_time = datetime.datetime.utcnow()
+resolution = 'county'
+
+for feature in raw_data['features']:
+    attribute = feature['attributes']
+    county = attribute['NAME']
+    cases = attribute['POSITIVE']
+    negative = attribute['NEGATIVE']
+    fips = attribute['GEOID']
+    update_date = float(attribute['DATE'])
+    updated = str(datetime.datetime.fromtimestamp(update_date / 1000.0))
+    tmp_row_csv.append([county, cases, negative, fips, updated])
+
+county_df = pd.DataFrame(tmp_row_csv, columns=[
+    'county', 'cases', 'negative', 'fips', 'updated']).sort_values(
+    'updated', ascending=False)
+county_df['updated'] = pd.to_datetime(county_df['updated'])
+
+date_list = sorted(list(county_df.groupby('updated').groups.keys()))
+recent_date = date_list[-1].to_pydatetime().strftime('%Y-%m-%d')
+county_df['updated'] = county_df['updated'].dt.strftime('%Y-%m-%d')
+county_df = county_df[county_df['updated'] == recent_date].sort_values('county')
+dict_info_county = {'provider': 'state', 'country': country, "url": url,
+                    "state": state, "resolution": "county",
+                    "page": str(raw_data), "access_time": access_time}
+
+county_df = fill_in_df(county_df, dict_info_county, columns)
+
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
 file_name = path + state + dt_string + '.csv'
 
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, index=False)
+dfs = pd.concat([pd.DataFrame(row_csv, columns=columns), county_df])
+dfs.to_csv(file_name, index=False)
