@@ -18,30 +18,38 @@ url = zipcode_cases_url
 resolution = 'zipcode'
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
-
+other_keys = ['lower_bound', 'upper_bound']
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
     region = attribute['POSTCODE']
-    cases = attribute['ConfirmedCaseCount']
-
-    row_csv.append([
-            'state', country, state, region,
-            url, str(raw_data), access_time, nan,
-            cases, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            resolution, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            nan, nan])
-
+    cases_range_raw = attribute['ConfirmedCaseCount']
+    if cases_range_raw != "Data Suppressed":
+        cases_range = cases_range_raw.split('-')
+        for idx in range(0, len(cases_range)):
+            cases = cases_range[idx]
+            if len(cases_range) > 1:
+                other = 'range'
+                other_value = other_keys[idx]
+            else:
+                other = nan
+                other_value = nan
+            row_csv.append([
+                'state', country, state, region,
+                url, str(raw_data), access_time, nan,
+                cases, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
