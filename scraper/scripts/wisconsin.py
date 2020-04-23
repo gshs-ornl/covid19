@@ -60,7 +60,7 @@ resolution = 'state'
 feature = raw_data['features'][0]['properties']
 
 age_group_list = ['90+', '80_89', '70_79', '60_69', '50_59', '40_49', '30_39',
-             '20_29', '10_19', '0_10']
+             '20_29', '10_19', '0_9']
 gender_list = ['FEM', 'MALE']
 race_list = ['AIAN', 'ASN', 'BLK', 'WHT', 'UNK', 'MLTOTH']
 ethnicity_list = ['E_NHSP', 'E_HSP', 'E_UNK']
