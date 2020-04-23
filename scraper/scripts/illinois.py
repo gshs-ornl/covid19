@@ -28,6 +28,8 @@ raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
 
 updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
 for feature in raw_data['characteristics_by_county']['values']:
     county_name = feature['County']
     # This gives the whole state total
@@ -46,7 +48,7 @@ for feature in raw_data['characteristics_by_county']['values']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, updated_date, deaths, nan,
+        cases, updated, deaths, nan,
         nan, tested, nan, negative_tests,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -67,6 +69,8 @@ raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
 
 updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
 for feature in raw_data['county_demographics']:
     county = feature['County']
     cases = feature['confirmed_cases']
@@ -79,7 +83,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -102,7 +106,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -124,7 +128,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            nan, nan, deaths, nan,
+            nan, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -145,6 +149,8 @@ raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
 
 updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
 for feature in raw_data['zip_values']:
     region = feature['zip']
     cases = feature['confirmed_cases']
@@ -157,7 +163,7 @@ for feature in raw_data['zip_values']:
         row_csv.append([
             'state', country, state, region,
             url, str(raw_data), access_time, nan,
-            cases, nan, nan, nan,
+            cases, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -175,11 +181,10 @@ for feature in raw_data['zip_values']:
         for text in ['count']:
             other = race['description'] + '_' + text
             other_value = race[text]
-
             row_csv.append([
                 'state', country, state, region,
                 url, str(raw_data), access_time, nan,
-                cases, nan, nan, nan,
+                cases, updated, nan, nan,
                 nan, nan, nan, nan,
                 nan, nan, nan, nan, nan,
                 nan, nan, nan,
