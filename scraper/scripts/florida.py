@@ -9,6 +9,9 @@ import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
+state = 'Florida'
+columns = Headers.updated_site
+row_csv = []
 url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
 state_tot_cases_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Case_Line_Data/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 state_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Case_Line_Data/FeatureServer/0/query?f=json&where=Jurisdiction%3C%3E%27Non-FL%20resident%27%20AND%20Died%3D%27Yes%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
@@ -22,22 +25,18 @@ state_flres_hospitalized_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/ar
 state_flres_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Case_Line_Data/FeatureServer/0/query?f=json&where=Jurisdiction%3C%3E%27Non-FL%20resident%27%20AND%20Died%3D%27Yes%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 
 
-state = 'Florida'
 resolution = 'county'
-columns = Headers.updated_site
-
 
 raw_data = requests.get(url).json()
 access_time = datetime.datetime.utcnow()
 
-row_csv = []
 keys_used = ['County_1','C_FLRes', 'C_NotFLRes', 'C_Hosp_Yes',
              'T_NegRes', 'T_NegNotFLRes', 'TPending',
              'OBJECTID_12_13', 'OBJECTID', 'OBJECTID_1', 'DEPCODE',
              'COUNTY', 'COUNTYNAME', 'DATESTAMP', 'ShapeSTAre',
              'ShapeSTLen', 'OBJECTOD_1', 'State', 'OBJECTID_12',
              'DEPCODE_1', 'COUNTYN', 'Shape__Area', 'Shape__Length']
-gender_keys = ['C_Men', 'C_Women']
+gender_keys = ['C_Men', 'C_Women', 'C_SexUnkn']
 age_keys = ['Age_0_4', 'Age_5_14', 'Age_15_24',
             'Age_25_34', 'Age_35_44', 'Age_45_54',
             'Age_55_64', 'Age_65_74', 'Age_75_84',
@@ -45,6 +44,8 @@ age_keys = ['Age_0_4', 'Age_5_14', 'Age_15_24',
 
 keys_used.extend(gender_keys)
 keys_used.extend(age_keys)
+# Aggregated gender data
+state_gender_data = {key: [] for key in gender_keys}
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -92,7 +93,7 @@ for feature in raw_data['features']:
         for gender_key in gender_keys:
             sex = gender_key.split('C_')[1]
             sex_counts = attribute[gender_key]
-
+            state_gender_data[gender_key].append(int(sex_counts))
             row_csv.append([
                 'state', country, state, nan,
                 url, str(raw_data), access_time, county,
@@ -109,7 +110,30 @@ for feature in raw_data['features']:
                 nan, nan,
                 nan, sex, sex_counts, nan,
                 nan, nan])
-        '''
+
+# Added the aggregated gender data for state-level
+resolution = 'state'
+for state_gender_data_key in state_gender_data.keys():
+    sex = state_gender_data_key.split('C_')[1]
+    sex_counts = sum(state_gender_data[state_gender_data_key])
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, sex, sex_counts, nan,
+        nan, nan])
+
+'''
         for key in key_list:
             if key not in keys_used:
                 other = key
@@ -130,7 +154,7 @@ for feature in raw_data['features']:
                     nan, nan,
                     nan, nan, nan, nan,
                     other, other_value])
-        '''
+'''
 
 # State-level data
 resolution = 'state'
