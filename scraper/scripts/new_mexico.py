@@ -6,6 +6,7 @@ import requests
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 county_cases_url = 'https://e7p503ngy5.execute-api.us-west-2.amazonaws.com/prod/GetCounties'
@@ -17,8 +18,10 @@ row_csv = []
 
 resolution = 'county'
 url = county_cases_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 age_group = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69',
              '70-79', '80-89', '90+']
@@ -35,7 +38,7 @@ for data in raw_data['data']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -55,7 +58,7 @@ for data in raw_data['data']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -72,8 +75,10 @@ for data in raw_data['data']:
 
 resolution = 'state'
 url = state_cases_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 age_group.append('ageNR')
 gender_list.append('genderNR')
@@ -93,7 +98,7 @@ other_value = data[other]
 row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         recovered, tested, hospitalized, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -113,7 +118,7 @@ for age in age_group:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         recovered, tested, hospitalized, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -132,7 +137,7 @@ for gender in gender_list:
     sex_counts = data[gender]
     row_csv.append(['state', country, state, nan,
                     url, str(raw_data), access_time, nan,
-                    cases, nan, deaths, nan,
+                    cases, updated, deaths, nan,
                     recovered, tested, hospitalized, nan,
                     nan, nan, nan, nan, nan,
                     nan, nan, nan,
@@ -152,7 +157,7 @@ for race in race_other_list:
     cases = data[race]
     row_csv.append(['state', country, state, nan,
                     url, str(raw_data), access_time, nan,
-                    cases, nan, nan, nan,
+                    cases, updated, nan, nan,
                     nan, nan, nan, nan,
                     nan, nan, nan, nan, nan,
                     nan, nan, nan,

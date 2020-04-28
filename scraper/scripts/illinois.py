@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state = 'Illinois'
@@ -24,8 +25,9 @@ row_csv = []
 # county-level data (1st url)
 url = county_cases_url
 resolution = 'county'
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+raw_data = response.json()
 
 updated_date = raw_data['LastUpdateDate']
 updated = datetime.datetime(updated_date['year'], updated_date['month'],
@@ -65,8 +67,9 @@ for feature in raw_data['characteristics_by_county']['values']:
 # county-level demographics data (2nd url)
 url = county_demo_url
 resolution = 'county'
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+raw_data = response.json()
 
 updated_date = raw_data['LastUpdateDate']
 updated = datetime.datetime(updated_date['year'], updated_date['month'],
@@ -145,8 +148,9 @@ for feature in raw_data['county_demographics']:
 # zip code-level cases data (3rd url)
 url = zipcode_cases_url
 resolution = 'zipcode'
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+raw_data = response.json()
 
 updated_date = raw_data['LastUpdateDate']
 updated = datetime.datetime(updated_date['year'], updated_date['month'],

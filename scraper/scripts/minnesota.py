@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 county_cases_url = 'https://services1.arcgis.com/RQG3sksSXcoDoIfj/arcgis/rest/services/MN_COVID19_County_Tracking_Public_View/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
@@ -17,8 +18,11 @@ row_csv = []
 # County-level data: cases
 url = county_cases_url
 resolution = 'county'
-raw_data = requests.get(url).json()
+
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -28,7 +32,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, nan, nan,
+        cases, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -45,8 +49,10 @@ for feature in raw_data['features']:
 # State-level
 url = state_url
 resolution = 'state'
-raw_data = requests.get(url, timeout = None).json()
+response = requests.get(url, timeout=None)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 other_keys = {'TotalCases': 'Released from isolation',
               'EvrHospNo': 'Non-hospitalized',
               'EvrHospMisng': 'Missing hospital cases'}
@@ -75,7 +81,7 @@ state_deaths = attribute['OutcmDied']
 row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            state_cases, nan, state_deaths, nan,
+            state_cases, updated, state_deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -96,7 +102,7 @@ for other_list in [other_keys, exposure_types,resident_types]:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -117,7 +123,7 @@ for gender in genders:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -140,7 +146,7 @@ for cases_key in cases_keys:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -165,7 +171,7 @@ for deaths_key in deaths_keys:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,

@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://services.arcgis.com/iFBq2AW9XO0jYYF7/arcgis/rest/services/NCCovid19/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
@@ -17,8 +18,10 @@ columns = Headers.updated_site
 row_csv = []
 
 # County level
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 resolution = 'county'
 
 for feature in raw_data['features']:
@@ -30,7 +33,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan,  nan, nan,
@@ -60,6 +63,7 @@ def fill_in_df(df_list, dict_info, columns):
             each_df['url'] = dict_info['url']
             each_df['page'] = str(dict_info['page'])
             each_df['access_time'] = dict_info['access_time']
+            each_df['updated'] = dict_info['updated']
             df_columns = list(each_df.columns)
             for column in columns:
                 if column not in df_columns:
@@ -76,6 +80,7 @@ def fill_in_df(df_list, dict_info, columns):
         df_list['url'] = dict_info['url']
         df_list['page'] = str(dict_info['page'])
         df_list['access_time'] = dict_info['access_time']
+        df_list['updated'] = dict_info['updated']
         df_columns = list(df_list.columns)
         for column in columns:
             if column not in df_columns:
@@ -89,13 +94,16 @@ def fill_in_df(df_list, dict_info, columns):
 resolution = 'county'
 url = "https://www.ncdhhs.gov/divisions/public-health/covid19/covid-19" \
       "-nc-case-count#by-counties"
-html_text = requests.get(url).text
-soup = BeautifulSoup(html_text, 'html.parser')
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, 'html.parser')
 
 dict_info_state = {'provider': 'state', 'country': country, "url": url,
                    "state": state, "resolution": "state",
-                   "page": str(html_text), "access_time": access_time}
+                   "page": str(html_text), "access_time": access_time,
+                   "updated": updated}
 
 table = soup.find_all('table')[0]
 rows = table.find_all('tr')

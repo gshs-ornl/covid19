@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://services2.arcgis.com/XZg2efAbaieYAXmu/arcgis/rest/services/COVID19/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=4326&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
@@ -15,8 +16,10 @@ columns = Headers.updated_site
 
 other_keys_county = ['County_Rate']
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 row_csv = []
 state_cases = []
@@ -39,7 +42,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         recovered, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -61,7 +64,7 @@ deaths = sum(state_deaths)
 row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,

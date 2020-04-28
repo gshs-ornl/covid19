@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state = 'Vermont'
@@ -24,8 +25,10 @@ resolution = 'state'
 
 # State-level data: race and ethnicity
 for url in [state_race_url, state_eth_url]:
-    raw_data = requests.get(url).json()
+    response = requests.get(url)
     access_time = datetime.datetime.utcnow()
+    updated = determine_updated_timestep(response)
+    raw_data = response.json()
     if url == 'state_race_url':
         placeholder = 'cases_race_'
     else:
@@ -40,7 +43,7 @@ for url in [state_race_url, state_eth_url]:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -56,8 +59,10 @@ for url in [state_race_url, state_eth_url]:
 
 # State-level data: genders and age groups
 for url in [state_gender_url, state_agegrp_url]:
-    raw_data = requests.get(url).json()
+    response = requests.get(url)
     access_time = datetime.datetime.utcnow()
+    updated = determine_updated_timestep(response)
+    raw_data = response.json()
     for feature in raw_data['features']:
         attribute = feature['attributes']
         if url == state_gender_url:
@@ -71,7 +76,7 @@ for url in [state_gender_url, state_agegrp_url]:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

@@ -7,6 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 columns = Headers.updated_site
 country = 'US'
@@ -60,8 +61,10 @@ alias = {'T_Camas_Adult_Disp': 'Total Adult Beds Available',
 # municipal_url
 resolution = 'municipal'
 url = municipal_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 for feature in raw_data['features']:
     attribute = feature['attributes']
     region = attribute['municipio']
@@ -69,7 +72,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, region,
             url, str(raw_data), access_time, nan,
-            cases, nan, nan, nan,
+            cases, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -86,8 +89,10 @@ for feature in raw_data['features']:
 # region_url
 resolution = 'region'
 url = region_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 for feature in raw_data['features']:
     attribute = feature['attributes']
     region = attribute['RegionSalud']
@@ -95,7 +100,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, region,
             url, str(raw_data), access_time, nan,
-            cases, nan, nan, nan,
+            cases, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -113,8 +118,10 @@ for feature in raw_data['features']:
 # total_url
 resolution = 'state'
 url = total_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 attribute = raw_data['features'][0]['attributes']
 deaths = attribute['T_Muertes_Combinadas'] #['T_Fatalidades']
@@ -135,7 +142,7 @@ for age_group in age_group_list:
     age_cases = attribute[age_range]
     row_csv.append([
         'state', country, state, region,
-        url, str(raw_data), access_time, nan,
+        url, str(raw_data), access_time, updated,
         cases, nan, deaths, nan,
         recovered, nan, hospitalized, negative,
         nan, nan, nan, nan, nan,
@@ -156,7 +163,7 @@ for gender in gender_list:
     row_csv.append([
         'state', country, state, region,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,
         nan, nan, nan, nan, nan,
         nan, nan, pending,
@@ -176,7 +183,7 @@ for key in alias.keys():
     row_csv.append([
         'state', country, state, region,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,
         nan, nan, nan, nan, nan,
         nan, nan, pending,

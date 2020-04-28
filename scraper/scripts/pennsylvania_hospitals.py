@@ -7,6 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/ArcGIS/rest/services/Aggregate_County_Level_Data/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=ObjectId%20ASC&outSR=102100&resultOffset=0&resultRecordCount=50&cacheHint=true'
@@ -15,12 +16,14 @@ state = 'Pennsylvania'
 columns = Headers.updated_site
 
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 with open(state+'_county_data.json', 'w') as f:
     json.dump(raw_data, f)
 
-access_time = datetime.datetime.utcnow()
 resolution = 'county'
 
 row_csv = []
@@ -54,7 +57,7 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -69,12 +72,13 @@ for feature in raw_data['features']:
             other, other_value])
 
 
-raw_data = requests.get(hospital_url).json()
+response = requests.get(hospital_url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 with open(state+'_hospital_data.json', 'w') as f:
     json.dump(raw_data, f)
-
-access_time = datetime.datetime.utcnow()
 
 resolution = 'state'
 hospital_alias = {}
@@ -134,7 +138,7 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             hospital_url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://services.arcgis.com/vPD5PVLI6sfkZ5E4/ArcGIS/rest/services/IA_COVID19_Cases/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
@@ -16,8 +17,9 @@ columns = Headers.updated_site
 row_csv = []
 
 # County level
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+raw_data = response.json()
 resolution = 'county'
 
 for feature in raw_data['features']:
@@ -47,8 +49,10 @@ for feature in raw_data['features']:
 
 
 # State level - Demographics
-raw_data = requests.get(url_state).json()
+response = requests.get(url_state)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 resolution = 'state'
 age_keys = ['Child_0_17', 'Adult_18_40', 'Middle_Age_41_60',
             'Older_Adult_61_80', 'Elderly_81']
@@ -73,7 +77,7 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             url_state, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             recovered, tested, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan,  nan, nan,

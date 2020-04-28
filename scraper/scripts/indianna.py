@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 date_url_xlsx = (datetime.datetime.today()).strftime('%Y%m%d')
@@ -18,8 +19,10 @@ resolution = 'county'
 columns = Headers.updated_site
 row_csv = []
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -32,7 +35,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, tested, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -85,6 +88,7 @@ def fill_in_df(df_list, dict_info, columns):
 
 
 url = county_xlsx
+# TODO: figure out how to get an updated time here
 raw_data = pd.read_excel(url, sheet_name='Report')
 access_time = datetime.datetime.utcnow()
 raw_data.columns = ['county', 'cases', 'deaths', 'tested']
@@ -98,8 +102,10 @@ county_df = fill_in_df(raw_data, dict_info_county, columns)
 
 url = state_cases
 resolution = 'state'
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 feature = raw_data['objects']
 for gender in feature['viz_gender']:
@@ -113,7 +119,7 @@ for gender in feature['viz_gender']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, deaths, nan,
+        nan, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -137,7 +143,7 @@ for age_group in feature['viz_agegrp']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -162,7 +168,7 @@ for race in feature['viz_race']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -187,7 +193,7 @@ for ethnicity in feature['viz_ethnicity']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -209,7 +215,7 @@ for key in vent.keys():
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -235,7 +241,7 @@ for key in ['new_case_day', 'new_death_day', 'new_test_day', 'new_case',
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

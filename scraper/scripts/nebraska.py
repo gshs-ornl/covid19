@@ -7,7 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
-
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://gis.ne.gov/Agency/rest/services/COVID19_County_Layer/MapServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=totalCountyPosFin%20desc&resultOffset=0&resultRecordCount=93'
@@ -20,8 +20,10 @@ columns = Headers.updated_site
 
 row_csv = []
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 resolution = 'county'
 
 for feature in raw_data['features']:
@@ -35,7 +37,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, nan, nan,
+            cases, updated, nan, nan,
             nan, tested, nan, negative,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -53,14 +55,16 @@ with open('nebraska_state_data.json', 'w') as f:
     json.dump(raw_data, f)
 
 resolution = 'state'
-raw_data = requests.get(state_url_cases).json()
+response = requests.get(state_url_cases)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 cases = raw_data['features'][0]['attributes']['value']
 
 row_csv.append([
             'state', country, state, nan,
             state_url_cases, str(raw_data), access_time, nan,
-            cases, nan, nan, nan,
+            cases, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -75,14 +79,16 @@ row_csv.append([
             nan, nan])
 
 
-raw_data = requests.get(state_url_negative).json()
+response = requests.get(state_url_negative)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 negative = raw_data['features'][0]['attributes']['value']
 
 row_csv.append([
             'state', country, state, nan,
             state_url_cases, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, negative,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -97,14 +103,16 @@ row_csv.append([
             nan, nan])
 
 
-raw_data = requests.get(state_url_tested).json()
+response = requests.get(state_url_tested)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 tested = raw_data['features'][0]['attributes']['value']
 
 row_csv.append([
             'state', country, state, nan,
             state_url_cases, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

@@ -7,6 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 county_url = 'https://kygisserver.ky.gov/arcgis/rest/services/WGS84WM_Services/Ky_Cnty_COVID19_Cases_WGS84WM/MapServer/0/query?where=1%3D1&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=pjson'
@@ -21,8 +22,12 @@ row_csv = []
 # County-level data
 url = county_url
 resolution = 'county'
-raw_data = requests.get(url).json()
+
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
 count_deaths = []
 count_cases = []
 
@@ -40,7 +45,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, hospitalized, nan,
         nan, nan, nan, nan, fips,
         nan, nan, nan,
@@ -59,7 +64,7 @@ resolution = 'state'
 row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        sum(count_cases), nan, sum(count_deaths), nan,
+        sum(count_cases), updated, sum(count_deaths), nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -75,8 +80,10 @@ row_csv.append([
 
 # State-level data - genders deaths
 url = state_death_gender_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -85,7 +92,7 @@ for feature in raw_data['features']:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, deaths, nan,
+        nan, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -101,8 +108,10 @@ for feature in raw_data['features']:
 
 # State-level data - age groups deaths
 url = state_death_age_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -111,7 +120,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -127,8 +136,10 @@ for feature in raw_data['features']:
 
 # State-level data - genders cases
 url = state_cases_gender_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -138,7 +149,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -154,8 +165,10 @@ for feature in raw_data['features']:
 
 # State-level data - age groups cases
 url = state_cases_age_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
@@ -164,7 +177,7 @@ for feature in raw_data['features']:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

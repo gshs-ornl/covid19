@@ -7,7 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
-
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state = 'Alaska'
@@ -22,8 +22,10 @@ state_url_deaths = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/se
 columns = Headers.updated_site
 row_csv = []
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 with open('alaska_state_data.json', 'w') as f:
     json.dump(raw_data, f)
@@ -31,7 +33,8 @@ with open('alaska_state_data.json', 'w') as f:
 resolution = 'county'
 dict_info = {'provider': provider, 'country': country, "url": url,
              "state": state, "resolution": resolution,
-            "page": raw_data, "access_time": access_time}
+            "page": raw_data, "access_time": access_time,
+            "updated": updated}
 
 
 def fill_in_ak_df(df_list, dict_info, columns):
@@ -44,6 +47,7 @@ def fill_in_ak_df(df_list, dict_info, columns):
         each_df['url'] = dict_info['url']
         each_df['page'] = str(dict_info['page'])
         each_df['access_time'] = dict_info['access_time']
+        each_df['updated'] = dict_info['updated']
         df_columns = list(each_df.columns)
         for column in columns:
             if column not in df_columns:
@@ -94,8 +98,11 @@ df_list = [age_cases, county_cases, hospitalized_df, gender_cases]
 county_level_df = fill_in_ak_df(df_list, dict_info, columns)
 
 resolution = 'state'
-raw_data = requests.get(state_url_age_group).json()
+
+response = requests.get(state_url_age_group)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 for feature in raw_data['features']:
     attribute = feature['attributes']
     cases = attribute['CaseTotals']
@@ -105,7 +112,7 @@ for feature in raw_data['features']:
     row_csv.append([
                 'state', country, state, nan,
                 state_url_age_group, str(raw_data), access_time, nan,
-                cases, nan, nan, nan,
+                cases, updated, nan, nan,
                 nan, nan, nan, nan,
                 nan, nan, nan, nan, nan,
                 nan, nan, nan,
@@ -120,14 +127,16 @@ for feature in raw_data['features']:
                 nan, nan])
 
 
-raw_data = requests.get(state_url_hospitalized).json()
+response = requests.get(state_url_hospitalized)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 hospitalized = raw_data['features'][0]['attributes']['value']
 
 row_csv.append([
             'state', country, state, nan,
             state_url_hospitalized, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -142,14 +151,16 @@ row_csv.append([
             nan, nan])
 
 
-raw_data = requests.get(state_url_deaths).json()
+response = requests.get(state_url_deaths)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 deaths = raw_data['features'][0]['attributes']['value']
 
 row_csv.append([
             'state', country, state, nan,
             state_url_deaths, str(raw_data), access_time, nan,
-            nan, nan, deaths, nan,
+            nan, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
