@@ -8,6 +8,10 @@ import logging
 import requests
 import traceback
 import time
+import os
+import tempfile
+import shutil
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -60,6 +64,7 @@ class WebDriver():
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
                  timeout=30, implicit_wait=5, remote=True,
+                 sleep_time=0, preferences=None,
                  logger=logging.getLogger(ce('LOGGER', 'main'))):
         """
             initiate the WebDriver class
@@ -70,6 +75,7 @@ class WebDriver():
         self.output_type = output
         self.opts = options
         self.service_args = service_args
+        self.preferences = preferences
         self.out = None
         self.timeout = timeout
         self.driver = None
@@ -101,6 +107,7 @@ class WebDriver():
             self.driver.set_window_size(window_width, window_height)
             self.logger.info('Connecting to %s' % self.url)
             self.driver.get(self.url)
+            time.sleep(sleep_time)
             self.logger.info('Connected to %s' % self.url)
 
     def __str__(self):
@@ -177,6 +184,12 @@ class WebDriver():
         self.logger.info(f'Using chrome to connect to {self.url}')
         self.options = webdriver.ChromeOptions()
         try:
+            if isinstance(self.preferences, dict):
+                tmp_dir_name = tempfile.TemporaryDirectory().name
+                self.preferences["download.default_directory"] = tmp_dir_name
+                self.options.add_experimental_option("prefs",
+                                                     self.preferences)
+                self.logger.info(f'Temporary directory {tmp_dir_name}')
             if self.opts is not None:
                 for opt in self.opts:
                     self.options.add_argument(opt)
@@ -373,6 +386,15 @@ class WebDriver():
         else:
             raise IngestException('Bad logic passed to WebDriver.get_image()')
         return img.get_attribute('src')
+
+    def get_csv(self):
+        temp_dir = self.preferences['download.default_directory']
+        file_list = os.listdir(temp_dir)
+        if len(file_list) == 1:
+            df = pd.read_csv(self.preferences['download.default_directory']+
+                             '/'+file_list[0])
+        shutil.rmtree(temp_dir)
+        return df
 
 
 if __name__ == "__main__":

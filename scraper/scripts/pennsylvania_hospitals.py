@@ -9,22 +9,15 @@ import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
 
 country = 'US'
-url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/ArcGIS/rest/services/Aggregate_County_Level_Data/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=ObjectId%20ASC&outSR=102100&resultOffset=0&resultRecordCount=50&cacheHint=true'
+# url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/ArcGIS/rest/services/Aggregate_County_Level_Data/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=ObjectId%20ASC&outSR=102100&resultOffset=0&resultRecordCount=50&cacheHint=true'
+county_url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/arcgis/rest/services/County_Case_Data_Public/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
 hospital_url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/arcgis/rest/services/Adam_Public_HOS/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
 state = 'Pennsylvania'
 columns = Headers.updated_site
-
-
-raw_data = requests.get(url).json()
-
-with open(state+'_county_data.json', 'w') as f:
-    json.dump(raw_data, f)
-
-access_time = datetime.datetime.utcnow()
-resolution = 'county'
-
 row_csv = []
+
 alias = {}
+'''
 other_keys = ['SUM_Available_Beds_Adult_Intens',
              'SUM_Available_Beds_Medical_and_',
              'SUM_Available_Beds_Pediatric_In',
@@ -33,9 +26,16 @@ other_keys = ['SUM_Available_Beds_Adult_Intens',
              'SUM_COVID_19_Patient_Counts_T_1',
              'SUM_COVID_19_Patient_Counts_T_2',
              'SUM_Ventilator_Counts_Ventilato',
-             'SUM_Ventilator_Counts_Ventila_1'
-             ]
+             'SUM_Ventilator_Counts_Ventila_1']
+'''
+other_keys = ['AvailableBedsAdultICU', 'AvailableBedsMedSurg',
+              'AvailableBedsPICU', 'OtherBedsAIIRs', 'COVID19onVents',
+              'COVID19ECMO', 'TotalVents', 'VentsInUse']
 
+url = county_url
+resolution = 'county'
+raw_data = requests.get(url).json()
+access_time = datetime.datetime.utcnow()
 
 for field in raw_data['fields']:
     name = field['name']
@@ -44,9 +44,10 @@ for field in raw_data['fields']:
 
 for feature in raw_data['features']:
     attribute = feature['attributes']
-    county = attribute['County']
-    cases = attribute['Positive']
+    county = attribute['COUNTY_NAM']
+    cases = attribute['Cases']
     deaths = attribute['Deaths']
+    hospitalized = attribute['COVID19Hospitalized']
 
     for other_key in other_keys:
         other = alias[other_key]
@@ -55,7 +56,7 @@ for feature in raw_data['features']:
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
             cases, nan, deaths, nan,
-            nan, nan, nan, nan,
+            nan, nan, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
             nan, nan, nan,
@@ -68,15 +69,10 @@ for feature in raw_data['features']:
             nan, nan, nan, nan,
             other, other_value])
 
-
+resolution = 'state'
 raw_data = requests.get(hospital_url).json()
-
-with open(state+'_hospital_data.json', 'w') as f:
-    json.dump(raw_data, f)
-
 access_time = datetime.datetime.utcnow()
 
-resolution = 'state'
 hospital_alias = {}
 other_keys = ['HospitalName']
 hospital_alias_needed = ['Available_Beds_Adult_Intensive_',
@@ -134,7 +130,8 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             hospital_url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            #cases, nan, deaths, nan,
+            nan, nan, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
