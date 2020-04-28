@@ -3,6 +3,10 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.pydevproject
+.vscode/
+.project
+.settings/
 build/
 develop-eggs/
 dist/
