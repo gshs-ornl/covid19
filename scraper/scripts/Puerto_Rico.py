@@ -142,8 +142,8 @@ for age_group in age_group_list:
     age_cases = attribute[age_range]
     row_csv.append([
         'state', country, state, region,
-        url, str(raw_data), access_time, updated,
-        cases, nan, deaths, nan,
+        url, str(raw_data), access_time, nan,
+        cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,
         nan, nan, nan, nan, nan,
         nan, nan, pending,
