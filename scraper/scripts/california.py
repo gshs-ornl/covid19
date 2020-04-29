@@ -52,7 +52,7 @@ other_value_list = [confirmed_hospitalized_info[1],
 
 cases = int((state_image_df.iloc[30]['text']).replace(',', ''))
 hospitalized = confirmed_hospitalized_info[0]
-deaths = state_image_df.iloc[95]['text']
+deaths = ','.join((state_image_df.iloc[124]['text'], state_image_df.iloc[125]['text']))
 
 for age_group_row_num in age_group_row_nums:
     age_range = state_image_df.iloc[age_group_row_num]['text'].replace(':', '')
