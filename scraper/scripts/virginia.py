@@ -5,6 +5,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.webdriver import WebDriver
 from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
@@ -56,10 +57,18 @@ def fill_in_df(df_list, dict_info, columns):
 
 all_df = []
 # county_cases_url
-df = pd.read_csv(county_cases_url, header=0, names=['updated', 'fips',
-                                                    'county',
-                                                    'health_district', 'cases',
-                                                    'hospitalized', 'deaths'])
+with WebDriver(url=county_cases_url, driver='chromedriver',
+                   options=['--no-sandbox', '--disable-gpu',
+                            '--disable-logging',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--no-zygote', 'headless'],
+                   service_args=['--ignore-ssl-errors=true',
+                                 '--ssl-protocol=any'], sleep_time=15,
+                  preferences={}) as d:
+    df = d.get_csv()
+df.columns =['updated', 'fips', 'county', 'health_district', 'cases',
+             'hospitalized', 'deaths']
 df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 dict_info_county_cases = {'provider': 'state', 'country': country,
@@ -69,11 +78,18 @@ dict_info_county_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_county_cases, columns))
 
 # state_age_url
-df = pd.read_csv(state_age_url, header=0, names=['updated', 'age_range',
-                                                 'age_cases',
-                                                 'age_hospitalized',
-                                                 'age_deaths',
-                                                 'health_district'])
+with WebDriver(url=state_age_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                            '--disable-logging',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                                 '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'age_range', 'age_cases', 'age_hospitalized',
+             'age_deaths', 'health_district']
 df = df.rename(columns={'health_district': 'region'})
 
 access_time = datetime.datetime.utcnow()
@@ -85,11 +101,18 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 # state_gender_url
-df = pd.read_csv(state_gender_url, header=0, names=['updated', 'sex',
-                                                    'sex_counts',
-                                                    'hospitalized',
-                                                    'sex_death',
-                                                    'health_district'])
+with WebDriver(url=state_gender_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                            '--disable-logging',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                                 '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'sex', 'sex_counts', 'hospitalized', 'sex_death',
+              'health_district']
 df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 
@@ -101,9 +124,18 @@ all_df.append(fill_in_df(df, dict_info_state_cases,
                          columns))
 
 # state_race_url
-df = pd.read_csv(state_race_url, header=0, names=['updated', 'other_value',
-                                                  'cases', 'hospitalized',
-                                                  'deaths','health_district'])
+with WebDriver(url=state_race_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                            '--disable-logging',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                                 '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'other_value', 'cases', 'hospitalized',
+              'deaths', 'health_district']
 df = df.rename(columns={'health_district': 'region'})
 access_time = datetime.datetime.utcnow()
 df['other'] = 'Race'
@@ -115,9 +147,17 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 # health_dist_url
-df = pd.read_csv(health_dist_url, header=0, names=['updated', 'region',
-                                                   'cases', 'hospitalized',
-                                                   'deaths'])
+with WebDriver(url=health_dist_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                            '--disable-logging',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                                 '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'region', 'cases', 'hospitalized', 'deaths']
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
