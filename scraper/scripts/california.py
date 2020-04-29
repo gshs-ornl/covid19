@@ -29,8 +29,7 @@ for img in imgs:
     img_src = img['src']
     if 'CA_COVID-19' in img_src:
         state_cases_url = img_src.replace('/Programs', placeholder_url)
-    elif 'Demographics' in img_src:
-        state_demo_url = img_src.replace('/Programs', placeholder_url)
+        break
 
 
 row_csv = []
@@ -39,10 +38,12 @@ read_img = ReadImage(state_cases_url)
 state_image_df = ReadImage.process(read_img)
 
 # Parsing info for first image - state cases
-age_group_row_nums = [53, 61, 69, 77, 83]
-gender_row_nums = [56, 64, 72]
-confirmed_hospitalized_info = state_image_df.iloc[93]['text'].split('/')
-suspected_hospitalized_info = state_image_df.iloc[94]['text'].split('/')
+age_group_row_nums = [49, 57, 65, 70, 75]
+gender_row_nums = [52, 60, 109]
+#with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    #print(state_image_df)
+confirmed_hospitalized_info = state_image_df.iloc[128]['text'].split('/')
+suspected_hospitalized_info = state_image_df.iloc[129]['text'].split('/')
 
 other_list = ['confirmed COVID-19 in ICU',
               'suspected COVID-19 hospitalized', 'suspected COVID-19 in ICU']
@@ -119,7 +120,7 @@ if len(other_list) == len(other_value_list):
 else:
     print("The lengths for other keys and values are not equal")
 
-
+'''
 read_img = ReadImage(state_demo_url)
 demo_image_df = ReadImage.process(read_img)
 
@@ -164,6 +165,7 @@ for race_row in race_list:
             nan, nan,
             nan, nan, nan, nan,
             other, other_value])
+'''
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
