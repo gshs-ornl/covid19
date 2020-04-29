@@ -7,6 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state = 'Florida'
@@ -27,8 +28,10 @@ state_flres_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/r
 
 resolution = 'county'
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 keys_used = ['County_1','C_FLRes', 'C_NotFLRes', 'C_Hosp_Yes',
              'T_NegRes', 'T_NegNotFLRes', 'TPending',
@@ -76,7 +79,7 @@ for feature in raw_data['features']:
             row_csv.append([
                 'state', country, state, nan,
                 url, str(raw_data), access_time, county,
-                cases, nan, deaths, nan,
+                cases, updated, deaths, nan,
                 nan, tested, hospitalized, negative_tests,
                 nan, nan, nan, nan, nan,
                 monitored, no_longer_monitored, pending,
@@ -97,7 +100,7 @@ for feature in raw_data['features']:
             row_csv.append([
                 'state', country, state, nan,
                 url, str(raw_data), access_time, county,
-                cases, nan, deaths, nan,
+                cases, updated, deaths, nan,
                 nan, tested, hospitalized, negative_tests,
                 nan, nan, nan, nan, nan,
                 monitored, no_longer_monitored, pending,
@@ -119,7 +122,7 @@ for state_gender_data_key in state_gender_data.keys():
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -141,7 +144,7 @@ for state_gender_data_key in state_gender_data.keys():
                 row_csv.append([
                     'state', country, state, nan,
                     url, str(raw_data), access_time, county,
-                    cases, nan, deaths, nan,
+                    cases, updated, deaths, nan,
                     nan, nan, nan, negative_tests,
                     nan, nan, nan, nan, nan,
                     nan, nan, nan,
@@ -160,8 +163,10 @@ for state_gender_data_key in state_gender_data.keys():
 resolution = 'state'
 for url in [state_tot_cases_url, state_tested_url, state_negative_url,
             state_deaths_url]:
-    raw_data = requests.get(url).json()
+    response = requests.get(url)
     access_time = datetime.datetime.utcnow()
+    updated = determine_updated_timestep(response)
+    raw_data = response.json()
     cases, tested, negative, deaths = nan, nan, nan, nan
     if url == state_tot_cases_url:
         cases = raw_data['features'][0]['attributes']['value']
@@ -172,7 +177,7 @@ for url in [state_tot_cases_url, state_tested_url, state_negative_url,
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, tested, nan, negative,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -187,8 +192,10 @@ for url in [state_tot_cases_url, state_tested_url, state_negative_url,
         nan, nan])
 
 url = state_agegrp_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 attribute = raw_data['features'][0]['attributes']
 age_group_keys = attribute.keys()
 for age_group in age_group_keys:
@@ -197,7 +204,7 @@ for age_group in age_group_keys:
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -219,8 +226,10 @@ state_flres_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/r
 
 for url in [state_flres_cases_url, state_flres_hospitalized_url,
             state_flres_deaths_url]:
-    raw_data = requests.get(url).json()
+    response = requests.get(url)
     access_time = datetime.datetime.utcnow()
+    updated = determine_updated_timestep(response)
+    raw_data = response.json()
     other_value = raw_data['features'][0]['attributes']['value']
     if url == state_flres_cases_url:
         other = 'FL_res_cases'
@@ -232,7 +241,7 @@ for url in [state_flres_cases_url, state_flres_hospitalized_url,
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        nan, nan, nan, nan,
+        nan, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,

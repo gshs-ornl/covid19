@@ -7,35 +7,29 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
-# url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/ArcGIS/rest/services/Aggregate_County_Level_Data/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=ObjectId%20ASC&outSR=102100&resultOffset=0&resultRecordCount=50&cacheHint=true'
 county_url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/arcgis/rest/services/County_Case_Data_Public/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
 hospital_url = 'https://services2.arcgis.com/xtuWQvb2YQnp0z3F/arcgis/rest/services/Adam_Public_HOS/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
 state = 'Pennsylvania'
 columns = Headers.updated_site
-row_csv = []
 
+resolution = 'county'
+
+row_csv = []
 alias = {}
-'''
-other_keys = ['SUM_Available_Beds_Adult_Intens',
-             'SUM_Available_Beds_Medical_and_',
-             'SUM_Available_Beds_Pediatric_In',
-             'SUM_Other_Beds_Airborne_Infecti',
-             'SUM_COVID_19_Patient_Counts_Tot',
-             'SUM_COVID_19_Patient_Counts_T_1',
-             'SUM_COVID_19_Patient_Counts_T_2',
-             'SUM_Ventilator_Counts_Ventilato',
-             'SUM_Ventilator_Counts_Ventila_1']
-'''
+
 other_keys = ['AvailableBedsAdultICU', 'AvailableBedsMedSurg',
               'AvailableBedsPICU', 'OtherBedsAIIRs', 'COVID19onVents',
               'COVID19ECMO', 'TotalVents', 'VentsInUse']
 
 url = county_url
 resolution = 'county'
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 for field in raw_data['fields']:
     name = field['name']
@@ -55,7 +49,7 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -69,9 +63,12 @@ for feature in raw_data['features']:
             nan, nan, nan, nan,
             other, other_value])
 
+
 resolution = 'state'
-raw_data = requests.get(hospital_url).json()
+response = requests.get(hospital_url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 
 hospital_alias = {}
 other_keys = ['HospitalName']
@@ -130,8 +127,7 @@ for feature in raw_data['features']:
         row_csv.append([
             'state', country, state, nan,
             hospital_url, str(raw_data), access_time, nan,
-            #cases, nan, deaths, nan,
-            nan, nan, nan, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

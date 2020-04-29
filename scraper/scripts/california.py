@@ -9,6 +9,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from cvpy.static import ColumnHeaders as Headers
 from cvpy.ocr import ReadImage
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
@@ -16,9 +17,11 @@ state = 'California'
 resolution = 'state'
 columns = Headers.updated_site
 
-html_text = requests.get(url).text
-soup = BeautifulSoup(html_text, "html5lib")
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, "html5lib")
 
 placeholder_url = 'https://www.cdph.ca.gov/Programs'
 imgs = soup.find_all('img')
@@ -58,7 +61,7 @@ for age_group_row_num in age_group_row_nums:
     row_csv.append([
         'state', country, state, nan,
         url, str(html_text), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -79,7 +82,7 @@ for gender_row_num in gender_row_nums:
     row_csv.append([
         'state', country, state, nan,
         url, str(html_text), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -100,7 +103,7 @@ if len(other_list) == len(other_value_list):
         row_csv.append([
             'state', country, state, nan,
             url, str(html_text), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -148,7 +151,7 @@ for race_row in race_list:
         row_csv.append([
             'state', country, state, nan,
             url, str(html_text), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,

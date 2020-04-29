@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://services1.arcgis.com/PlCPCPzGOwulHUHo/ArcGIS/rest/services/DEMA_COVID_County_Boundary_Time_VIEW/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryPoint&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
@@ -14,9 +15,9 @@ state_url_cases = 'https://services1.arcgis.com/PlCPCPzGOwulHUHo/arcgis/rest/ser
 state = 'Delaware'
 columns = Headers.updated_site
 
-
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+raw_data = response.json()
 
 row_csv = []
 state_keys = ['Range1', 'Range2', 'Range3', 'Range4', 'Range5']
@@ -121,14 +122,17 @@ for feature in raw_data['features']:
                 nan, sex, sex_count, nan,
                 nan, nan])
 
-raw_data = requests.get(state_url_death).json()
+response = requests.get(state_url_death)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
 resolution = 'state'
 deaths = raw_data['features'][0]['attributes']['value']
 row_csv.append([
     'state', country, state, nan,
     state_url_death, str(raw_data), access_time, nan,
-    nan, nan, deaths, nan,
+    nan, updated, deaths, nan,
     nan, nan, nan, nan,
     nan, nan, nan, nan, nan,
     nan, nan, nan,
@@ -142,14 +146,17 @@ row_csv.append([
     nan, nan, nan, nan,
     nan, nan])
 
-raw_data = requests.get(state_url_cases).json()
+response = requests.get(state_url_cases)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
 resolution = 'state'
 cases = raw_data['features'][0]['attributes']['value']
 row_csv.append([
     'state', country, state, nan,
     state_url_death, str(raw_data), access_time, nan,
-    cases, nan, nan, nan,
+    cases, updated, nan, nan,
     nan, nan, nan, nan,
     nan, nan, nan, nan, nan,
     nan, nan, nan,

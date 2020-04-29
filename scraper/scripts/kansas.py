@@ -8,6 +8,7 @@ from cvpy.common import check_environment as ce
 from cvpy.webdriver import WebDriver
 from cvpy.logging import DictLogger
 from cvpy.ocr import ReadImage
+from cvpy.url_helpers import determine_updated_timestep
 
 logging.config.dictConfig(DictLogger.SIMPLE)
 logger = logging.getLogger(ce('PY_LOGGER', 'main'))

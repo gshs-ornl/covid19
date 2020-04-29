@@ -6,6 +6,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state_data_url = 'https://opendata.arcgis.com/datasets/a4741a982aae496486fe928239dec691_3.geojson'
@@ -54,8 +55,11 @@ def fill_in_df(df_list, dict_info, columns):
 
 # state-level
 url = state_data_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
 resolution = 'state'
 feature = raw_data['features'][0]['properties']
 
@@ -87,7 +91,7 @@ for other_idx in range(0, len(other_name)):
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, nan,
-        cases, nan, deaths, nan,
+        cases, updated, deaths, nan,
         nan, nan, hospitalized, negative,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -115,7 +119,7 @@ for age_group in age_group_list:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, nan, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -138,7 +142,7 @@ for gender in gender_list:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            nan, nan, deaths, nan,
+            nan, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -160,7 +164,7 @@ for race in race_list:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -181,7 +185,7 @@ for ethnicity in race_list:
     row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, nan,
-            cases, nan, deaths, nan,
+            cases, updated, deaths, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -199,8 +203,10 @@ for ethnicity in race_list:
 # county-level
 tmp_row_csv = []
 url = county_data_url
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 resolution = 'county'
 
 for feature in raw_data['features']:
@@ -225,7 +231,8 @@ county_df['updated'] = county_df['updated'].dt.strftime('%Y-%m-%d')
 county_df = county_df[county_df['updated'] == recent_date].sort_values('county')
 dict_info_county = {'provider': 'state', 'country': country, "url": url,
                     "state": state, "resolution": "county",
-                    "page": str(raw_data), "access_time": access_time}
+                    "page": str(raw_data), "access_time": access_time,
+                    "updated": updated}
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 

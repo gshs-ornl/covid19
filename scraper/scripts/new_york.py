@@ -7,7 +7,7 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
-
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state = 'New York'
@@ -18,8 +18,10 @@ url = 'https://health.data.ny.gov/resource/xdss-u53e.json'
 columns = Headers.updated_site
 row_csv = []
 
-raw_data = requests.get(url).json()
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
 resolution = 'county'
 
 with open('new_york_state_data.json', 'w') as f:
@@ -36,6 +38,7 @@ def fill_in_df(df_list, dict_info, columns):
             each_df['url'] = dict_info['url']
             each_df['page'] = str(dict_info['page'])
             each_df['access_time'] = dict_info['access_time']
+            each_df['updated'] = dict_info['updated']
             df_columns = list(each_df.columns)
             for column in columns:
                 if column not in df_columns:
@@ -52,6 +55,7 @@ def fill_in_df(df_list, dict_info, columns):
         df_list['url'] = dict_info['url']
         df_list['page'] = str(dict_info['page'])
         df_list['access_time'] = dict_info['access_time']
+        df_list['updated'] = dict_info['updated']
         df_columns = list(df_list.columns)
         for column in columns:
             if column not in df_columns:
@@ -79,7 +83,8 @@ df['other'] = 'new_positives'
 
 dict_info_county = {'provider': 'state', 'country': country, "url": url,
                    "state": state, "resolution": "county",
-                   "page": str(raw_data), "access_time": access_time}
+                   "page": str(raw_data), "access_time": access_time,
+                   "updated": updated}
 
 df = fill_in_df(df, dict_info_county, columns)
 

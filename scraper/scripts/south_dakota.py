@@ -5,12 +5,14 @@ import os
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 url = 'https://doh.sd.gov/news/Coronavirus.aspx'
 state = 'South Dakota'
 columns = Headers.updated_site
 
+# TODO - figure out how to extract Last-Modified header here
 df = pd.read_html(url, match='.*')
 access_time = datetime.datetime.utcnow()
 

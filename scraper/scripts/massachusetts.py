@@ -7,6 +7,7 @@ import pandas as pd
 from numpy import nan
 from bs4 import BeautifulSoup
 from cvpy.static import ColumnHeaders as Headers
+from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state_url = 'https://www.mass.gov/info-details/covid-19-response-reporting'
@@ -17,9 +18,11 @@ row_csv = []
 # State-level data
 resolution = 'state'
 url = state_url
-html_text = requests.get(url).text
-soup = BeautifulSoup(html_text, 'html.parser')
+response = requests.get(url)
 access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, 'html.parser')
 
 data = []
 for table in soup.find_all('table'):
@@ -36,7 +39,7 @@ monitored = data[3]
 row_csv.append([
         'state', country, state, nan,
         url, str(html_text), access_time, nan,
-        cases, nan, nan, nan,
+        cases, updated, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         monitored, no_longer_monitored, nan,
