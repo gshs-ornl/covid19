@@ -161,35 +161,38 @@ deaths = []
 unknown_race_deaths = []
 unknown_race_death_percentages = []
 
-def calculate_race_data_external_to_table(elements, cases, unknown_race_cases, deaths, unknown_race_deaths):
+# function is only useful immediately after its declaration, don't call it after this
+def calculate_race_data_external_to_table(elements):
     for element in elements:
         string = element.text.lower().replace("\xa0", " ")
         # all percentages will be the only things in parenthesis, i.e. (35%)
         if string.startswith('case'):
-            unknown_race_case_percentages.append(float(re.search(r'\((.*?)\%', string).group(1)))
-            cases.append(int(re.search(r'([\d,]+)', string).group(1).replace(',', '')))
-            unknown_race_cases.append(int(re.findall(r'([\d,]+)', string)[1].replace(',', '')))
+            int_regex = re.findall(r'[\d,]*[\d]', string)
+            cases.append(int(int_regex[0].replace(',', '')))
+            unknown_race_cases.append(int(int_regex[1].replace(',', '')))
+            unknown_race_case_percentages.append(float(re.search(r'\(\s*(.*?)\s*\%', string).group(1)))
         elif string.startswith('death'):
-            unknown_race_death_percentages.append(float(re.search(r'\((.*?)\%', string).group(1)))
-            deaths.append(int(re.search(r'([\d,]+)', string).group(1).replace(',', '')))
-            unknown_race_deaths.append(int(re.findall(r'([\d,]+)', string)[1].replace(',', '')))
+            int_regex = re.findall(r'[\d,]*[\d]', string)
+            deaths.append(int(int_regex[0].replace(',', '')))
+            unknown_race_deaths.append(int(int_regex[1].replace(',', '')))
+            unknown_race_death_percentages.append(float(re.search(r'\(\s*(.*?)\s*\%', string).group(1)))
 
-calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(2)').find('div').findAll('h4'),
-                                        cases, unknown_race_cases, deaths, unknown_race_deaths)
-calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(4)').findAll('h4'),
-                                        cases, unknown_race_cases, deaths, unknown_race_deaths)
+calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(2)')
+                                        .find('div').findAll('h4'))
+calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(4)')
+                                        .findAll('h4'))
 # at time of writing, there have been no 0-17 deaths
 if (len(deaths) != 2):
     deaths.append(0)
     unknown_race_deaths.append(0)
     unknown_race_death_percentages.append(0)
 
-calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(6)').findAll('h4'),
-                                        cases, unknown_race_cases, deaths, unknown_race_deaths)
-calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(8)').findAll('h4'),
-                                        cases, unknown_race_cases, deaths, unknown_race_deaths)
-calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(9)').find('div').findAll('h4'),
-                                        cases, unknown_race_cases, deaths, unknown_race_deaths)
+calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(6)')
+                                        .findAll('h4'))
+calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(8)')
+                                        .findAll('h4'))
+calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(9)')
+                                        .find('div').findAll('h4'))
 
 ''' End less stable scraping '''
 
@@ -261,11 +264,11 @@ html_text = response.text
 soup = BeautifulSoup(html_text, "html5lib")
 
 elements = soup.select(".h3") # there are exactly 3 elements with this class
-cases = int(re.search(r'([\d,]+)', elements[0].text).group(1).replace(',', ''))
-deaths = int(re.search(r'([\d,]+)', elements[1].text).group(1).replace(',', ''))
-tested = int(re.search(r'([\d,]+)', elements[2].text).group(1).replace(',', ''))
+cases = int(re.search(r'[\d,]*[\d]', elements[0].text).group(0).replace(',', ''))
+deaths = int(re.search(r'[\d,]*[\d]', elements[1].text).group(0).replace(',', ''))
+tested = int(re.search(r'[\d,]*[\d]', elements[2].text).group(0).replace(',', ''))
 
-other_value = float(re.search(r'\((.*?)\%', elements[0].text).group(1))
+other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[0].text).group(1))
 
 row_csv.append([
         'state', country, state, nan,
@@ -286,7 +289,7 @@ row_csv.append([
         nan, nan, nan, 
         nan, nan])
 
-other_value = float(re.search(r'\((.*?)\%', elements[1].text).group(1))
+other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[1].text).group(1))
 
 row_csv.append([
         'state', country, state, nan,
