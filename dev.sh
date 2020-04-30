@@ -33,6 +33,9 @@
 #/   -d|--deploy)
 #/       deploy the stack for PRODUCTION
 #/
+#/   -D|--stripped-deploy)
+#/       build and deploy without API/UI
+#/
 #/   -i|--interactive)
 #/       enter specified container interactively
 #/
@@ -55,6 +58,7 @@ CACHE=1
 RUN=0
 LOG_CONTAINER="scraper"
 DEPLOY=0
+STRIPPED=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -133,7 +137,11 @@ while :; do
     -d|--deploy) # {{{3
       DEPLOY=1
       shift
-    ;; # 3}}}
+      ;; # 3}}}
+    -D|--stripped-deploy) # {{{3
+      STRIPPED=1
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -182,6 +190,11 @@ if [ "$RUN" -eq "1" ]; then
   info "Running"
   docker-compose down && docker-compose up -d --build api db tidy scraper && \
     docker logs -f "$LOG_CONTAINER"
+fi
+if [ "$STRIPPED" -eq 1 ]; then
+  info "Deploy without API and UI"
+  docker-compose -f docker-compose.yml down && \
+    docker-compose -f docker-compose.yml up -d --build db tidy scraper
 fi
 if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
