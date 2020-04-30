@@ -167,14 +167,12 @@ def calculate_race_data_external_to_table(elements, cases, unknown_race_cases, d
         # all percentages will be the only things in parenthesis, i.e. (35%)
         if string.startswith('case'):
             unknown_race_case_percentages.append(float(re.search(r'\((.*?)\%', string).group(1)))
-            stringArr = string.split(' ')
-            cases.append(int(stringArr[1].replace(',', '')))
-            unknown_race_cases.append(int(stringArr[3].replace(',', '')))
+            cases.append(int(re.search(r'([\d,]+)', string).group(1).replace(',', '')))
+            unknown_race_cases.append(int(re.findall(r'([\d,]+)', string)[1].replace(',', '')))
         elif string.startswith('death'):
             unknown_race_death_percentages.append(float(re.search(r'\((.*?)\%', string).group(1)))
-            stringArr = string.split(' ')
-            deaths.append(int(stringArr[1].replace(',', '')))
-            unknown_race_deaths.append(int(stringArr[3].replace(',', '')))
+            deaths.append(int(re.search(r'([\d,]+)', string).group(1).replace(',', '')))
+            unknown_race_deaths.append(int(re.findall(r'([\d,]+)', string)[1].replace(',', '')))
 
 calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(2)').find('div').findAll('h4'),
                                         cases, unknown_race_cases, deaths, unknown_race_deaths)
@@ -251,6 +249,65 @@ for tableIndex,table in enumerate(tables):
         nan, nan, # additional values after this row
         'unknown', unknown_race_cases[tableIndex], unknown_race_case_percentages[tableIndex], 
         unknown_race_deaths[tableIndex], unknown_race_death_percentages[tableIndex]])
+
+### dedicated COVID website ###
+url = 'https://covid19.ca.gov/'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+# There is a parseable last-modified HTML value on this website, but it is in PST. 
+# When last tested, the HTML value for this was two minutes behind the HTTP header
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, "html5lib")
+
+elements = soup.select(".h3") # there are exactly 3 elements with this class
+cases = int(re.search(r'([\d,]+)', elements[0].text).group(1).replace(',', ''))
+deaths = int(re.search(r'([\d,]+)', elements[1].text).group(1).replace(',', ''))
+tested = int(re.search(r'([\d,]+)', elements[2].text).group(1).replace(',', ''))
+
+other_value = float(re.search(r'\((.*?)\%', elements[0].text).group(1))
+
+row_csv.append([
+        'state', country, state, nan,
+        url, str(html_text), access_time, nan,
+        cases, updated, deaths, nan,
+        nan, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        'case_percentage_increase', other_value, # additional values after this row
+        nan, nan, nan, 
+        nan, nan])
+
+other_value = float(re.search(r'\((.*?)\%', elements[1].text).group(1))
+
+row_csv.append([
+        'state', country, state, nan,
+        url, str(html_text), access_time, nan,
+        cases, updated, deaths, nan,
+        nan, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        'death_percentage_increase', other_value, # additional values after this row
+        nan, nan, nan, 
+        nan, nan])
+
+### finished ###
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
