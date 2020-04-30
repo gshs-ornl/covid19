@@ -17,7 +17,7 @@ url = 'https://opendata.arcgis.com/datasets/375f5ee129834fd9833bd92af54cd8bc_0.g
 state_url_age_group = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/AgeGroupPercentTotal/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=AgeGroup%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true'
 state_url_hospitalized = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Cases_public/FeatureServer/0/query?f=json&where=Hospitalized%3D%27Y%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22FID%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true'
 state_url_deaths = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Cases_public/FeatureServer/0/query?f=json&where=Deceased%3D%27Y%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22FID%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true'
-
+state_url_tests = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Tests/FeatureServer/0//query?where=1%3D1&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=Date+DESC&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=1&sqlFormat=standard&f=pjson&token='
 
 columns = Headers.updated_site
 row_csv = []
@@ -173,6 +173,55 @@ row_csv.append([
             nan, nan,
             nan, nan, nan, nan,
             nan, nan])
+
+
+response = requests.get(state_url_tests)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+attribute = raw_data['features'][0]['attributes']
+alias_dict = {'cum_Commercial': "Commercial Lab Tests",
+              'cum_ASPHL': "Public Health Lab Tests",
+              'cum_POC': "Commercial Labs Tests"}
+
+update_date = float(attribute['Date'])
+updated = str(datetime.datetime.fromtimestamp(update_date / 1000.0))
+tested = attribute['cum_Total']
+row_csv.append([
+        'state', country, state, nan,
+        state_url_tests, str(raw_data), access_time, nan,
+        nan, updated, nan, nan,
+        nan, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        nan, nan])
+for other_key in alias_dict.keys():
+    other = alias_dict[other_key]
+    other_value = attribute[other_key]
+    row_csv.append([
+        'state', country, state, nan,
+        state_url_tests, str(raw_data), access_time, nan,
+        nan, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
