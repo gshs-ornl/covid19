@@ -67,8 +67,8 @@ county_level_df = df[0]
 county_level_df = county_level_df.rename(
     columns={"County": "county", "Total Cases": 'cases',
              "Total Deaths": 'deaths',
-             "Total Cases in TLC Facilities": 'other_value'})
-county_level_df['other'] = "Total Cases in TLC Facilities"
+             "Total Cases in LTC Facilities": 'other_value'})
+county_level_df['other'] = "Total Cases in LTC Facilities"
 
 cases_deaths_state_level_df = county_level_df[
     county_level_df['county'] == 'Total'].drop('county', axis=1)

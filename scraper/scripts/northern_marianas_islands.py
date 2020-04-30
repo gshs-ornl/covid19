@@ -70,8 +70,9 @@ state_df = state_df.drop(0, axis=0)
 # Rename columns
 state_df = state_df.rename(
     columns={'Cumulative Number of Confirmed COVID-19 Cases': "cases",
-             "Cumulative Number of Persons Released from Quarantine": 'quarantined',
+             "Cumulative Number of Persons Released from Quarantine": 'no_longer_monitored',
              'Cumulative Number of Deaths': 'deaths',
+             'Cumulative Number of Recovered Cases': 'recovered',
              'Cumulative Number of Persons Tested Through Community Testing Initiative': 'other_value'})
 state_df['other'] = 'Cumulative Number of Persons Tested Through Community Testing Initiative'
 
