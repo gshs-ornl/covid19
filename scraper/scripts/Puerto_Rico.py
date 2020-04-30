@@ -141,7 +141,7 @@ for age_group in age_group_list:
     age_range = age_group
     age_cases = attribute[age_range]
     row_csv.append([
-        'state', country, state, region,
+        'state', country, state, nan,
         url, str(raw_data), access_time, nan,
         cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,
@@ -161,7 +161,7 @@ for gender in gender_list:
     sex = gender
     sex_counts = attribute[sex]
     row_csv.append([
-        'state', country, state, region,
+        'state', country, state, nan,
         url, str(raw_data), access_time, nan,
         cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,
@@ -181,7 +181,7 @@ for key in alias.keys():
     other = alias[key]
     other_value = attribute[key]
     row_csv.append([
-        'state', country, state, region,
+        'state', country, state, nan,
         url, str(raw_data), access_time, nan,
         cases, updated, deaths, nan,
         recovered, nan, hospitalized, negative,

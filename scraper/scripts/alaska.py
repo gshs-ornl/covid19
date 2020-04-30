@@ -18,6 +18,7 @@ state_url_age_group = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest
 state_url_hospitalized = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Cases_public/FeatureServer/0/query?f=json&where=Hospitalized%3D%27Y%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22FID%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true'
 state_url_deaths = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Cases_public/FeatureServer/0/query?f=json&where=Deceased%3D%27Y%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22FID%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true'
 state_url_tests = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Tests/FeatureServer/0//query?where=1%3D1&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=Date+DESC&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=1&sqlFormat=standard&f=pjson&token='
+region_url_hospitalized = 'https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/COVID_Hospital_Dataset_(prod)/FeatureServer/0//query?where=1%3D1&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=standard&f=pjson&token='
 
 columns = Headers.updated_site
 row_csv = []
@@ -27,14 +28,11 @@ access_time = datetime.datetime.utcnow()
 updated = determine_updated_timestep(response)
 raw_data = response.json()
 
-with open('alaska_state_data.json', 'w') as f:
-    json.dump(raw_data, f)
-
 resolution = 'county'
 dict_info = {'provider': provider, 'country': country, "url": url,
              "state": state, "resolution": resolution,
-            "page": raw_data, "access_time": access_time,
-            "updated": updated}
+             "page": raw_data, "access_time": access_time,
+             "updated": updated}
 
 
 def fill_in_ak_df(df_list, dict_info, columns):
@@ -222,6 +220,64 @@ for other_key in alias_dict.keys():
         nan, nan,
         nan, nan, nan, nan,
         other, other_value])
+
+resolution = 'county'
+
+response = requests.get(region_url_hospitalized)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
+other_keys = ['All_Beds', 'Inpatient_Beds', 'Inpatient_Occup',
+              'Inpatient_Avail', 'ICU_Beds', 'ICU_Occup', 'ICU_Avail',
+              'Pos_COVID_PUI_Pending', 'Vent_Cap', 'Vent_Avail', 'Vent_Occup']
+
+state_agg = {key: [] for key in other_keys}
+
+
+for feature in raw_data['features']:
+    attribute = feature['attributes']
+    region = attribute['Region']
+    for other in other_keys:
+        other_value = attribute[other]
+        state_agg[other].append(int(other_value))
+        row_csv.append([
+            'state', country, state, nan,
+            region_url_hospitalized, str(raw_data), access_time, region,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
+
+resolution = 'state'
+for other in state_agg:
+    other_value = sum(state_agg[other])
+    row_csv.append([
+        'state', country, state, nan,
+        region_url_hospitalized, str(raw_data), access_time, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
+
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
