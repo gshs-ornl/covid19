@@ -352,10 +352,10 @@ class WebDriver():
         self.driver.save_screenshot(output_file)
         return output_file
 
-    def page_down(self):
+    def page_down(self, elem):
         """Send page down key."""
         self.logger.info('Simulating Page Down key press')
-        actions = ActionChains(self.driver)
+        actions = ActionChains(elem)
         actions.send_keys(Keys.PAGE_DOWN)
 
     def get_images(self):
