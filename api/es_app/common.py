@@ -1,6 +1,6 @@
 from datetime import datetime
 from os import environ
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 
 def get_var(env_var: str, default: Any = None) -> Any:
