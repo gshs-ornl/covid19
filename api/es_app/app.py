@@ -3,9 +3,16 @@ from os import path
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 
-from cvpy.slurper import Slurp
 from es_app.common import get_var, pretty_time
 from es_app.parse import ElasticParse
+
+
+try:
+    from cvpy.slurper import Slurp
+except ModuleNotFoundError:
+    def identity(x):
+        return x
+    Slurp = identity
 
 flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
 flask_debug = get_var('FLASK_DEBUG', True)
