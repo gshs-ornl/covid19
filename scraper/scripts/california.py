@@ -13,20 +13,25 @@ from cvpy.url_helpers import determine_updated_timestep
 
 row_csv = []
 
-# convenience method to turn off huge data for manual review 
+# convenience method to turn off huge data for manual review - use for HTML and JSON
 def get_raw_data(raw_data):
     return str(raw_data)
     #return 'ALL_DATA_GOES_HERE'
 
+# convenience method to turn off huge data for manual review - use for dataframes
+def get_raw_dataframe(dataframe: pd.DataFrame):
+    return dataframe.to_string()
+    #return 'ALL_DATA_GOES_HERE'
+
 country = 'US'
-url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
 state = 'California'
-resolution = 'state'
 columns = Headers.updated_site
 # Additional values 
 columns.extend(['race', 'race_age_cases', 'race_age_percent_cases', 
                 'race_age_deaths', 'race_age_percent_deaths'])
 
+resolution = 'state'
+url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
 response = requests.get(url)
 access_time = datetime.datetime.utcnow()
 updated = determine_updated_timestep(response)
@@ -395,6 +400,79 @@ row_csv.append([
         'death_percentage_increase', other_value, # additional values after this row
         nan, nan, nan, 
         nan, nan])
+
+### data.chhs.ca.gov CSV file - by county
+resolution = 'county'
+
+url = 'https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv'
+# assumes default ordered dictionary (Python 3.7 or higher)
+chhs_df_dict = {'Total Count Confirmed': pd.Int32Dtype(), 
+                'Total Count Deaths': pd.Int32Dtype(),
+                'COVID-19 Positive Patients': pd.Int32Dtype(),
+                'Suspected COVID-19 Positive Patients': pd.Int32Dtype(),
+                'ICU COVID-19 Positive Patients': pd.Int32Dtype(),
+                'ICU COVID-19 Suspected Patients': pd.Int32Dtype()}
+chhs_df_dict_list = list(chhs_df_dict)
+chhs_df = pd.read_csv(url, dtype=chhs_df_dict)
+access_time = datetime.datetime.utcnow()
+
+raw_df = get_raw_dataframe(chhs_df)
+
+
+# TODO - there may be a faster way to handle this i.e. https://stackoverflow.com/questions/16476924/how-to-iterate-over-rows-in-a-dataframe-in-pandas/55557758#55557758
+for index,row in chhs_df.iterrows():
+    county = row['County Name']
+    updated = datetime.datetime.strptime(row['Most Recent Date'], "%m/%d/%Y")
+    
+    cases = row[chhs_df_dict_list[0]]
+    deaths = row[chhs_df_dict_list[1]]
+    hospitalized = row[chhs_df_dict_list[2]]
+
+    other = chhs_df_dict_list[3]
+    other_value = row[chhs_df_dict_list[3]]
+    
+    icu = row[chhs_df_dict_list[4]]
+
+    row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, nan,
+            cases, updated, deaths, nan,
+            nan, nan, hospitalized, nan,
+            county, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, icu, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values after this row
+            nan, nan, nan, 
+            nan, nan])
+    
+    other = chhs_df_dict_list[5]
+    other_value = row[chhs_df_dict_list[5]]
+
+    row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, nan,
+            cases, updated, deaths, nan,
+            nan, nan, hospitalized, nan,
+            county, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, icu, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values after this row
+            nan, nan, nan, 
+            nan, nan])
 
 ### finished ###
 
