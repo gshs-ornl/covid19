@@ -94,30 +94,31 @@ for i in xr:
     if string == 'Unknown/Missing:':
         # First result is a gender case, second result is an age case
         i += 1
+        next(xr)
         if not unknown_key_found:
             gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
             unknown_key_found = True
         else:
             age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
-        next(xr)
     elif string == 'Suspected':
         # We can manage to extract the deaths string here
         i += 2
+        next(xr)
+        next(xr)
         deathStr = ''
         while deaths_pattern.fullmatch(str(state_image_df.iloc[i]['text']).strip()):
             deathStr += str(state_image_df.iloc[i]['text']).strip()
             i += 1
+            next(xr)
         deaths = int(deathStr.replace(',', ''))
-        next(xr)
-        next(xr)
     elif string in gender_keys:
         i += 1
-        gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
         next(xr)
+        gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
     elif string in age_group_keys:
         i += 1
-        age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
         next(xr)
+        age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
     elif summary_pattern.fullmatch(string):
         elements = string.split('/')
         if len(other_value_list) == 0:
