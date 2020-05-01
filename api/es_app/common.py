@@ -25,10 +25,10 @@ def identity(item: Any) -> Any:
 
 
 def make_getter(key: str, *methods: Callable) -> Any:
-    def getter(gettable: Any) -> Any:
+    def getter(gettable: Any, default: Any = None) -> Any:
         tmp = gettable.get(key)
         if tmp is None:
-            return None
+            return default
         if methods:
             for func in methods:
                 tmp = func(tmp)
