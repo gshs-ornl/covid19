@@ -11,6 +11,13 @@ from cvpy.static import ColumnHeaders as Headers
 from cvpy.ocr import ReadImage
 from cvpy.url_helpers import determine_updated_timestep
 
+row_csv = []
+
+# convenience method to turn off huge data for manual review 
+def get_raw_data(raw_data):
+    return str(raw_data)
+    #return 'ALL_DATA_GOES_HERE'
+
 country = 'US'
 url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
 state = 'California'
@@ -34,75 +41,153 @@ for img in imgs:
         state_cases_url = img_src.replace('/Programs', placeholder_url)
         break
 
-row_csv = []
-
 read_img = ReadImage(state_cases_url)
 state_image_df = ReadImage.process(read_img)
 
 # Parsing info for first image - state cases
-age_group_row_nums = [49, 57, 65, 70, 75]
-gender_row_nums = [52, 60, 109]
 #with pd.option_context('display.max_rows', None, 'display.max_columns', None):
     #print(state_image_df)
-confirmed_hospitalized_info = state_image_df.iloc[129]['text'].split('/')
-suspected_hospitalized_info = state_image_df.iloc[130]['text'].split('/')
 
-other_list = ['confirmed COVID-19 in ICU',
-              'suspected COVID-19 hospitalized', 'suspected COVID-19 in ICU']
-other_value_list = [confirmed_hospitalized_info[1],
-               suspected_hospitalized_info[0], suspected_hospitalized_info[1]]
+# values determined through iteration of the image rows
+age_group_cases = []
+gender_cases = []
+cases = None
+deaths = None
+hospitalized = None
+other_value_list = []
 
-cases = int((state_image_df.iloc[30]['text']).replace(',', ''))
-hospitalized = confirmed_hospitalized_info[0]
-# WARNING: this is unstable, as this value can easily be read into multiple lines
-deaths = int(''.join((state_image_df.iloc[124]['text'], state_image_df.iloc[125]['text'], state_image_df.iloc[126]['text'])))
+# constants
+other_list = ('confirmed COVID-19 in ICU',
+              'suspected COVID-19 hospitalized', 'suspected COVID-19 in ICU')
+age_group_keys = ('0-17:', '18-49:', '50-64:', '65+:', 'Unknown/Missing:')
+gender_keys = ('Female:', 'Male:', 'Unknown/Missing:')
+# counter for number of times specific key appears
+# The first result will be the missing gender, the second will be the missing age group
+unknown_key_found = False
 
-for age_group_row_num in age_group_row_nums:
-    age_range = state_image_df.iloc[age_group_row_num]['text'].replace(':', '')
-    age_cases = int(
-        state_image_df.iloc[age_group_row_num + 1]['text'].replace(',', ''))
+'''
+Get the values which have two numbers separated by a '/' character. There should only be two values which match this.
+'''
+summary_pattern = re.compile(r'[\d,]+\/[\d,]+')
+'''
+This pattern lets us grab the total cases and the fatalities. It's important to check this pattern last in
+the upcoming for loop due to the possibility of it otherwise catching other values.
 
-    row_csv.append([
-        'state', country, state, nan,
-        url, str(html_text), access_time, nan,
-        cases, updated, deaths, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        resolution, nan, nan, nan,
-        nan, nan, nan, nan,
-        age_range, age_cases, nan, nan,
-        nan, nan, nan,
-        nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, # additional values after this row
-        nan, nan, nan, 
-        nan, nan])
+At time of writing, cases are over '1,000' , which is a unique string that can be caught with logic. 
+Integer values below 1000 and without commas are harder to check.
+'''
+cases_pattern = re.compile(r'[\d,]+,[\d]{3}')
+'''
+This pattern is only used in a very specific case. The deaths number is difficult to extract - the most consistent pattern
+is that the lines will look like 'Suspected', 'COVID-19', and then the values we want before some nonsensical garbage. 
+Sometimes the values can look like '1,982', sometimes '1' '9' '8' '2', sometimes '1' '88' '4', etc...
+'''
+deaths_pattern = re.compile(r'[\d,]+')
 
-for gender_row_num in gender_row_nums:
-    sex = state_image_df.iloc[gender_row_num]['text'].replace(':', '')
-    sex_counts = int(
-        state_image_df.iloc[gender_row_num + 1]['text'].replace(',', ''))
-    row_csv.append([
-        'state', country, state, nan,
-        url, str(html_text), access_time, nan,
-        cases, updated, deaths, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        nan, nan, nan,
-        resolution, nan, nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan,
-        nan, nan,
-        nan, sex, sex_counts, nan,
-        nan, nan, # additional values after this row
-        nan, nan, nan, 
-        nan, nan])
+'''
+The order of the loop is important. Do not check for the integer_pattern before checking
+that the value is in the age_group_keys or gender_group_keys, or the death loop.
+'''
+xr = iter(range(len(state_image_df)))
+for i in xr:
+    string = str(state_image_df.iloc[i]['text']).strip()
+    if string == 'Unknown/Missing:':
+        # First result is a gender case, second result is an age case
+        i += 1
+        if not unknown_key_found:
+            gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+            unknown_key_found = True
+        else:
+            age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        next(xr)
+    elif string == 'Suspected':
+        # We can manage to extract the deaths string here
+        i += 2
+        deathStr = ''
+        while deaths_pattern.fullmatch(str(state_image_df.iloc[i]['text']).strip()):
+            deathStr += str(state_image_df.iloc[i]['text']).strip()
+            i += 1
+        deaths = int(deathStr.replace(',', ''))
+        next(xr)
+        next(xr)
+    elif string in gender_keys:
+        i += 1
+        gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        next(xr)
+    elif string in age_group_keys:
+        i += 1
+        age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        next(xr)
+    elif summary_pattern.fullmatch(string):
+        elements = string.split('/')
+        if len(other_value_list) == 0:
+            hospitalized = int(elements[0].replace(',', ''))
+            other_value_list.append(int(elements[1].replace(',', '')))
+        else:
+            other_value_list.append(int(elements[0].replace(',', '')))
+            other_value_list.append(int(elements[1].replace(',', '')))
+    elif cases_pattern.fullmatch(string):
+        cases = int(string.replace(',', ''))
+
+'''DEBUGGING
+print(age_group_cases)
+print(gender_cases)
+print(cases)
+print(deaths)
+print(hospitalized)
+print(other_value_list)
+'''
+
+if len(age_group_keys) == len(age_group_cases):
+    for i in range(len(age_group_keys)):
+        age_range = age_group_keys[i].strip(':')
+        age_cases = age_group_cases[i]
+
+        row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            nan, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            age_range, age_cases, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, # additional values after this row
+            nan, nan, nan, 
+            nan, nan])
+else:
+    print("There is not a 1:1 mapping of age_group_keys:age_group_values")
+
+if len(gender_keys) == len(gender_cases):
+    for i in range(len(gender_keys)):
+        sex = gender_keys[i].strip(':')
+        sex_counts = gender_cases[i]
+        row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            nan, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, sex, sex_counts, nan,
+            nan, nan, # additional values after this row
+            nan, nan, nan, 
+            nan, nan])
+else:
+    print("There is not a 1:1 mapping of age_group_keys:age_group_values")
 
 if len(other_list) == len(other_value_list):
     for idx in range(0, len(other_list)):
@@ -110,9 +195,9 @@ if len(other_list) == len(other_value_list):
         other_value = other_value_list[idx]
         row_csv.append([
             'state', country, state, nan,
-            url, str(html_text), access_time, nan,
+            url, get_raw_data(html_text), access_time, nan,
             cases, updated, deaths, nan,
-            nan, nan, nan, nan,
+            nan, nan, hospitalized, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
             nan, nan, nan,
@@ -207,16 +292,16 @@ for tableIndex,table in enumerate(tables):
     for table_row in table_rows[1:]:
         table_data = table_row.findAll('td')
 
-        race = table_data[0].text
+        race = str(table_data[0].text).strip(u'\u200b')
         race_age_cases = int(table_data[1].text.replace(',', '').strip(u'\u200b'))
-        race_age_percent = float(table_data[2].text.strip(u'\u200b'))
+        race_age_percent = float(table_data[2].text.replace(u'\u200b', ''))
         race_age_deaths = int(table_data[3].text.replace(',', '').strip(u'\u200b'))
-        race_age_deaths_percent = float(table_data[4].text.strip(u'\u200b'))
+        race_age_deaths_percent = float(table_data[4].text.replace(u'\u200b', ''))
 
-        other_value = float(table_data[5].text.strip(u'\u200b'))
+        other_value = float(table_data[5].text.replace(u'\u200b', ''))
         row_csv.append([
                 'state', country, state, nan,
-                url, str(html_text), access_time, nan,
+                url, get_raw_data(html_text), access_time, nan,
                 cases[tableIndex], updated, deaths[tableIndex], nan,
                 nan, nan, nan, nan,
                 nan, nan, nan, nan, nan,
@@ -236,7 +321,7 @@ for tableIndex,table in enumerate(tables):
     # add unknown race case values here
     row_csv.append([
         'state', country, state, nan,
-        url, str(html_text), access_time, nan,
+        url, get_raw_data(html_text), access_time, nan,
         cases[tableIndex], updated, deaths[tableIndex], nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
@@ -272,7 +357,7 @@ other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[0].text).group(1))
 
 row_csv.append([
         'state', country, state, nan,
-        url, str(html_text), access_time, nan,
+        url, get_raw_data(html_text), access_time, nan,
         cases, updated, deaths, nan,
         nan, tested, nan, nan,
         nan, nan, nan, nan, nan,
@@ -293,7 +378,7 @@ other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[1].text).group(1))
 
 row_csv.append([
         'state', country, state, nan,
-        url, str(html_text), access_time, nan,
+        url, get_raw_data(html_text), access_time, nan,
         cases, updated, deaths, nan,
         nan, tested, nan, nan,
         nan, nan, nan, nan, nan,
