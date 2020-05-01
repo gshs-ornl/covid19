@@ -1,4 +1,3 @@
-from ast import literal_eval
 from datetime import datetime
 from os import environ
 from typing import Any, Callable, List
