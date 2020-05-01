@@ -193,7 +193,7 @@ for item in data:
             nan, nan, nan,
             resolution, nan, nan, nan,
             nan, nan, nan, nan,
-            age_range, age_cases, age_deaths, nan,
+            age_range, age_cases, nan, age_deaths,
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
