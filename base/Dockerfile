@@ -80,7 +80,7 @@ RUN set -eux && pip install --upgrade pip && \
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
       sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl \
-      zip rgdal tidycensus
+      zip rgdal tidycensus stringr googlesheets4 dplry
 
 # install our python package
 COPY setup.py .
