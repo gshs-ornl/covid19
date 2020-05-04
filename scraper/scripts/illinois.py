@@ -13,14 +13,51 @@ state = 'Illinois'
 date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y%m%d')
 date_url_xlsx = (datetime.datetime.today()).strftime('%Y-%m-%d')
 # url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
+state_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
 county_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
 county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocache=1'
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
+county_ltc_url = 'http://www.dph.illinois.gov/sitefiles/COVIDLTC.json?nocache=1'
 race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/'+\
                date_url_xlsx+'/case_deaths_rate_charts_data_website.xlsx'
 
 columns = Headers.updated_site
 row_csv = []
+
+# state-level data
+url = state_cases_url
+resolution = 'state'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+raw_data = response.json()
+
+updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
+for race in raw_data['demographics']['race']:
+    other = "Race"
+    other_value = race['description']
+    cases = race['count']
+    deaths = race['deaths']
+    tested = race['tested']
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        cases, updated, deaths, nan,
+        nan, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
+
 
 # county-level data (1st url)
 url = county_cases_url
@@ -86,7 +123,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, updated, deaths, nan,
+            cases, updated, nan, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -109,7 +146,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            cases, updated, deaths, nan,
+            cases, updated, nan, nan,
             nan, tested, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -131,7 +168,7 @@ for feature in raw_data['county_demographics']:
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
-            nan, updated, deaths, nan,
+            nan, updated, nan, nan,
             nan, nan, nan, nan,
             nan, nan, nan, nan, nan,
             nan, nan, nan,
@@ -201,6 +238,41 @@ for feature in raw_data['zip_values']:
                 nan, nan,
                 nan, nan, nan, nan,
                 other, other_value])
+
+# county-level LTC data (4th url)
+url = county_ltc_url
+resolution = 'county'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+raw_data = response.json()
+
+updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
+for feature in raw_data['FacilityValues']:
+    county = feature['County']
+    cases = feature['confirmed_cases']
+    deaths = feature['deaths']
+    other = 'FacilityName'
+    other_value = feature[other]
+    # other = feature['FacilityName'] + '_' + other_key
+    # other_value = feature[other_key]
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, county,
+        cases, updated, deaths, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
 
 '''
 def fill_in_df(df_list, dict_info, columns):
