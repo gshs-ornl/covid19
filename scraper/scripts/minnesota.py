@@ -188,25 +188,31 @@ for deaths_key in deaths_keys:
         nan, nan, nan, nan,
         other, other_value])
 
+
 # State-level data
 def fill_in_df(df_list, dict_info, columns):
     if isinstance(df_list, list):
         all_df = []
+        count = 1
         for each_df in df_list:
-            each_df['provider'] = dict_info['provider']
-            each_df['country'] = dict_info['country']
-            each_df['state'] = dict_info['state']
-            each_df['resolution'] = dict_info['resolution']
-            each_df['url'] = dict_info['url']
-            each_df['page'] = str(dict_info['page'])
-            each_df['access_time'] = dict_info['access_time']
-            df_columns = list(each_df.columns)
-            for column in columns:
-                if column not in df_columns:
-                    each_df[column] = nan
-                else:
-                    pass
-            all_df.append(each_df.reindex(columns=columns))
+            if isinstance(each_df, pd.DataFrame):
+                each_df['provider'] = dict_info['provider']
+                each_df['country'] = dict_info['country']
+                each_df['state'] = dict_info['state']
+                each_df['resolution'] = dict_info['resolution']
+                each_df['url'] = dict_info['url']
+                each_df['page'] = str(dict_info['page'])
+                each_df['access_time'] = dict_info['access_time']
+                df_columns = list(each_df.columns)
+                for column in columns:
+                    if column not in df_columns:
+                        each_df[column] = nan
+                    else:
+                        pass
+                all_df.append(each_df.reindex(columns=columns))
+            else:
+                print(df_list[count], "Not dataframe ", type(each_df))
+            count = count + 1
         final_df = pd.concat(all_df)
     else:
         df_list['provider'] = dict_info['provider']
@@ -240,7 +246,7 @@ dict_info_state = {'provider': 'state', 'country': country,
 
 tested_raw = df[0]
 no_longer_isolation = df[2]
-deaths = df[3]
+deaths_df = df[3]
 hospitalization = df[4]
 age_group_pct = df[5]
 median_age = df[6]
@@ -256,10 +262,9 @@ tested_raw = tested_raw.rename(columns={
 date_list = tested_raw['updated'].to_list()
 for date in date_list:
     new_date.append(datetime.datetime.strptime(date, '%m/%d'))
-latest_date = sorted(new_date)[-1].strftime('%-m/%d')
+latest_date = sorted(new_date)[-1].strftime('%-m/%-d')
 
 # State-level: all testing data
-
 tested_raw = tested_raw[tested_raw['updated'] == latest_date]
 
 # State-level: tested
@@ -281,16 +286,19 @@ no_longer_isolation = no_longer_isolation[no_longer_isolation['updated'] == late
 no_longer_isolation = no_longer_isolation[['no_longer_monitored']]
 
 # State-level: deaths
-deaths = deaths.rename(columns={'Date reported': 'updated',
+deaths_df = deaths_df.rename(columns={'Date reported': 'updated',
                                'Newly reported deaths (daily)': 'other_value',
                                'Total deaths': 'deaths'})
-deaths = deaths[deaths['updated'] == latest_date]
-deaths['other'] = 'Newly reported deaths (daily)'
+deaths_df = deaths_df[deaths_df['updated'] == latest_date]
+deaths_df['other'] = 'Newly reported deaths (daily)'
+state_deaths = deaths_df[['deaths']]
+state_daily_deaths = deaths_df[['updated', 'other', 'other_value']]
 
 # State-level: hospitalization
-hospitalization = hospitalization.rename(columns={'Date reported': 'updated',
-                               'Total hospitalizations': 'hospitalized',
-                               'Total ICU hospitalizations': 'icu'})
+hospitalization = hospitalization.rename(
+    columns={'Date reported': 'updated',
+             'Total hospitalizations': 'hospitalized',
+             'Total ICU hospitalizations': 'icu'})
 hospitalization = hospitalization[hospitalization['updated'] == latest_date]
 hospitalized = hospitalization[['hospitalized', 'icu']]
 
@@ -305,14 +313,14 @@ not_icu_daily.columns = ['other_value']
 not_icu_daily['other'] = 'Hospitalized, not in ICU (daily)'
 
 # State-level: Age range percent
-age_group_pct = age_group_pct.rename(columns={'Age Group': 'age_range',
-                              'Percent of Cases': 'age_percent',
-                              'Percent of Deaths': 'age_deaths_percent'})
+age_group_pct = age_group_pct.rename(
+    columns={'Age Group': 'age_range', 'Percent of Cases': 'age_percent',
+             'Percent of Deaths': 'age_deaths_percent'})
 
 # State-level: Race - cases and deaths percent
 race_cases_pct = race_pct[['Race', 'Percent of Cases']]
-race_cases_pct = race_cases_pct.rename(columns=
-                                       {'Percent of Cases': 'other_value'})
+race_cases_pct = race_cases_pct.rename(
+    columns={'Percent of Cases': 'other_value'})
 race_cases_pct['other'] = race_cases_pct['Race'].astype(str) + '_percent_of_cases'
 race_cases_pct = race_cases_pct.drop('Race', axis=1)
 
@@ -323,10 +331,10 @@ median_age.columns = ['other', 'other_value', 'age_range']
 median_age['other'] = median_age['other'].astype(str) + '_median_age'
 
 # State-level: Exposure - percent of cases
-exposure_pct_cases = exposure_pct_cases.rename(columns=
-                                               {'Likely Exposure': 'other',
-                                                'Percent of Cases': 'other_value'})
-exposure_pct_cases['other'] = exposure_pct_cases['other'].astype(str) + '_percent_of_cases'
+exposure_pct_cases = exposure_pct_cases.rename(
+    columns={'Likely Exposure': 'other', 'Percent of Cases': 'other_value'})
+exposure_pct_cases['other'] = exposure_pct_cases['other'].astype(str) +\
+                              '_percent_of_cases'
 
 # County-level: cases and deaths
 county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
@@ -335,7 +343,7 @@ county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
 
 county_df = [county_cases_deaths]
 state_df = [tested_state, state_lab_df, ext_lab_df,
-            no_longer_isolation, deaths,
+            no_longer_isolation, state_deaths, state_daily_deaths,
             hospitalized, icu_daily, not_icu_daily,
             age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
 
