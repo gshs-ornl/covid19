@@ -31,194 +31,208 @@ columns.extend(['race', 'race_age_cases', 'race_age_percent_cases',
                 'race_age_deaths', 'race_age_percent_deaths'])
 
 resolution = 'state'
-url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
-response = requests.get(url)
-access_time = datetime.datetime.utcnow()
-updated = determine_updated_timestep(response)
-html_text = response.text
-soup = BeautifulSoup(html_text, "html5lib")
 
-placeholder_url = 'https://www.cdph.ca.gov/Programs'
-imgs = soup.find_all('img')
-for img in imgs:
-    img_src = img['src']
-    if 'CA_COVID-19' in img_src:
-        state_cases_url = img_src.replace('/Programs', placeholder_url)
-        break
+def do_image_scrape():
+    url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/ncov2019.aspx'
+    response = requests.get(url)
+    access_time = datetime.datetime.utcnow()
+    updated = determine_updated_timestep(response)
+    html_text = response.text
+    soup = BeautifulSoup(html_text, "html5lib")
 
-read_img = ReadImage(state_cases_url)
-state_image_df = ReadImage.process(read_img)
+    placeholder_url = 'https://www.cdph.ca.gov'
+    imgs = soup.find_all('img')
+    for img in imgs:
+        img_src = img['src']
+        if 'CA_COVID-19' in img_src:
+            if img_src.startswith('/'):
+                # relative URL
+                state_cases_url = placeholder_url + img_src
+            else:
+                # absolute URL
+                state_cases_url = img_src
+            break
 
-# Parsing info for first image - state cases
-#with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-    #print(state_image_df)
+    read_img = ReadImage(state_cases_url)
+    state_image_df = ReadImage.process(read_img)
 
-# values determined through iteration of the image rows
-age_group_cases = []
-gender_cases = []
-cases = None
-deaths = None
-hospitalized = None
-other_value_list = []
+    # Parsing info for first image - state cases
+    #print(state_image_df.to_string())
 
-# constants
-other_list = ('confirmed COVID-19 in ICU',
-              'suspected COVID-19 hospitalized', 'suspected COVID-19 in ICU')
-age_group_keys = ('0-17:', '18-49:', '50-64:', '65+:', 'Unknown/Missing:')
-gender_keys = ('Female:', 'Male:', 'Unknown/Missing:')
-# counter for number of times specific key appears
-# The first result will be the missing gender, the second will be the missing age group
-unknown_key_found = False
+    # values determined through iteration of the image rows
+    age_group_cases = []
+    gender_cases = []
+    cases = None
+    deaths = None
+    hospitalized = None
+    other_value_list = []
 
-'''
-Get the values which have two numbers separated by a '/' character. There should only be two values which match this.
-'''
-summary_pattern = re.compile(r'[\d,]+\/[\d,]+')
-'''
-This pattern lets us grab the total cases and the fatalities. It's important to check this pattern last in
-the upcoming for loop due to the possibility of it otherwise catching other values.
+    # constants
+    other_list = ('confirmed COVID-19 in ICU',
+                'suspected COVID-19 hospitalized', 'suspected COVID-19 in ICU')
+    age_group_keys = ('0-17:', '18-49:', '50-64:', '65+:', 'Unknown/Missing:')
+    gender_keys = ('Female:', 'Male:', 'Unknown/Missing:')
+    # counter for number of times specific key appears
+    # The first result will be the missing gender, the second will be the missing age group
+    unknown_key_found = False
 
-At time of writing, cases are over '1,000' , which is a unique string that can be caught with logic. 
-Integer values below 1000 and without commas are harder to check.
-'''
-cases_pattern = re.compile(r'[\d,]+,[\d]{3}')
-'''
-This pattern is only used in a very specific case. The deaths number is difficult to extract - the most consistent pattern
-is that the lines will look like 'Suspected', 'COVID-19', and then the values we want before some nonsensical garbage. 
-Sometimes the values can look like '1,982', sometimes '1' '9' '8' '2', sometimes '1' '88' '4', etc...
-'''
-deaths_pattern = re.compile(r'[\d,]+')
+    '''
+    Get the values which have two numbers separated by a '/' character. There should only be two values which match this.
+    '''
+    summary_pattern = re.compile(r'[\d,]+\/[\d,]+')
+    '''
+    This pattern lets us grab the total cases and the fatalities. It's important to check this pattern last in
+    the upcoming for loop due to the possibility of it otherwise catching other values.
 
-'''
-The order of the loop is important. Do not check for the integer_pattern before checking
-that the value is in the age_group_keys or gender_group_keys, or the death loop.
-'''
-xr = iter(range(len(state_image_df)))
-for i in xr:
-    string = str(state_image_df.iloc[i]['text']).strip()
-    if string == 'Unknown/Missing:':
-        # First result is a gender case, second result is an age case
-        i += 1
-        next(xr)
-        if not unknown_key_found:
-            gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
-            unknown_key_found = True
-        else:
-            age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
-    elif string == 'Suspected':
-        # We can manage to extract the deaths string here
-        i += 2
-        next(xr)
-        next(xr)
-        deathStr = ''
-        while deaths_pattern.fullmatch(str(state_image_df.iloc[i]['text']).strip()):
-            deathStr += str(state_image_df.iloc[i]['text']).strip()
+    At time of writing, cases are over '1,000' , which is a unique string that can be caught with logic. 
+    Integer values below 1000 and without commas are harder to check.
+    '''
+    cases_pattern = re.compile(r'[\d,]+,[\d]{3}')
+    '''
+    This pattern is only used in a very specific case. The deaths number is difficult to extract - the most consistent pattern
+    is that the lines will look like 'Suspected', 'COVID-19', and then the values we want before some nonsensical garbage. 
+    Sometimes the values can look like '1,982', sometimes '1' '9' '8' '2', sometimes '1' '88' '4', etc...
+    '''
+    deaths_pattern = re.compile(r'[\d,]+')
+
+    '''
+    The order of the loop is important. Do not check for the integer_pattern before checking
+    that the value is in the age_group_keys or gender_group_keys, or the death loop.
+    '''
+    xr = iter(range(len(state_image_df)))
+    for i in xr:
+        string = str(state_image_df.iloc[i]['text']).strip()
+        if string == 'Unknown/Missing:':
+            # First result is a gender case, second result is an age case
             i += 1
             next(xr)
-        deaths = int(deathStr.replace(',', ''))
-    elif string in gender_keys:
-        i += 1
-        next(xr)
-        gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
-    elif string in age_group_keys:
-        i += 1
-        next(xr)
-        age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
-    elif summary_pattern.fullmatch(string):
-        elements = string.split('/')
-        if len(other_value_list) == 0:
-            hospitalized = int(elements[0].replace(',', ''))
-            other_value_list.append(int(elements[1].replace(',', '')))
-        else:
-            other_value_list.append(int(elements[0].replace(',', '')))
-            other_value_list.append(int(elements[1].replace(',', '')))
-    elif cases_pattern.fullmatch(string):
-        cases = int(string.replace(',', ''))
+            if not unknown_key_found:
+                gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+                unknown_key_found = True
+            else:
+                age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        # NOT WORKING FOR NOW
+        elif string == 'Suspected':
+            # We can manage to extract the deaths string here
+            i += 2
+            next(xr)
+            next(xr)
+            deathStr = ''
+            while deaths_pattern.fullmatch(str(state_image_df.iloc[i]['text']).strip()):
+                deathStr += str(state_image_df.iloc[i]['text']).strip()
+                i += 1
+                next(xr)
+            deaths = int(deathStr.replace(',', ''))
+        elif string in gender_keys:
+            i += 1
+            next(xr)
+            gender_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        elif string in age_group_keys:
+            i += 1
+            next(xr)
+            age_group_cases.append(int(state_image_df.iloc[i]['text'].replace(',', '')))
+        elif summary_pattern.fullmatch(string):
+            elements = string.split('/')
+            if len(other_value_list) == 0:
+                hospitalized = int(elements[0].replace(',', ''))
+                other_value_list.append(int(elements[1].replace(',', '')))
+            else:
+                other_value_list.append(int(elements[0].replace(',', '')))
+                other_value_list.append(int(elements[1].replace(',', '')))
+        elif cases_pattern.fullmatch(string):
+            cases = int(string.replace(',', ''))
 
-'''DEBUGGING
-print(age_group_cases)
-print(gender_cases)
-print(cases)
-print(deaths)
-print(hospitalized)
-print(other_value_list)
+    '''DEBUGGING
+    print(age_group_cases)
+    print(gender_cases)
+    print(cases)
+    print(deaths)
+    print(hospitalized)
+    print(other_value_list)
+    '''
+
+    if len(age_group_keys) == len(age_group_cases):
+        for i in range(len(age_group_keys)):
+            age_range = age_group_keys[i].strip(':')
+            age_cases = age_group_cases[i]
+
+            row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                nan, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                age_range, age_cases, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, # additional values after this row
+                nan, nan, nan, 
+                nan, nan])
+    else:
+        print("There is not a 1:1 mapping of age_group_keys:age_group_values")
+
+    if len(gender_keys) == len(gender_cases):
+        for i in range(len(gender_keys)):
+            sex = gender_keys[i].strip(':')
+            sex_counts = gender_cases[i]
+            row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                nan, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, sex, sex_counts, nan,
+                nan, nan, # additional values after this row
+                nan, nan, nan, 
+                nan, nan])
+    else:
+        print("There is not a 1:1 mapping of age_group_keys:age_group_values")
+
+    if len(other_list) == len(other_value_list):
+        for idx in range(0, len(other_list)):
+            other = other_list[idx]
+            other_value = other_value_list[idx]
+            row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                nan, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value, # additional values after this row
+                nan, nan, nan, 
+                nan, nan])
+    else:
+        print("The lengths for other keys and values are not equal")
+
+''' DISABLE UNTIL TESSERACT TRAINING RESOLVED
+try:
+    do_image_scrape()
+except ConnectionError:
+    print("Unable to connect to image URL")
 '''
-
-if len(age_group_keys) == len(age_group_cases):
-    for i in range(len(age_group_keys)):
-        age_range = age_group_keys[i].strip(':')
-        age_cases = age_group_cases[i]
-
-        row_csv.append([
-            'state', country, state, nan,
-            url, get_raw_data(html_text), access_time, nan,
-            cases, updated, deaths, nan,
-            nan, nan, hospitalized, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            resolution, nan, nan, nan,
-            nan, nan, nan, nan,
-            age_range, age_cases, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, # additional values after this row
-            nan, nan, nan, 
-            nan, nan])
-else:
-    print("There is not a 1:1 mapping of age_group_keys:age_group_values")
-
-if len(gender_keys) == len(gender_cases):
-    for i in range(len(gender_keys)):
-        sex = gender_keys[i].strip(':')
-        sex_counts = gender_cases[i]
-        row_csv.append([
-            'state', country, state, nan,
-            url, get_raw_data(html_text), access_time, nan,
-            cases, updated, deaths, nan,
-            nan, nan, hospitalized, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            resolution, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, sex, sex_counts, nan,
-            nan, nan, # additional values after this row
-            nan, nan, nan, 
-            nan, nan])
-else:
-    print("There is not a 1:1 mapping of age_group_keys:age_group_values")
-
-if len(other_list) == len(other_value_list):
-    for idx in range(0, len(other_list)):
-        other = other_list[idx]
-        other_value = other_value_list[idx]
-        row_csv.append([
-            'state', country, state, nan,
-            url, get_raw_data(html_text), access_time, nan,
-            cases, updated, deaths, nan,
-            nan, nan, hospitalized, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            nan, nan, nan,
-            resolution, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            other, other_value, # additional values after this row
-            nan, nan, nan, 
-            nan, nan])
-else:
-    print("The lengths for other keys and values are not equal")
 
 ### get racial data ###
 
@@ -242,7 +256,9 @@ masterBodyElement = soup.select_one('#WebPartWPQ4').find('div')
 # unfortunately, the time at the very bottom of the page is server-side generated, and not accessible in the raw html
 # that value can also be ahead of the one we are scraping
 updatedElement = masterBodyElement.find('div').select_one('h3:nth-of-type(2)').findAll('span')
-updated = updatedElement[0].text + updatedElement[1].text
+updated = ''
+for item in updatedElement:
+    updated += item.text
 updated = datetime.datetime.strptime(updated.replace(u'\u200b', ''), '%B %d, %Y')
 
 cases = []
@@ -264,9 +280,15 @@ def calculate_race_data_external_to_table(elements):
             unknown_race_case_percentages.append(float(re.search(r'\(\s*(.*?)\s*\%', string).group(1)))
         elif string.startswith('death'):
             int_regex = re.findall(r'[\d,]*[\d]', string)
-            deaths.append(int(int_regex[0].replace(',', '')))
-            unknown_race_deaths.append(int(int_regex[1].replace(',', '')))
-            unknown_race_death_percentages.append(float(re.search(r'\(\s*(.*?)\s*\%', string).group(1)))
+            try: 
+                deaths.append(int(int_regex[0].replace(',', '')))
+                unknown_race_deaths.append(int(int_regex[1].replace(',', '')))
+                unknown_race_death_percentages.append(float(re.search(r'\(\s*(.*?)\s*\%', string).group(1)))
+            except IndexError:
+                # Written as 'NA total; NA (NA%)' instead of '0 total; 0 (0%)'
+                deaths.append(0)
+                unknown_race_deaths.append(0)
+                unknown_race_death_percentages.append(0.0)
 
 calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-type(2)')
                                         .find('div').findAll('h4'))

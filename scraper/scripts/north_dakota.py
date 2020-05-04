@@ -183,7 +183,6 @@ updated = determine_updated_timestep(response)
 df = pd.read_csv(StringIO(response.text), parse_dates=['Last report date'])
 facility_dict = {}
 
-#df['Last report date'] = pd.to_datetime(df['Last report date'].str.split().str[0], format='%m/%d/%Y')
 facility_cases = df.iloc[-1]['Case Count']
 # get total number of cases before changing the resolution
 row_csv.append([
@@ -215,7 +214,6 @@ for index,row in df.iterrows():
     facility_name = row['Facility Name']
     facility_cases = row['Case Count']
     last_report_date = row['Last report date']
-    print(last_report_date)
     if county in facility_dict:
         facility_dict[county] += facility_cases
     else:
