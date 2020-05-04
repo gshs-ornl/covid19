@@ -80,7 +80,10 @@ RUN set -eux && pip install --upgrade pip && \
 # install R packages
 RUN install.r docopt RPostgres data.table magrittr leaflet tidyverse rvest sp \
       sf stringr jsonlite rebus lubridate anytime snakecase remotes readxl \
-      zip rgdal tidycensus stringr googlesheets4 dplry
+      zip rgdal tidycensus stringr googlesheets4
+
+#RUN R -e "install.packages('dplyr', repos = 'https://cloud.r-project.org')"
+#RUN R -e "devtools::install_github('tidyverse/googlesheets4')"
 
 # install our python package
 COPY setup.py .
