@@ -6,6 +6,7 @@ import os
 import json
 from numpy import nan
 import pandas as pd
+from io import StringIO
 from bs4 import BeautifulSoup
 from cvpy.static import ColumnHeaders as Headers
 from cvpy.url_helpers import determine_updated_timestep
@@ -27,6 +28,7 @@ url = 'https://www.health.nd.gov/diseases-conditions/coronavirus/north-dakota-co
 state = 'North Dakota'
 resolution = 'state'
 columns = Headers.updated_site
+columns.extend(['city', 'facility_name', 'facility_cases', 'last_report_date'])
 
 response = requests.get(url)
 access_time = datetime.datetime.utcnow()
@@ -77,7 +79,8 @@ for i in range(len(chart1['xAxis']['categories'])) :
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
 
 ### cases by gender - pie chart, values can be used in other data rows
 chart3 = json.loads(charts[2].get('data-chart'))
@@ -104,7 +107,8 @@ for i in range(len(chart2['xAxis']['categories'])) :
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
 
 ### cases by age group AND hospitalized by age group - this works because age groups are same across both charts
 chart4 = json.loads(charts[3].get('data-chart'))
@@ -131,20 +135,247 @@ for i in range(len(chart4['xAxis']['categories'])) :
         age_hospitalized, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
+
+# deaths table
+deaths_table = soup.select_one('tbody')
+for table_row in deaths_table.select('tr')[:-1]:
+    other = table_row.select('td')[0].select_one('strong').text
+    other_value = table_row.select('td')[1].text
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_html_text(html_text), access_time, nan,
+        cases, updated, deaths, nan,
+        recovered, tested, hospitalized, negative,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        active, nan, nan,
+        nan, nan, nan,
+        resolution, nan, cases_male, cases_female,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
 
 ### county level data - ignore the county-related charts on the main website! redundant compared to additional data
 
-resolution='county'
+'''
+Notes about this county level data: 
 
-# by county - total tests, positives, negatives, and recovered
-# url = 'https://static.dwcdn.net/data/yuhr0.csv?v=1588308095287'
-# by county - source of exposure
-# url = 'https://static.dwcdn.net/data/49s5b.csv?v=1588308435970'
-# additional datasets 
-# url = 'https://static.dwcdn.net/data/yCjC4.csv?v=1588308904148'
-# url = 'https://static.dwcdn.net/data/DlMVc.csv?v=1588308904591'
-# url = 'https://static.dwcdn.net/data/Lgktn.csv?v=1588308904829'
+- These websites were found by navigating to https://www.health.nd.gov/diseases-conditions/coronavirus/north-dakota-coronavirus-cases and manually looking at the XHR requests.
+- A request URL will look like this: https://static.dwcdn.net/data/yCjC4.csv?v=1588599421161
+- It does not appear as though the 'v' query is relevant in any way - while the main website will automatically update this query and it is not easy to retrieve,
+   the data appears to be updated regardless of the value of the 'v' query (or even if it is left off).
+- The datawrapper iFrame ID on the main page for the above URL would look like 'datawrapper-chart-yCjC4'. 
+   It could be possible to obtain all URL sources by selecting every single iframe on the page, getting the ID for each,
+   then removing the 'datwrapper-chart-' string from the beginning of the ID.
+'''
+
+### by county - long term facility cases
+url = 'https://static.dwcdn.net/data/DlMVc.csv'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+df = pd.read_csv(StringIO(response.text), parse_dates=['Last report date'])
+facility_dict = {}
+
+#df['Last report date'] = pd.to_datetime(df['Last report date'].str.split().str[0], format='%m/%d/%Y')
+facility_cases = df.iloc[-1]['Case Count']
+# get total number of cases before changing the resolution
+row_csv.append([
+    'state', country, state, nan,
+    url, get_raw_dataframe(df), access_time, nan,
+    nan, updated, nan, nan,
+    nan, nan, nan, nan,
+    nan, nan, nan, nan, nan,
+    nan, nan, nan,
+    nan, nan, nan,
+    nan, nan, nan,
+    resolution, nan, nan, nan,
+    nan, nan, nan, nan,
+    nan, nan, nan, nan,
+    nan, nan, nan,
+    nan, nan,
+    nan, nan, nan, nan,
+    nan, nan, # additional values below this line
+    nan, 'All Facilities', facility_cases, nan])
+
+# Change resolution to county for remainder of script
+resolution='county'
+# drop last row (which contains the total number of facility cases)
+df.drop(df.tail(1).index,inplace=True)
+
+for index,row in df.iterrows():
+    city = row['City']
+    county = row['County']
+    facility_name = row['Facility Name']
+    facility_cases = row['Case Count']
+    last_report_date = row['Last report date']
+    print(last_report_date)
+    if county in facility_dict:
+        facility_dict[county] += facility_cases
+    else:
+        facility_dict[county] = facility_cases
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_dataframe(df), access_time, county,
+        nan, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below this line
+        city, facility_name, facility_cases, last_report_date])
+
+# Total facility cases by county
+for county in facility_dict:
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_dataframe(df), access_time, county,
+        nan, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below this line
+        nan, nan, facility_dict[county], last_report_date])
+
+### by county - total tests, positives, negatives, and recovered
+url = 'https://static.dwcdn.net/data/yuhr0.csv'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+df = pd.read_csv(StringIO(response.text))
+
+for index,row in df.iterrows():
+    county = row['County']
+    cases = row['Total Positive']
+    negative = row['Total Negative']
+    tested = row['Total Tested']
+    recovered = row['Total Recovered']
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_dataframe(df), access_time, county,
+        cases, updated, nan, nan,
+        recovered, tested, nan, negative,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, # additional values below this line
+        nan, nan, nan, nan])
+
+### by county - source of exposure
+url = 'https://static.dwcdn.net/data/49s5b.csv'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+df = pd.read_csv(StringIO(response.text))
+
+for index,row in df.iterrows():
+    county = row['County']
+
+    # iterate through every column except the first, the 'County' column
+    for column in df.columns[1:]:
+        other = column
+        other_value = row[other]
+        row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_dataframe(df), access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below this line
+            nan, nan, nan, nan])
+
+### by county - rate per 100,000
+url = 'https://static.dwcdn.net/data/Lgktn.csv'
+# This data is also duplicated at 'https://static.dwcdn.net/data/yCjC4.csv' - used for the map instead of the table
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+df = pd.read_csv(StringIO(response.text))
+
+for index,row in df.iterrows():
+    county = row['County']
+    cases = row['Cases']
+    other_value = row['Rate Per 100000']
+    recovered = row['Total Recovered']
+    population = row['Population']
+
+    other = 'Rate Per 100000'
+    other_value = row['Rate Per 100000']
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_dataframe(df), access_time, county,
+        cases, updated, nan, nan,
+        recovered, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
+    
+    other = 'Population'
+    other_value = row['Population']
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_dataframe(df), access_time, county,
+        cases, updated, nan, nan,
+        recovered, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below this line
+        nan, nan, nan, nan])
 
 ### finished ###
 
