@@ -10,7 +10,7 @@
 SET TIME ZONE 'UTC';
 CREATE ROLE jesters SUPERUSER LOGIN PASSWORD 'AngryMoose78';
 CREATE ROLE reporters LOGIN PASSWORD 'DogFoodIsGood';
-CREATE USER cvadmin WITH CREATEDB CREATEROLE PASSWORD 'LovingLungfish';
+CREATE USER cvadmin WITH CREATEDB CREATEROLE SUPERUSER PASSWORD 'LovingLungfish';
 CREATE USER ingester WITH PASSWORD 'AngryMoose' IN ROLE jesters; -- INGEST TO RAW DATA SOURCES
 CREATE USER digester WITH PASSWORD 'LittlePumpkin' IN ROLE jesters; -- raw CSV
 CREATE USER librarian WITH PASSWORD 'HungryDeer' IN ROLE reporters; -- updating static tables
