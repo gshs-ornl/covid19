@@ -18,3 +18,10 @@ def checkbox(name: str, checked: bool = True) -> str:
         '</div>'
     )
     return body
+
+
+def gen_table(name: str, *columns: str, **kwargs) -> flask_table.Table:
+    table = flask_table.create_table(name=name, **kwargs)
+    for col in columns:
+        table.add_column(col.lower(), flask_table.Col(col))
+    return table
