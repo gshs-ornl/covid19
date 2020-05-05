@@ -81,14 +81,14 @@ for feature in raw_data['characteristics_by_county']['values']:
 
     cases = feature['confirmed_cases']
     tested = feature['total_tested']
-    negative_tests = feature['negative']
+    # negative_tests = feature['negative']
     deaths = feature['deaths']
 
     row_csv.append([
         'state', country, state, nan,
         url, str(raw_data), access_time, county,
         cases, updated, deaths, nan,
-        nan, tested, nan, negative_tests,
+        nan, tested, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
         nan, nan, nan,

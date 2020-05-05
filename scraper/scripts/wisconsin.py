@@ -3,6 +3,7 @@
 import requests
 import datetime
 import os
+import time
 from numpy import nan
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
@@ -10,49 +11,12 @@ from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
 state_data_url = 'https://opendata.arcgis.com/datasets/a4741a982aae496486fe928239dec691_3.geojson'
-county_data_url = 'https://services1.arcgis.com/ISZ89Z51ft1G16OK/ArcGIS/rest/services/COVID19_WI/FeatureServer/5/query?where=1%3D1&outFields=NAME,POSITIVE,NEGATIVE,DEATHS,OBJECTID,GEOID,LoadDttm&returnGeometry=false&orderByFields=LoadDttm DESC&outSR=&f=json'
+county_data_url = 'https://services1.arcgis.com/ISZ89Z51ft1G16OK/ArcGIS/rest/services/COVID19_WI/FeatureServer/10/query?where=GEO%20%3D%20%27COUNTY%27&outFields=GEO,NAME,LoadDttm,NEGATIVE,POSITIVE,HOSP_YES,HOSP_NO,HOSP_UNK,POS_FEM,POS_MALE,POS_0_9,POS_10_19,POS_20_29,POS_30_39,POS_40_49,POS_50_59,POS_60_69,POS_70_79,POS_80_89,POS_90,DEATHS,DTHS_FEM,DTHS_MALE,DTHS_0_9,DTHS_10_19,DTHS_20_29,DTHS_30_39,DTHS_40_49,DTHS_50_59,DTHS_60_69,DTHS_70_79,DTHS_80_89,DTHS_90,IP_Y_0_9,IP_Y_10_19,IP_Y_20_29,IP_Y_30_39,IP_Y_40_49,IP_Y_50_59,IP_Y_60_69,IP_Y_70_79,IP_Y_80_89,IP_Y_90,IP_N_0_9,IP_N_10_19,IP_N_20_29,IP_N_30_39,IP_N_40_49,IP_N_50_59,IP_N_60_69,IP_N_70_79,IP_N_80_89,IP_N_90,IP_U_0_9,IP_U_10_19,IP_U_20_29,IP_U_30_39,IP_U_40_49,IP_U_50_59,IP_U_60_69,IP_U_70_79,IP_U_80_89,IP_U_90,IC_YES,IC_Y_0_9,IC_Y_10_19,IC_Y_20_29,IC_Y_30_39,IC_Y_40_49,IC_Y_50_59,IC_Y_60_69,IC_Y_70_79,IC_Y_80_89,IC_Y_90,POS_AIAN,POS_ASN,POS_BLK,POS_WHT,POS_MLTOTH,POS_UNK,POS_E_HSP,POS_E_NHSP,POS_E_UNK,DTH_AIAN,DTH_ASN,DTH_BLK,DTH_WHT,DTH_MLTOTH,DTH_UNK,DTH_E_HSP,DTH_E_NHSP,DTH_E_UNK,POS_HC_Y,POS_HC_N,POS_HC_UNK,DTH_NEW,POS_NEW,NEG_NEW,TEST_NEW,GEOID&returnGeometry=false&orderByFields=LoadDttm%20DESC&outSR=&f=json&resultRecordCount=100'
 state = 'Wisconsin'
 columns = Headers.updated_site
 row_csv = []
 
-
-def fill_in_df(df_list, dict_info, columns):
-    if isinstance(df_list, list):
-        all_df = []
-        for each_df in df_list:
-            each_df['provider'] = dict_info['provider']
-            each_df['country'] = dict_info['country']
-            each_df['state'] = dict_info['state']
-            each_df['resolution'] = dict_info['resolution']
-            each_df['url'] = dict_info['url']
-            each_df['page'] = str(dict_info['page'])
-            each_df['access_time'] = dict_info['access_time']
-            df_columns = list(each_df.columns)
-            for column in columns:
-                if column not in df_columns:
-                    each_df[column] = nan
-                else:
-                    pass
-            all_df.append(each_df.reindex(columns=columns))
-        final_df = pd.concat(all_df)
-    else:
-        df_list['provider'] = dict_info['provider']
-        df_list['country'] = dict_info['country']
-        df_list['state'] = dict_info['state']
-        df_list['resolution'] = dict_info['resolution']
-        df_list['url'] = dict_info['url']
-        df_list['page'] = str(dict_info['page'])
-        df_list['access_time'] = dict_info['access_time']
-        df_columns = list(df_list.columns)
-        for column in columns:
-            if column not in df_columns:
-                df_list[column] = nan
-            else:
-                pass
-        final_df = df_list.reindex(columns=columns)
-    return final_df
-
-
+start_time = time.time()
 # state-level
 url = state_data_url
 response = requests.get(url)
@@ -198,7 +162,8 @@ for ethnicity in race_list:
             nan, nan,
             nan, nan, nan, nan,
             other, other_value])
-
+state_time = time.time()
+print('done with state data', state_time-start_time)
 
 # county-level
 tmp_row_csv = []
@@ -209,19 +174,132 @@ updated = determine_updated_timestep(response)
 raw_data = response.json()
 resolution = 'county'
 
+age_group_list_state = ['0_9', '10_19', '20_29', '30_39', '40_49', '50_59',
+                        '60_69', '70_79', '80_89', '90']
+races = ['AIAN', 'ASN', 'BLK', 'WHT', 'MLTOTH', 'UNK']
+others = ['DTH_NEW', 'POS_NEW', 'NEG_NEW', 'TEST_NEW']
+
 for feature in raw_data['features']:
     attribute = feature['attributes']
-    county = attribute['NAME']
-    cases = attribute['POSITIVE']
-    negative = attribute['NEGATIVE']
-    deaths = attribute['DEATHS']
-    fips = attribute['GEOID']
-    update_date = float(attribute['LoadDttm'])
-    updated = str(datetime.datetime.fromtimestamp(update_date / 1000.0))
-    tmp_row_csv.append([county, cases, negative, deaths, fips, updated])
+    if attribute['NAME'] != 'WI':
+        update_date = float(attribute['LoadDttm'])
+        updated = str(datetime.datetime.fromtimestamp(update_date / 1000.0))
+        county = attribute['NAME']
+        cases = attribute['POSITIVE']
+        negative = attribute['NEGATIVE']
+        deaths = attribute['DEATHS']
+        fips = attribute['GEOID']
+        tmp_row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, county,
+            cases, updated, deaths, nan,
+            nan, nan, nan, negative,
+            nan, nan, nan, nan, fips,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            nan, nan])
 
-county_df = pd.DataFrame(tmp_row_csv, columns=[
-    'county', 'cases', 'negative',  'fips', 'deaths', 'updated']).sort_values(
+        for gender in gender_list:
+            sex = gender
+            sex_counts = attribute['POS_' + gender]
+            other = 'deaths'
+            other_value = attribute['DTHS_' + gender]
+            tmp_row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                nan, updated, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, sex, sex_counts, nan,
+                other, other_value])
+
+        for age_group in age_group_list_state:
+            age_range = age_group
+            age_group = age_group.replace('+', '')
+            age_cases = attribute['POS_' + age_group]
+            age_hospitalized = attribute['IP_Y_' + age_group]
+            age_deaths = attribute['DTHS_' + age_group]
+            icu = attribute['IC_Y_' + age_group]
+            for other_attr in other_dict_age.keys():
+                other = other_dict_age.get(other_attr)
+                other_value = attribute[other_attr + age_group]
+                tmp_row_csv.append([
+                    'state', country, state, nan,
+                    url, str(raw_data), access_time, county,
+                    nan, updated, nan, nan,
+                    nan, nan, nan, nan,
+                    nan, nan, nan, nan, nan,
+                    nan, nan, nan,
+                    nan, nan, nan,
+                    nan, nan, nan,
+                    resolution, icu, nan, nan,
+                    nan, nan, nan, nan,
+                    age_range, age_cases, nan, age_deaths,
+                    age_hospitalized, nan, nan,
+                    nan, nan,
+                    nan, nan, nan, nan,
+                    other, other_value])
+
+        for race in race_list:
+            other = 'race'
+            other_value = race
+            cases = attribute['POS_' + race]
+            deaths = attribute['DTH_' + race]
+            tmp_row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, updated, deaths, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
+
+        for ethnicity in race_list:
+            other = 'ethnicity'
+            other_value = ethnicity
+            deaths = attribute['DTH_' + race]
+            tmp_row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, updated, deaths, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
+print('done county level data', time.time()-state_time)
+
+county_df = pd.DataFrame(tmp_row_csv, columns=columns).sort_values(
     'updated', ascending=False)
 county_df['updated'] = pd.to_datetime(county_df['updated'])
 
@@ -234,7 +312,7 @@ dict_info_county = {'provider': 'state', 'country': country, "url": url,
                     "page": str(raw_data), "access_time": access_time,
                     "updated": updated}
 
-county_df = fill_in_df(county_df, dict_info_county, columns)
+# county_df = fill_in_df(county_df, dict_info_county, columns)
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
