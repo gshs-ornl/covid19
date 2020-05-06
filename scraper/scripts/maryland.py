@@ -122,6 +122,8 @@ with open('maryland_state_data.json', 'w') as f:
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if not path.endswith('/'):
+    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)

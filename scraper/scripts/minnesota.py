@@ -354,6 +354,8 @@ state_df = fill_in_df(state_df, dict_info_state, columns)
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if not path.endswith('/'):
+    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.concat([pd.DataFrame(row_csv, columns=columns),
