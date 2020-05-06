@@ -15,13 +15,13 @@ from cvpy.url_helpers import determine_updated_timestep
 
 # convenience method to turn off huge data for manual review - use for HTML/JSON
 def get_html_text(html_text):
-    #return str(html_text)
-    return 'RAW_DATA_REMOVED_HERE'
+    return str(html_text)
+    #return 'RAW_DATA_REMOVED_HERE'
 
 # convenience method to turn off huge data for manual review - use for dataframes
 def get_raw_dataframe(dataframe: pd.DataFrame):
-    #return dataframe.to_string()
-    return 'RAW_DATA_REMOVED_HERE'
+    return dataframe.to_string()
+    #return 'RAW_DATA_REMOVED_HERE'
 
 country = 'US'
 state_url = 'https://www.mass.gov/info-details/covid-19-response-reporting'
