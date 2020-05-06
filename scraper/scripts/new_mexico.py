@@ -175,6 +175,8 @@ for race in race_other_list:
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if not path.endswith('/'):
+    path += '/'
 file_name = path + state.replace(' ', '_') + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=Headers.updated_site)
