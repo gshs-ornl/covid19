@@ -122,7 +122,9 @@ state_df = fill_in_df(state_df, dict_info_state, columns)
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
-file_name = path + state + dt_string + '.csv'
+if not path.endswith('/'):
+    path += '/'
+file_name = path + state.replace(' ','_') + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
 all_df = pd.concat([df, state_df])
