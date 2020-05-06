@@ -101,7 +101,10 @@ response = requests.get(url)
 access_time = datetime.datetime.utcnow()
 updated = determine_updated_timestep(response) # used for some of the Excel sheets
 zip_file = zipfile.ZipFile(BytesIO(response.content))
-csv_dir = '/tmp/mass_zips/'
+path = os.getenv("OUTPUT_DIR", "")
+if not path.endswith('/'):
+    path += '/'
+csv_dir = path + '/mass_zips/'
 # dump all the files out of memory and write to disk, for safety purposes
 zip_file.extractall(csv_dir)
 
@@ -613,9 +616,6 @@ shutil.rmtree(csv_dir)
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
-path = os.getenv("OUTPUT_DIR", "")
-if not path.endswith('/'):
-    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)

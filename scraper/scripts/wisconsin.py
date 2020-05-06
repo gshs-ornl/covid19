@@ -317,8 +317,6 @@ dict_info_county = {'provider': 'state', 'country': country, "url": url,
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
-if not path.endswith('/'):
-    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 dfs = pd.concat([pd.DataFrame(row_csv, columns=columns), county_df])

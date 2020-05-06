@@ -215,8 +215,6 @@ df = fill_in_df_chicago(dfs, dict_info_city, columns)
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
-if not path.endswith('/'):
-    path += '/'
 file_name = path + region + '_' + state + dt_string + '.csv'
 
 

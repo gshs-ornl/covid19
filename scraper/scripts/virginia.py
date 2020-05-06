@@ -169,8 +169,6 @@ all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
-if not path.endswith('/'):
-    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.concat(all_df)
