@@ -27,7 +27,7 @@ country = 'US'
 state_url = 'https://www.mass.gov/info-details/covid-19-response-reporting'
 state = 'Massachusetts'
 columns = Headers.updated_site
-columns.extend(['race'])
+columns.extend(['race', 'facility_name'])
 row_csv = []
 
 ### website
@@ -68,7 +68,7 @@ row_csv.append([
         nan, nan,
         nan, nan, nan, nan,
         nan, nan, # new values below this line
-        nan])
+        nan, nan])
 
 ### calculate latest zip URL
 def get_zip_url(timestamp: datetime.datetime) -> str:
@@ -131,7 +131,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            nan])
+            nan, nan])
 
 ### Age CSV
 df = pd.read_csv(csv_dir + 'Age.csv', parse_dates=['Date'], 
@@ -168,7 +168,7 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         nan, nan, # new values below this line
-        nan])
+        nan, nan])
 
 ### Cases CSV
 # two columns - Cases and Positive - appear to be duplicates
@@ -204,7 +204,7 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         other, other_value, # additional values below here
-        nan])
+        nan, nan])
 
 ### Date of Death CSV
 # deaths = deaths occurred (should be other_value)
@@ -235,7 +235,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            nan])
+            nan, nan])
 
 ### Death Pies CSV
 df = pd.read_csv(csv_dir + 'Death Pies.csv', parse_dates=['Date'], 
@@ -265,7 +265,7 @@ for row in df.itertuples():
             nan, nan,
             nan, localized_response, nan, nan,
             'sex_deaths', other_value, # new values below this line
-            nan])
+            nan, nan])
     elif (category.lower().startswith('hosp')):
         if localized_response.lower() == 'yes':
             other = 'hospitalized_deaths'
@@ -289,7 +289,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # new values below this line
-            nan])
+            nan, nan])
     elif (category.lower().startswith('preexist')):
         if localized_response.lower() == 'yes':
             other = 'deaths_with_preexisting_conditions'
@@ -313,9 +313,9 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # new values below this line
-            nan])
+            nan, nan])
     else:
-        print('A new category in deathPies.csv has been detected. This script needs to be updated.')
+        print('A new category in Massachusetts - deathPies.csv has been detected. This script needs to be updated.')
 
 # DeathsReported CSV
 # deaths = deaths reported
@@ -345,7 +345,7 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         other, other_value, # additional values below here
-        nan])
+        nan, nan])
 
 # Hospitalization from Hospitals CSV
 df = pd.read_csv(csv_dir + 'Hospitalization from Hospitals.csv', parse_dates=['Date'], 
@@ -378,7 +378,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            nan])
+            nan, nan])
 
 # LTC Facilities CSV
 df = pd.read_csv(csv_dir + 'LTC Facilities.csv', parse_dates=['date'], 
@@ -409,7 +409,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            nan])
+            nan, nan])
 
 # Race/Ethnicity CSV
 df = pd.read_csv(csv_dir + 'RaceEthnicity.csv', parse_dates=['Date'], 
@@ -441,7 +441,7 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            race])
+            race, nan])
 
 # Sex CSV
 df = pd.read_csv(csv_dir + 'Sex.csv', parse_dates=['Date'], 
@@ -472,7 +472,7 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         other, other_value, # additional values below here
-        nan])
+        nan, nan])
 
 # Testing CSV
 df = pd.read_csv(csv_dir + 'Testing2.csv', parse_dates=['Date'], 
@@ -502,7 +502,7 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         other, other_value, # additional values below here
-        nan])
+        nan, nan])
 
 # County CSV
 resolution = 'county'
@@ -533,11 +533,12 @@ for row in df.itertuples():
         nan, nan,
         nan, nan, nan, nan,
         nan, nan, # additional values below here
-        nan])
+        nan, nan])
 
 
 ### EXCEL FILES ###
 excel_file = glob.glob(csv_dir + '*.xlsx')[0]
+updated = os.path.getmtime(excel_file)
 
 # Excel - Regional bed availability
 resolution = 'region'
@@ -570,41 +571,371 @@ for row in df.itertuples():
             nan, nan,
             nan, nan, nan, nan,
             other, other_value, # additional values below here
-            nan])
+            nan, nan])
 
-'''
-resolution = 'state'
 # Excel - Hospital COVID census
-df = pd.read_excel(excel_file, sheet_name=1)
+resolution = 'hospital'
+df = pd.read_excel(excel_file, sheet_name=1,
+                    dtype={'Hospitalized Total COVID patients - suspected and confirmed (including ICU)': pd.Int32Dtype(),
+                    'Hospitalized COVID patients in ICU - suspected and confirmed': pd.Int32Dtype()})
 raw_df = get_raw_dataframe(df)
-print(df.to_string())
+df.columns = ['hospital', 'county_and_zip', 'confirmed', 'icu']
+for row in df.itertuples():
+    facility = getattr(row, df.columns[0])
+    col_2_values = getattr(row, df.columns[1]).replace(' ', '').split('-')
+    county = col_2_values[0]
+    region = col_2_values[1]
+    hospitalized = getattr(row, df.columns[2])
+    icu = getattr(row, df.columns[3])
+
+    row_csv.append([
+        'state', country, state, region,
+        url, raw_df, access_time, county,
+        nan, updated, nan, nan,
+        nan, nan, hospitalized, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, icu, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below here
+        nan, facility])
 
 # Excel - nursing homes
-df = pd.read_excel(excel_file, sheet_name=2)
+resolution = 'nursing_home'
+df = pd.read_excel(excel_file, sheet_name=2,
+                    dtype={'Total licensed beds': pd.Int32Dtype()})
 raw_df = get_raw_dataframe(df)
-print(df.to_string())
+df.columns = ['facility', 'county', 'licensed_beds', 'cases']
+for row in df.itertuples():
+    facility = getattr(row, df.columns[0])
+    county = getattr(row, df.columns[1]).split(' ')[0]
+
+    other = df.columns[2]
+    other_value = getattr(row, df.columns[2])
+    row_csv.append([
+        'state', country, state, nan,
+        url, raw_df, access_time, county,
+        nan, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below here
+        nan, facility])
+
+    value = str(getattr(row, df.columns[3]))
+    if '<' in value:
+        other = 'cases_upper_estimate'
+        other_value = ''.join(i for i in value if i.isdigit())
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    elif '>' in value:
+        other = 'cases_lower_estimate'
+        other_value = ''.join(i for i in value if i.isdigit())
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    elif '-' in value:
+        value = value.replace(' ', '').split('-')
+
+        other = 'cases_lower_estimate'
+        other_value = value[0]
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+        
+        other = 'cases_upper_estimate'
+        other_value = value[1]
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    else:
+        print('Unable to parse cases column of Massachusetts nursing home spreadsheet')
+
 
 # Excel - assisted living residences
-df = pd.read_excel(excel_file, sheet_name=3)
+resolution = 'assisted_living'
+df = pd.read_excel(excel_file, sheet_name=3,
+                    dtype={'Max Occupancy': pd.Int32Dtype()})
 raw_df = get_raw_dataframe(df)
-print(df.to_string())
+df.columns = ['facility', 'county', 'max_occupancy', 'cases']
+for row in df.itertuples():
+    facility = getattr(row, df.columns[0])
+    county = getattr(row, df.columns[1]).split(' ')[0]
 
-# Excel - nursing home testing
-df = pd.read_excel(excel_file, sheet_name=4)
-raw_df = get_raw_dataframe(df)
-print(df.to_string())
+    other = df.columns[2]
+    other_value = getattr(row, df.columns[2])
+    row_csv.append([
+        'state', country, state, nan,
+        url, raw_df, access_time, county,
+        nan, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value, # additional values below here
+        nan, facility])
 
-# Excel - PPE-Summary
-df = pd.read_excel(excel_file, sheet_name=5)
-raw_df = get_raw_dataframe(df)
-print(df.to_string())
+    value = str(getattr(row, df.columns[3]))
+    if '<' in value:
+        other = 'cases_upper_estimate'
+        other_value = ''.join(i for i in value if i.isdigit())
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    elif '>' in value:
+        other = 'cases_lower_estimate'
+        other_value = ''.join(i for i in value if i.isdigit())
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    elif '-' in value:
+        value = value.replace(' ', '').split('-')
+
+        other = 'cases_lower_estimate'
+        other_value = value[0]
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+        
+        other = 'cases_upper_estimate'
+        other_value = value[1]
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, county,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, facility])
+    else:
+        print('Unable to parse cases column of Massachusetts ALRs spreadsheet')
+
+### skip the PPE Summary Excel sheet - all data covered by Regional sheet
 
 # Excel - PPE - Regional
-resolution = 'region'
+resolution = 'state'
 df = pd.read_excel(excel_file, sheet_name=6)
 raw_df = get_raw_dataframe(df)
-print(df.to_string())
+df.columns = ['null', 'region', 'entity', 'n95s_and_kn95s', 'masks', 'gowns', 'gloves', 'ventilators']
+# drop first column - gives nothing but garbage
+df.drop('null', axis=1, inplace=True)
+# drop first row
+df = df.iloc[1:]
+# drop any weird floating-point values which were appended
+df['n95s_and_kn95s'] = df['n95s_and_kn95s'].map(lambda x: int(x))
+for row in df.itertuples():
+    col0_val = getattr(row, df.columns[0])
+    if pd.notnull(col0_val):
+        region = col0_val
+        if region != 'Massachusetts':
+            resolution = 'region'
+
+    col1_val = ' available for ' + getattr(row, df.columns[1])
+
+    for i in range(2, 7):
+        other = df.columns[i] + col1_val
+        other_value = getattr(row, df.columns[i])
+        row_csv.append([
+            'state', country, state, region,
+            url, raw_df, access_time, nan,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, nan])
+
+# Excel - nursing home testing
 '''
+WARNING - this file is generally sloppy and probably needs 
+to be regularly reviewed for schema changes
+
+TODO: perhaps put 'tests completed' values from col. 1
+into the 'testing' column instead of 'other' & 'other_value'?
+'''
+resolution = 'state'
+df = pd.read_excel(excel_file, sheet_name=4)
+raw_df = get_raw_dataframe(df)
+df.columns = ['testing_info', 'statistic', 'two_days_ago', 'yesterday', 'planned_today']
+# drop first two rows
+df = df.iloc[2:]
+
+# values to build the 'other' string
+str1 = ''
+str2 = ''
+for row in df.itertuples():
+    col0_val = getattr(row, df.columns[0])
+    col1_val = getattr(row, df.columns[1])
+
+    # any value with data will have a non-null value in the 'statistic' column.
+    # if the first two columns are empty, this means a new 'table' will start
+    if pd.notnull(col0_val):
+        str1 = col0_val + ' - '
+    if pd.isnull(col1_val):
+        if pd.isnull(col0_val):
+            str1 = ''
+        continue
+    str2 = col1_val.replace(u'\u200b', '')
+
+    for i in range(2, 5):
+        other_value = getattr(row, df.columns[i])
+        if pd.isnull(other_value):
+            continue
+        other = str1 + str2 + ' ' + df.columns[i]
+        row_csv.append([
+            'state', country, state, nan,
+            url, raw_df, access_time, nan,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value, # additional values below here
+            nan, nan])
 
 ### finished ###
 
