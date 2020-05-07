@@ -2,7 +2,7 @@
 """ retrieve the scrape functions from covidR and pass them to the generic
     run_script.R script runner which will write the CSVs to disk
 """
-import subproces
+import subprocess
 from rpy2.robjects import importr
 
 covidR = importr('covidR')
