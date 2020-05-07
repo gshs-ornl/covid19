@@ -58,6 +58,29 @@ for race in raw_data['demographics']['race']:
         nan, nan, nan, nan,
         other, other_value])
 
+for gender in raw_data['demographics']['gender']:
+    sex = gender['description']
+    sex_counts = gender['count']
+    for other in ['tested', 'deaths']:
+        other_value = gender[other]
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, nan,
+            nan, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, sex, sex_counts, nan,
+            other, other_value])
+
+
 # Age group and race
 for age_group in raw_data['demographics']['age']:
     age_range = age_group['age_group']
@@ -85,6 +108,8 @@ for age_group in raw_data['demographics']['age']:
                 nan, nan,
                 nan, nan, nan, nan,
                 other, other_value])
+
+
 
 # county-level data
 resolution = 'county'
