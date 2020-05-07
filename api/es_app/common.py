@@ -1,5 +1,7 @@
 from datetime import datetime
+from functools import wraps
 from os import environ
+from time import sleep
 from typing import Any, Callable
 
 
@@ -54,3 +56,30 @@ def make_getter(key: str, *methods: Callable) -> Any:
                 tmp = func(tmp)
         return tmp
     return getter
+
+
+class Backoff:
+    def __init__(self,
+                 *exceptions: Exception,
+                 start: float = 0.5,
+                 factor: float = 2.0,
+                 max_attempts: int = 5):
+        if factor <= 1.0:
+            raise ValueError("factor must be greater than 1.0")
+        self.factor = factor
+        self.start = start
+        self.max_attempts = max_attempts
+        self.exceptions = tuple(exceptions)
+
+    def __call__(self, function: Callable) -> Callable:
+        @wraps(function)
+        def retry_with_backoff(*args: Any, **kwargs: Any) -> Any:
+            for attempts in range(self.max_attempts):
+                try:
+                    return function(*args, **kwargs)
+                except self.exceptions:
+                    if attempts == (self.max_attempts - 1):
+                        raise
+                    sleep(self.start * pow(self.factor, attempts))
+            raise Exception('How did you get here?')
+        return retry_with_backoff
