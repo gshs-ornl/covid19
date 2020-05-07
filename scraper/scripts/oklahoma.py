@@ -13,6 +13,7 @@ state = 'Oklahoma'
 county_cases_url = 'https://storage.googleapis.com/ok-covid-gcs-public-download/oklahoma_cases_county.csv'
 city_cases_url = 'https://storage.googleapis.com/ok-covid-gcs-public-download/oklahoma_cases_city.csv'
 zipcode_cases_url = 'https://storage.googleapis.com/ok-covid-gcs-public-download/oklahoma_cases_zip.csv'
+osdh_url = 'https://storage.googleapis.com/ok-covid-gcs-public-download/oklahoma_cases_osdh_district.csv'
 columns = Headers.updated_site
 
 
@@ -125,11 +126,33 @@ zipcode_df_raw = df.rename(
              'Recovered': 'recovered', 'ReportDate': 'updated'})
 zipcode_df = zipcode_df_raw[zipcode_df_raw['region'] != 'Other***']
 
+# osdh_url
+with WebDriver(url=osdh_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true', '--ssl-protocol=any'],
+               sleep_time=15, preferences={}) as d:
+    df = d.get_csv()
+access_time = datetime.datetime.utcnow()
+
+dict_info_health_district = {'provider': 'state', 'country': country,
+                             "url": osdh_url,
+                             "state": state, "resolution": "health district",
+                             "page": str(df), "access_time": access_time}
+osdh_df = df.rename(columns={'OSDHDistict': 'region',
+                       'Active': 'cases', 'Deceased': 'deaths',
+                       'Recovered*' : 'recovered'})
+osdh_df = osdh_df.groupby('region').sum().reset_index()
+
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
 city_df = fill_in_df(city_df, dict_info_city, columns)
 zipcode_df = fill_in_df(zipcode_df, dict_info_zipcode, columns)
+osdh_df = fill_in_df(osdh_df, dict_info_health_district, columns)
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
@@ -138,6 +161,6 @@ if path and not path.endswith('/'):
     path += '/'
 file_name = path + state + dt_string + '.csv'
 
-df = pd.concat([county_df, state_df, city_df, zipcode_df])
+df = pd.concat([county_df, state_df, city_df, zipcode_df, osdh_df])
 df.to_csv(file_name, index=False)
 

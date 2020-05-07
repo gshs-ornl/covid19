@@ -245,6 +245,7 @@ dict_info_state = {'provider': 'state', 'country': country,
                     "page": str(df), "access_time": access_time}
 
 tested_raw = df[0]
+cases_raw = df[1]
 no_longer_isolation = df[2]
 deaths_df = df[3]
 hospitalization = df[4]
@@ -278,6 +279,15 @@ state_lab_df['other'] = 'Completed tests reported from the MDH Public Health Lab
 ext_lab_df = tested_raw[['Completed tests reported from external laboratories (daily)']]
 ext_lab_df.columns = ['other_value']
 ext_lab_df['other'] = 'Completed tests reported from external laboratories (daily)'
+
+# State-level: cases
+cases_raw = cases_raw.rename(columns={
+    'Date reported': 'updated',
+    'Change in positive cases (daily)': 'other_value',
+    'Total confirmed positive': 'cases'})
+cases_raw['other'] = 'Change in positive cases (daily)'
+cases_raw = cases_raw[cases_raw['updated'] == latest_date]
+
 
 # State-level: no longer monitored
 no_longer_isolation = no_longer_isolation.rename(columns={'Date reported': 'updated',

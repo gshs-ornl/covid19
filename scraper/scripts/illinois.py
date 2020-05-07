@@ -14,10 +14,10 @@ date_url = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y
 date_url_xlsx = (datetime.datetime.today()).strftime('%Y-%m-%d')
 # url = 'http://www.dph.illinois.gov/sites/default/files/COVID19/COVID19CountyResults'+date_url+'.json'
 state_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
-county_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDHistoricalTestResults.json?nocache=1'
 county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocache=1'
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
 county_ltc_url = 'http://www.dph.illinois.gov/sitefiles/COVIDLTC.json?nocache=1'
+county_rate_url = 'http://www.dph.illinois.gov/sitefiles/COVIDRates.json?nocache=1'
 race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/'+\
                date_url_xlsx+'/case_deaths_rate_charts_data_website.xlsx'
 
@@ -58,17 +58,37 @@ for race in raw_data['demographics']['race']:
         nan, nan, nan, nan,
         other, other_value])
 
+# Age group and race
+for age_group in raw_data['demographics']['age']:
+    age_range = age_group['age_group']
+    age_cases = age_group['count']
+    age_tested = age_group['tested']
+    age_deaths = age_group['deaths']
+    for race in age_group['demographics']['race']:
+        for other_attribute in ['count', 'tested', 'deaths']:
+            other = race['description'] + '_' + other_attribute
+            other_value = race[other_attribute]
 
-# county-level data (1st url)
-url = county_cases_url
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, nan,
+                nan, updated, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                age_range, age_cases, nan, age_deaths,
+                nan, age_tested, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
+
+# county-level data
 resolution = 'county'
-response = requests.get(url)
-access_time = datetime.datetime.utcnow()
-raw_data = response.json()
 
-updated_date = raw_data['LastUpdateDate']
-updated = datetime.datetime(updated_date['year'], updated_date['month'],
-                            updated_date['day'], 12, 0, 0)
 for feature in raw_data['characteristics_by_county']['values']:
     county_name = feature['County']
     # This gives the whole state total
@@ -118,8 +138,9 @@ for feature in raw_data['county_demographics']:
     for age in feature['demographics']['age']:
         age_range = age['age_group']
         age_cases = age['count']
-        other = 'tested'
-        other_value = age['tested']
+        age_tested = age['tested']
+        # other = 'tested'
+        # other_value = age['tested']
         row_csv.append([
             'state', country, state, nan,
             url, str(raw_data), access_time, county,
@@ -132,10 +153,10 @@ for feature in raw_data['county_demographics']:
             resolution, nan, nan, nan,
             nan, nan, nan, nan,
             age_range, age_cases, nan, nan,
-            nan, nan, nan,
+            nan, age_tested, nan,
             nan, nan,
             nan, nan, nan, nan,
-            other, other_value])
+            nan, nan])
 
     for race in feature['demographics']['race']:
         other = "Race"
@@ -273,6 +294,42 @@ for feature in raw_data['FacilityValues']:
         nan, nan,
         nan, nan, nan, nan,
         other, other_value])
+
+# county-level rate data
+url = county_rate_url
+resolution = 'county'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+raw_data = response.json()
+
+updated_date = raw_data['LastUpdateDate']
+updated = datetime.datetime(updated_date['year'], updated_date['month'],
+                            updated_date['day'], 12, 0, 0)
+for feature in raw_data['county_rates']:
+    county = feature['County']
+    cases = feature['confirmed_cases']
+    deaths = feature['deaths']
+    tested = feature['total_tested']
+    for other_attribute in ['confirmed_rate_per_100k', 'deaths_rate_per_100k',
+                            'test_rate_per_100k']:
+        other = other_attribute
+        other_value = feature[other]
+        row_csv.append([
+            'state', country, state, nan,
+            url, str(raw_data), access_time, county,
+            cases, updated, deaths, nan,
+            nan, tested, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value])
 
 '''
 def fill_in_df(df_list, dict_info, columns):
