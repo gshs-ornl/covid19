@@ -39,6 +39,9 @@
 #/   -i|--interactive)
 #/       enter specified container interactively
 #/
+#/   -S|--db-only)
+#/       only run the database (useful for testing)
+#/
 #/   --no-cache)
 #/       build without cache; WARNING this may take > 1 hr depending on specs
 #/
@@ -59,6 +62,7 @@ RUN=0
 LOG_CONTAINER="scraper"
 DEPLOY=0
 STRIPPED=0
+DB_ONLY=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -142,6 +146,10 @@ while :; do
       STRIPPED=1
       shift
       ;; # 3}}}
+    -S|--db-only) # {{{3
+      DB_ONLY=1
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -200,5 +208,11 @@ if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.yml up -d --build api db tidy scraper
+fi
+if [ "$DB_ONLY" -eq "1" ]; then
+  info "Deploy with only the database"
+  docker-compose -f docker-compose.yml down && \
+    docker-compose -f docker-compose.db.yml up -d --build db
+
 fi
 # 1}}} ------------------------------------------------------------------------
