@@ -10,6 +10,11 @@ import requests
 
 from es_app.common import Backoff, get_var, make_getter as mg
 
+try:
+    from cvpy.database import Database
+except ModuleNotFoundError:
+    Database = None
+
 ESUSER: str = get_var('ESUSER', '')
 ESPASS: str = get_var('ESPASS', '')
 ESHOSTS: str = get_var('ESHOSTS', '')
@@ -43,13 +48,18 @@ def gen_es_client() -> Elasticsearch:
 
 
 def gen_pg_client():
-    return psycopg2.connect(
-        dbname=PGDB,
-        user=PGUSER,
-        password=PGPASS,
-        host=PGHOST,
-        port=PGPORT
-    )
+    if Database is None:
+        return psycopg2.connect(
+            dbname=PGDB,
+            user=PGUSER,
+            password=PGPASS,
+            host=PGHOST,
+            port=PGPORT
+        )
+    tmp = Database()
+    tmp.open()
+    tmp.cursor = tmp.con.cursor
+    return tmp
 
 
 @Backoff(requests.exceptions.RequestException)
@@ -139,6 +149,7 @@ class Pipe:
                     self.transfer_count += 1
                     if self.transfer_count >= self.limit:
                         break
+        pg_cursor.close()
 
     def _transform_data_to_document(self,
                                     data_point: Dict,
