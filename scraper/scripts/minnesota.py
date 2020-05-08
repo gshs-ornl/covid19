@@ -58,22 +58,23 @@ updated = determine_updated_timestep(response)
 raw_data = response.json()
 other_keys = {'TotalCases': 'Released from isolation',
               'EvrHospNo': 'Non-hospitalized',
-              'EvrHospMisng': 'Missing hospital cases'}
+              'EvrHospMis': 'Missing hospital cases'}
 genders = ['Male', 'Female']
-cases_keys = ['RaceAsian', 'RacePacific', 'RaceWht', 'RaceBlk',
-              'RaceAsnPacIsld', 'RaceAmerIndAlaNativ', 'RaceOther',
-              'RaceUnk', 'EthnHisp', 'EthnNonHisp', 'EthnUnk']
-deaths_keys = ['DeathWht', 'DeathBlk', 'DeathAsian', 'DeathPacific',
-               'DeathNative', 'DeathOther', 'DeathUnknown',
-               'DeathHisp', 'DeathNonHisp', 'DeathHispUnknown']
-exposure_types = {'ExpsrCrzShp': 'Travel',
-                  'ExpsrIntrntnl': 'Congregate Living',
-                  'ExpsrLklyExpsr': 'Health Care',
-                  'ExpsrAnthrState': "Community Unknown",
-                  'ExpsrInMN': "Community Spread", 'ExpsrMsng': "Unknown"}
+cases_keys = ['RaceAsian', 'RacePacifi', 'RaceWht', 'RaceBlk',
+              'RaceAsnPac', 'RaceAmerIn', 'RaceOther',
+              'RaceUnk', 'EthnHisp', 'EthnNonHis', 'EthnUnk']
+deaths_keys = ['DeathWht', 'DeathBlk', 'DeathAsian', 'DeathPacif',
+               'DeathNativ', 'DeathOther', 'DeathUnkno',
+               'DeathHisp', 'DeathNonHi', 'DeathHispU']
+exposure_types = {'ExpsrCrzSh': 'Travel',
+                  'ExpsrIntrn': 'Congregate Living',
+                  'ExpsrLklyE': 'Health Care',
+                  'ExpsrAnthr': "Community Spread",
+                  'ExpsrInMN': "Community Unknown",
+                  'ExpsrMsng': "Unknown"}
 resident_types = {'ResPriv': 'Private', 'ResLTCF': 'LCTF/Assisted Living',
-                  'ResHmlShelt': 'Homeless', 'ResJail': "Jail",
-                  'ResCollDrm':'Residential Behavioural Health',
+                  'ResHmlShel': 'Homeless', 'ResJail': "Jail",
+                  'ResCollDrm': 'Residential Behavioural Health',
                   'ResOther': 'Other', 'ResMsng': 'Missing'}
 
 attribute = raw_data['features'][0]['attributes']
@@ -97,7 +98,7 @@ row_csv.append([
             nan, nan,
             nan, nan, nan, nan,
             nan, nan])
-for other_list in [other_keys, exposure_types,resident_types]:
+for other_list in [other_keys, exposure_types, resident_types]:
     for other_key in other_list.keys():
         other = other_list.get(other_key)
         other_value = attribute[other_key]
