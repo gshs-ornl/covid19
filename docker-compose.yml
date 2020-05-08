@@ -64,8 +64,8 @@ services:
     container_name: db
     environment:
       - PG_DATABASE=covidb
-      - PG_PRIMARY_USER=cvadmin
-      - PG_PRIMARY_PASSWORD=LovingLungfish
+      - PG_PRIMARY_USER=cvreplication
+      - PG_PRIMARY_PASSWORD=LovingLungsAndStuff
       - PG_MODE=primary
       - PG_USER=jesters
       - PG_PASSWORD=AngryMoose78
