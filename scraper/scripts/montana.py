@@ -6,6 +6,7 @@ import json
 import os
 from numpy import nan
 import pandas as pd
+from bs4 import BeautifulSoup
 from cvpy.static import ColumnHeaders as Headers
 from cvpy.url_helpers import determine_updated_timestep
 
@@ -25,6 +26,7 @@ state_url_tested = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/ArcGIS/rest/ser
 state = 'Montana'
 
 columns = Headers.updated_site
+columns.extend(['race_ethnicity'])
 row_csv = []
 
 # County level
@@ -90,7 +92,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            nan, nan])
+            nan, nan,
+            nan])
 
     for gender in ['Female', 'Male']:
         sex = gender
@@ -114,7 +117,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, sex, sex_count, nan,
-            nan, nan])
+            nan, nan,
+            nan])
 
 
 resolution = 'state'
@@ -145,7 +149,8 @@ for state_age_group_key in state_age_group_keys:
                 nan, nan, nan,
                 nan, nan,
                 nan, nan, nan, nan,
-                nan, nan])
+                nan, nan,
+                nan])
 
 
 for gender in ['Female', 'Male']:
@@ -170,7 +175,8 @@ for gender in ['Female', 'Male']:
         nan, nan, nan,
         nan, nan,
         nan, sex, sex_count, nan,
-        nan, nan])
+        nan, nan,
+        nan])
 
 with open(state+'county_data.json', 'w') as f:
     json.dump(raw_data, f)
@@ -197,7 +203,8 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        nan, nan])
+        nan, nan,
+        nan])
 
 # EOC - state - number open
 url = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/arcgis/rest/services/Join_EOC_Status/FeatureServer/0/query?f=json&where=(county_eoc_activation_status%3D%27open%27%20OR%20county_eoc_activation_status%3D%27partial%27)&returnGeometry=false&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D'
@@ -222,7 +229,8 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
+        other, other_value,
+        nan])
 
 # EOC - state - number of declarations made
 url = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/arcgis/rest/services/Join_EOC_Status/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&outFields=*&groupByFieldsForStatistics=county_declaration_made&outStatistics=[{%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22}]'
@@ -248,7 +256,8 @@ for feature in raw_data['features']:
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
+        other, other_value,
+        nan])
 
 # EOC - county data
 resolution = 'county'
@@ -260,7 +269,7 @@ updated = determine_updated_timestep(response)
 raw_data = response.json()
 for feature in raw_data['features']:
     attributes = feature['attributes']
-    county = str(attributes['NAME']).capitalize()
+    county = attributes['NAME'].capitalize()
     fips = attributes['CTYFIPS']
 
     for other in ['county_eoc_activation_status', 'incident_command_status', 'county_declaration_made']:
@@ -280,10 +289,186 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            other, other_value])
+            other, other_value,
+            nan])
 
-# web table
+### web table
 url = 'https://dphhs.mt.gov/publichealth/cdepi/diseases/coronavirusmt/demographics'
+'''
+# FIXME getting 'DH_KEY_TOO_SMALL' error without the below code
+Worth noting is that openssl in the Docker container mandates TLSv1.2 or higher,
+and none of the cipher suites in SSLLabs match up with the cipher suites specified
+by urllib3. (The server only seems to use AES cipher suites.)
+
+Some of the additional certificates expire May 30, 2020, so check back then to see
+if this is still required.
+'''
+requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
+try:
+    requests.packages.urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += 'HIGH:!DH:!aNULL'
+except AttributeError:
+    # no pyopenssl support used / needed / available
+    pass
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, "html5lib")
+#soup.prettify(formatter=lambda s: s.replace(u'\xa0', ' '))
+
+tables = soup.select('tbody')
+
+# get rid of unicode before extracting soup text
+def clean_unicode(soup) -> str:
+    return str(soup.text).replace('\xa0', ' ')
+
+# general state data
+resolution = 'state'
+cases = int(clean_unicode(tables[0].select('tr')[0].select('td')[1]))
+deaths = int(clean_unicode(tables[0].select('tr')[1].select('td')[1]))
+hospitalized = int(clean_unicode(tables[6].select('tr')[0].select('td')[1]).split(' ')[0])
+quarantined = int(clean_unicode(tables[6].select('tr')[2].select('td')[1]).split(' ')[0])
+recovered = int(clean_unicode(tables[6].select('tr')[3].select('td')[1]).split(' ')[0])
+cases_female = int(clean_unicode(tables[4].select('tr')[0].select('td')[1]).split(' ')[0])
+cases_male = int(clean_unicode(tables[4].select('tr')[1].select('td')[1]).split(' ')[0])
+active = hospitalized + quarantined
+
+# hospitalization status
+for table_row in tables[2].select('tr')[:-1]:
+    other = clean_unicode(table_row.select('td')[0])
+    other_value = int(clean_unicode(table_row.select('td')[1]).split(' ')[0])
+    row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            recovered, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            active, nan, quarantined,
+            nan, nan, nan,
+            resolution, nan, cases_male, cases_female,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value,
+            nan])
+
+# age group
+for table_row in tables[3].select('tr')[:-1]:
+    age_range = clean_unicode(table_row.select('td')[0]).split(' ')[0]
+    age_stats = clean_unicode(table_row.select('td')[1]).split(' ')
+    if '<' in (age_stats[1]):
+        age_percent = 0
+    else:
+        age_percent = int(''.join(i for i in age_stats[1] if i.isdigit()))
+    age_cases = int(age_stats[0])
+    row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            recovered, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            active, nan, quarantined,
+            nan, nan, nan,
+            resolution, nan, cases_male, cases_female,
+            nan, nan, nan, nan,
+            age_range, age_cases, age_percent, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            nan, nan])
+
+# race/ethnicity
+for table_row in tables[5].select('tr')[:-1]:
+    race = clean_unicode(table_row.select('td')[0])
+    race_stats = clean_unicode(table_row.select('td')[1]).split(' ')
+    # skip total rows
+    if len(race_stats) < 2:
+        continue
+
+    other = 'race_cases'
+    try:
+        other_value = int(race_stats[0])
+    except ValueError:
+        # row was parsed as ['', '']
+        continue
+    row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            recovered, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            active, nan, quarantined,
+            nan, nan, nan,
+            resolution, nan, cases_male, cases_female,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value,
+            race])
+    
+    other = 'race_percent'
+    if '<' in race_stats[1]:
+        other_value = 0
+    else:
+        other_value = int(''.join(i for i in race_stats[1] if i.isdigit()))
+    row_csv.append([
+            'state', country, state, nan,
+            url, get_raw_data(html_text), access_time, nan,
+            cases, updated, deaths, nan,
+            recovered, nan, hospitalized, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            active, nan, quarantined,
+            nan, nan, nan,
+            resolution, nan, cases_male, cases_female,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            other, other_value,
+            race])
+
+# county table
+resolution = 'county'
+other = 'community_transmission'
+for table_row in tables[1].select('tr')[:-1]:
+    table_data = table_row.findAll('td')
+
+    county = clean_unicode(table_data[0])
+    cases = int(clean_unicode(table_data[1]))
+    deaths = clean_unicode(table_data[2])
+    if (deaths.isspace()):
+        deaths = 0
+    else:
+        deaths = int(deaths)
+    other_value = clean_unicode(table_data[3])
+    if (other_value.isspace()):
+        other_value = 'No'
+
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_data(html_text), access_time, county,
+        cases, updated, deaths, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
 
 
 ### finished
