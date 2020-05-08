@@ -421,24 +421,6 @@ CREATE TABLE  if not exists :myschema.stav (
     , PRIMARY KEY (scrape_id, geounit_id, vtime, attr)
 );
 
-CREATE TABLE if not exists staging.provider (
-      provider_id TEXT PRIMARY KEY
-    , name TEXT
-    , insert_ts TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
-
-CREATE TABLE if not exists staging.scrapes (
-      scrape_id SERIAL UNIQUE
-    , provider_id TEXT REFERENCES staging.provider(provider_id)
-    , uri TEXT
-    , scraped_ts TIMESTAMP WITH TIME ZONE
-    , doc TEXT
-    , csv_file TEXT -- source CSV file
-    , csv_row INT -- row in the CSV file
-    , PRIMARY KEY (provider_id, uri, scraped_ts)
-);
-
 create or replace function staging.get_provider(v_provider text) RETURNS int
     language plpgsql
 as
