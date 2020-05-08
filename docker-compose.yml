@@ -17,7 +17,6 @@ services:
 
   api:
     build: ./api
-    container_name: api
     networks:
       - web
     env_file:
@@ -29,7 +28,6 @@ services:
 
   scraper:
     build: ./scraper
-    container_name: scraper
     networks:
       - web
     env_file:
@@ -41,7 +39,6 @@ services:
 
   tidy:
     build: ./tidy
-    container_name: tidy
     networks:
       - web
     env_file:
@@ -53,7 +50,6 @@ services:
 
   shiny:
     build: ./shiny
-    container_name: shiny
     networks:
       - web
     env_file:
@@ -61,11 +57,10 @@ services:
       
   db:
     build: ./covidb
-    container_name: db
     environment:
       - PG_DATABASE=covidb
-      - PG_PRIMARY_USER=cvadmin
-      - PG_PRIMARY_PASSWORD=LovingLungfish
+      - PG_PRIMARY_USER=cvreplication
+      - PG_PRIMARY_PASSWORD=LovingLungsAndStuff
       - PG_MODE=primary
       - PG_USER=jesters
       - PG_PASSWORD=AngryMoose78
@@ -88,7 +83,6 @@ services:
       
   chrome:
     image: selenium/standalone-chrome:latest
-    container_name: chrome
     networks:
       - web
     environment:
