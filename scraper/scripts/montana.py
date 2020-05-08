@@ -12,13 +12,13 @@ from cvpy.url_helpers import determine_updated_timestep
 
 # convenience method to turn off huge data for manual review - use for HTML and JSON
 def get_raw_data(raw_data):
-    return str(raw_data)
-    #return 'RAW_DATA_REMOVED_HERE'
+    #return str(raw_data)
+    return 'RAW_DATA_REMOVED_HERE'
 
 # convenience method to turn off huge data for manual review - use for dataframes
 def get_raw_dataframe(dataframe: pd.DataFrame):
-    return dataframe.to_string()
-    #return 'RAW_DATA_REMOVED_HERE'
+    #return dataframe.to_string()
+    return 'RAW_DATA_REMOVED_HERE'
 
 country = 'US'
 url = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/ArcGIS/rest/services/COVID_Cases_Production_View/FeatureServer/0/query?f=json&where=Total%20%3C%3E%200&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=NewCases%20desc%2CNAMELABEL%20asc&resultOffset=0&resultRecordCount=56&cacheHint=true'
@@ -26,7 +26,7 @@ state_url_tested = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/ArcGIS/rest/ser
 state = 'Montana'
 
 columns = Headers.updated_site
-columns.extend(['race_ethnicity'])
+columns.extend(['race', 'ethnicity_specified'])
 row_csv = []
 
 # County level
@@ -92,8 +92,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            nan, nan,
-            nan])
+            nan, nan, # additional values below this line
+            nan, nan])
 
     for gender in ['Female', 'Male']:
         sex = gender
@@ -117,8 +117,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, sex, sex_count, nan,
-            nan, nan,
-            nan])
+            nan, nan, # additional values below this line
+            nan, nan])
 
 
 resolution = 'state'
@@ -149,8 +149,8 @@ for state_age_group_key in state_age_group_keys:
                 nan, nan, nan,
                 nan, nan,
                 nan, nan, nan, nan,
-                nan, nan,
-                nan])
+                nan, nan, # additional values below this line
+                nan, nan])
 
 
 for gender in ['Female', 'Male']:
@@ -175,8 +175,8 @@ for gender in ['Female', 'Male']:
         nan, nan, nan,
         nan, nan,
         nan, sex, sex_count, nan,
-        nan, nan,
-        nan])
+        nan, nan, # additional values below this line
+        nan, nan])
 
 with open(state+'county_data.json', 'w') as f:
     json.dump(raw_data, f)
@@ -203,8 +203,8 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        nan, nan,
-        nan])
+        nan, nan, # additional values below this line
+        nan, nan])
 
 # EOC - state - number open
 url = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/arcgis/rest/services/Join_EOC_Status/FeatureServer/0/query?f=json&where=(county_eoc_activation_status%3D%27open%27%20OR%20county_eoc_activation_status%3D%27partial%27)&returnGeometry=false&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D'
@@ -229,8 +229,8 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value,
-        nan])
+        other, other_value, # additional values below this line
+        nan, nan])
 
 # EOC - state - number of declarations made
 url = 'https://services.arcgis.com/qnjIrwR8z5Izc0ij/arcgis/rest/services/Join_EOC_Status/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&outFields=*&groupByFieldsForStatistics=county_declaration_made&outStatistics=[{%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22}]'
@@ -256,8 +256,8 @@ for feature in raw_data['features']:
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value,
-        nan])
+        other, other_value, # additional values below this line
+        nan, nan])
 
 # EOC - county data
 resolution = 'county'
@@ -289,8 +289,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            other, other_value,
-            nan])
+            other, other_value, # additional values below this line
+            nan, nan])
 
 ### web table
 url = 'https://dphhs.mt.gov/publichealth/cdepi/diseases/coronavirusmt/demographics'
@@ -352,8 +352,8 @@ for table_row in tables[2].select('tr')[:-1]:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            other, other_value,
-            nan])
+            other, other_value, # additional values below this line
+            nan, nan])
 
 # age group
 for table_row in tables[3].select('tr')[:-1]:
@@ -379,62 +379,108 @@ for table_row in tables[3].select('tr')[:-1]:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
+            nan, nan, # additional values below this line
             nan, nan])
 
 # race/ethnicity
+race_not_ethnicity_flag = True # true = race, false = ethnicity
 for table_row in tables[5].select('tr')[:-1]:
-    race = clean_unicode(table_row.select('td')[0])
+    identifier = clean_unicode(table_row.select('td')[0])
     race_stats = clean_unicode(table_row.select('td')[1]).split(' ')
     # skip total rows
     if len(race_stats) < 2:
         continue
-
-    other = 'race_cases'
-    try:
-        other_value = int(race_stats[0])
-    except ValueError:
-        # row was parsed as ['', '']
+    # row was parsed as ['', ''] - this row separates race and ethnicity
+    if race_stats[0] == '':
+        race_not_ethnicity_flag = False
         continue
-    row_csv.append([
-            'state', country, state, nan,
-            url, get_raw_data(html_text), access_time, nan,
-            cases, updated, deaths, nan,
-            recovered, nan, hospitalized, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            active, nan, quarantined,
-            nan, nan, nan,
-            resolution, nan, cases_male, cases_female,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            other, other_value,
-            race])
-    
-    other = 'race_percent'
-    if '<' in race_stats[1]:
-        other_value = 0
+
+    if (race_not_ethnicity_flag == True):
+        other = 'race_cases'
+        other_value = int(race_stats[0])
+        row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                recovered, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                active, nan, quarantined,
+                nan, nan, nan,
+                resolution, nan, cases_male, cases_female,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value, # additional values below this line
+                identifier, nan])
+        
+        other = 'race_percent'
+        if '<' in race_stats[1]:
+            other_value = 0
+        else:
+            other_value = int(''.join(i for i in race_stats[1] if i.isdigit()))
+        row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                recovered, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                active, nan, quarantined,
+                nan, nan, nan,
+                resolution, nan, cases_male, cases_female,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value, # additional values below this line
+                identifier, nan])
     else:
-        other_value = int(''.join(i for i in race_stats[1] if i.isdigit()))
-    row_csv.append([
-            'state', country, state, nan,
-            url, get_raw_data(html_text), access_time, nan,
-            cases, updated, deaths, nan,
-            recovered, nan, hospitalized, nan,
-            nan, nan, nan, nan, nan,
-            nan, nan, nan,
-            active, nan, quarantined,
-            nan, nan, nan,
-            resolution, nan, cases_male, cases_female,
-            nan, nan, nan, nan,
-            nan, nan, nan, nan,
-            nan, nan, nan,
-            nan, nan,
-            nan, nan, nan, nan,
-            other, other_value,
-            race])
+        other = 'ethnicity_cases'
+        other_value = int(race_stats[0])
+        row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                recovered, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                active, nan, quarantined,
+                nan, nan, nan,
+                resolution, nan, cases_male, cases_female,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value, # additional values below this line
+                nan, identifier])
+        
+        other = 'ethnicity_percent'
+        if '<' in race_stats[1]:
+            other_value = 0
+        else:
+            other_value = int(''.join(i for i in race_stats[1] if i.isdigit()))
+        row_csv.append([
+                'state', country, state, nan,
+                url, get_raw_data(html_text), access_time, nan,
+                cases, updated, deaths, nan,
+                recovered, nan, hospitalized, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                active, nan, quarantined,
+                nan, nan, nan,
+                resolution, nan, cases_male, cases_female,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value, # additional values below this line
+                nan, identifier])
 
 # county table
 resolution = 'county'
@@ -468,8 +514,8 @@ for table_row in tables[1].select('tr')[:-1]:
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        other, other_value])
-
+        other, other_value, # additional values below this line
+        nan, nan])
 
 ### finished
 
