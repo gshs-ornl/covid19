@@ -1,0 +1,37 @@
+version: '3.1'
+
+volumes:
+  covidb_pg:
+    external: true
+
+networks:
+  web:
+ 
+services:  
+
+  db:
+    build: ./covidb
+    container_name: db
+    environment:
+      - PG_DATABASE=covidb
+      - PG_PRIMARY_USER=cvadmin
+      - PG_PRIMARY_PASSWORD=LovingLungfish
+      - PG_MODE=primary
+      - PG_USER=jesters
+      - PG_PASSWORD=AngryMoose78
+      - PG_ROOT_PASSWORD=AngryMoose77
+      - PGDATA_PATH_OVERRIDE=persistent
+      - PGHOST=/data
+      - MAX_CONNECTIONS=100
+      - SHARED_BUFFERS=512MB
+      - TIMEZONE=UTC
+      - PG_PRIMARY_PORT=5432
+      - BACKUP_PATH=latest
+
+    networks:
+      - web
+    ports:
+      - "5432:5432"
+    volumes:
+      - covidb_pg:/data
+      
