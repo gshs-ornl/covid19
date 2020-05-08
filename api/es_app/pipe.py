@@ -124,10 +124,18 @@ class Pipe:
     _index: str = ESINDEX
     _id_gen: Callable[[Dict], str] = county_gen_id
     transform_config: TCFG = pg_to_es_county_config
+    query_skeleton = 'select * from public.get_ps_data({from_to})'
 
-    def __init__(self, limit: int = -1):
+    def __init__(self, limit: int = -1, from_: str = '', to: str = ''):
         self.limit: int = limit
         self.transfer_count: int = 0
+        self.from_to = ''
+        if from_ and to:
+            self.from_to = ', '.join([from_, to])
+        elif from_:
+            self.from_to = from_
+        elif to:
+            self.from_to = ', '.join(['1970-01-01', to])
 
     def gen_data_source(self, chunk_size: int = 500) -> Generator:
         pg_connect = gen_pg_client()
@@ -135,7 +143,8 @@ class Pipe:
             name='data-pipe-cur',
             cursor_factory=RealDictCursor
         )
-        pg_cursor.execute('select * from public.get_ps_data()')
+        query = self.query_skeleton.format(from_to=self.from_to)
+        pg_cursor.execute(query)
         _data_stream = True
         if self.limit == -1:
             while _data_stream:
@@ -188,6 +197,5 @@ class Pipe:
     def flow(self, chunk_size: int = 500):
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
-        for item in sink:
-            if item:
-                print(item)
+        for _ in sink:
+            pass

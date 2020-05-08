@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 
 from es_app.common import get_var, pretty_time
 from es_app.parse import ElasticParse
+from es_app.pipe import Pipe
 
 
 try:
@@ -95,6 +96,24 @@ def landing():
         }
     Slurp(local_save)
     return "File slurped"
+
+
+@app.route('/pipe', methods=['GET'])
+def run_pipe():
+    limit = request.args.get('limit', 0, int)
+    from_ = request.args.get('from', '')
+    to = request.args.get('to', '')
+    chunk = request.args.get('chunk', 500, int)
+    tmp = Pipe(limit=limit, from_='', to='')
+    # Currently omitting from_ and to until psql function updated
+    start_time = pretty_time()
+    tmp.flow(chunk_size=chunk)
+    end_time = pretty_time()
+    return {
+        'start_time': start_time,
+        'end_time': end_time,
+        'records_processed': tmp.transfer_count
+    }
 
 
 if __name__ == '__main__':
