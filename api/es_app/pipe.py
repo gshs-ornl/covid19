@@ -32,7 +32,6 @@ fips_api: str = (
     '&format=json'
 )
 
-
 TCFG = Dict[str, Callable[[Dict[str, Any]], Any]]
 
 
@@ -54,7 +53,7 @@ def gen_pg_client():
 
 
 @Backoff(requests.exceptions.RequestException)
-def get_fips(lat: float, lon: float, scope: int = 1) -> Dict[str, ...]:
+def get_fips(lat: float, lon: float, scope: int = 1) -> Dict[str, Any]:
     url = fips_api.format(
         latitude=lat,
         longitude=lon
@@ -77,7 +76,7 @@ def access_to_scrape(item: datetime) -> str:
     return item.strftime('%Y%m%d%H')
 
 
-def county_gen_id(item: Dict[str, ...]) -> str:
+def county_gen_id(item: Dict[str, Any]) -> str:
     head = dt_to_str(item.get('access_time'))
     raw = head + ''.join([
         item.get(key, '') for key in
@@ -142,9 +141,9 @@ class Pipe:
                         break
 
     def _transform_data_to_document(self,
-                                   data_point: Dict,
-                                   lat_name: str = 'lat',
-                                   lon_name: str = 'lon') -> Dict:
+                                    data_point: Dict,
+                                    lat_name: str = 'lat',
+                                    lon_name: str = 'lon') -> Dict:
         doc = dict()
         for key, val in self.transform_config.items():
             doc[key] = val(data_point)
