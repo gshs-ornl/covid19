@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# usage {{{1 ------------------------------------------------------------------
+#/ Usage: 
+#/
+#/    -b|--backup)
+#/       specify the backup file
+#/
+#/    -c|--container)
+#/       override the default container
+#/
+#/    -H|--host)
+#/       override the default host
+#/
+#/    -d|--db)
+#/       override the default database
+#/
+#/    -u|--user)
+#/       override the default user
+#/
+#/    -p|--password)
+#/       override the default password
+#/
+#/    -h|-?|--help)
+#/       show this help and exit
+#/
+# 1}}} ------------------------------------------------------------------------
+# environment {{{1 ------------------------------------------------------------
+# directory {{{2 --------------------------------------------------------------
+# get actual directory, taken from here: 
+#         https://stackoverflow.com/a/246128/2060081
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is not a symlink
+	DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+	SOURCE="$(readlink "$SOURCE")"
+	[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+  # if $SOURCE was a relative symlink, we need to resolve it relative to the 
+  # path where the symlink file was located
+done
+# get just the directory name
+DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )" # 2}}} -------
+# get the compose project name # {{{2 -----------------------------------------
+[ -z ${COMPOSE_PROJECT_NAME:-} ] && \
+  COMPOSE_PROJECT_NAME=$(basename $(dirname "$DIR") | sed -e s/-//g)
+# 2}}} ------------------------------------------------------------------------
+# number of cores {{{2 --------------------------------------------------------
+if [ -x "$(command -v nproc)" ]; then
+  echo -e "Finiding cores with \033[1;36m nproc \033[1;0m"
+  NCORES=$(nproc)
+elif [ -x "$(command -v sysctl)" ]; then
+	echo -e "Finding cores with \033[1;36m sysctl \033[1;0m"
+	NCORES=$(sysctl -n hw.ncpu)
+elif [ -x "$(command -v nproc)" ]; then
+	echo -e "Finiding cores with \033[1;36m nproc \033[1;0m"
+	NCORES=$(nproc)
+elif [ -x "$(command lscpu)" ]; then
+	echo -e "Finidng cores with \033[1;36m lscpu \033[1;0m"
+	NCORES=$(lscpu | egrep "^CPU\(s\)" | grep -Eo '[0-9]{1,4}')
+elif [ -f "/proc/cpuinfo" ]; then
+	echo -e "Finding cores with \033[1;36m /proc/cpuinfo \033[1;0m"
+	NCORES=$(cat /proc/cpuinfo | grep '^siblings' | grep -Eo '[0-9]{1,4}')
+else
+	# assume only one core
+	NCORES=1
+fi # 2}}} ---------------------------------------------------------------------
+CONTAINER="${DIR}_db_1"
+DB="covidb"
+USER="cvadmin"
+HOST="localhost"
+PORT=5432
+PASS="LovingLungfish"
+BACKUP_FILE=0
+# 1}}} ------------------------------------------------------------------------
+# functions {{{1 --------------------------------------------------------------
+banner() { # {{{2 -------------------------------------------------------------
+  echo -e "\\e[31mRestoration of Database for COVID-19 Scrapers\\e[39m"
+} # 2}}} ----------------------------------------------------------------------
+die() { # {{{2 ----------------------------------------------------------------
+  echo -e "\\e[31mFAILURE:\\e[39m $1"
+  exit 1
+} # 2}}} ----------------------------------------------------------------------
+warn() { # {{{2 ---------------------------------------------------------------
+  echo -e "\\e[33mWARNING:\\e[39m $1"
+} # 2}}} ----------------------------------------------------------------------
+show_help() { # {{{2 ----------------------------------------------------------
+  grep '^#/' "${BASH_SOURCE[0]}" | cut -c4- || \
+    die "Failed to display usage information"
+} # 2}}} ----------------------------------------------------------------------
+# 1}}} ------------------------------------------------------------------------
+# arguments {{{1 --------------------------------------------------------------
+# ensure args are passed {{{2 -------------------------------------------------
+if [ -z "$1" ]; then
+    die "Usage: bin/restoredb <backup file>"
+fi # 2}}} ---------------------------------------------------------------------
+while :; do
+  case $1 in # check arguments {{{2 -------------------------------------------
+    -b|--backup)
+      BACKUP_FILE="$2"
+      shift 2
+      ;;
+    -c|--container)
+      CONTAINER="$2"
+      shift 2
+      ;;
+    -u|--user)
+      USER="$2"
+      shift 2
+      ;;
+    -p|--password)
+      PASS="$2"
+      shift 2
+      ;;
+    -H|--host)
+      HOST="$2"
+      shift 2
+      ;;
+    -d|--db)
+      DB="$2"
+      shift 2
+      ;;
+    -h|-\?|--help) # help {{{3 ------------------------------------------------
+      banner
+      show_help
+      exit
+      ;; # 3}}} ---------------------------------------------------------------
+    -?*) # unknown argument {{{3 ----------------------------------------------
+      warn "Unknown option (ignored): $1"
+      shift
+      ;; # 3}}} ---------------------------------------------------------------
+    *) # default {{{3 ---------------------------------------------------------
+      break # 3}}} ------------------------------------------------------------
+  esac # 2}}} -----------------------------------------------------------------
+done
+# 1}}} ------------------------------------------------------------------------
+# logic {{{1 ------------------------------------------------------------------
+banner
+if [[ "$BACKUP_FILE" -eq "0" ]]; then
+  die "Backup file must be supplied with -b|--backup"
+fi
+echo "Destroying existing database container"
+docker-compose stop "${CONTAINER}"
+docker-compose rm -f "${CONTAINER}"
+docker volume rm "covidb_pg"
+docker volume creeate --name="covid_pg"
+docker-compose build "${CONTAINER}"
+
+MAX_RETRIES=60
+RETRIES_REMAINING=${MAX_RETRIES}
+until docker-compose exec "${CONTAINER}" psql -d "${DB}" -c \
+  "SELECT count(*) staging.attr_val;"
+do
+  sleep 1
+  RETRIES_REMAINING=$((RETRIES_REMAINING - 1))
+  CURRENT_TRY=$((MAX_RETRIES - RETRIES_REMAINING))
+  echo "\e[32mTry \e[33m${CURRENT_TRY}\e[32m Database Connection\e[39m"
+  if [ "${RETRIES_REMAINING}" -lt 1 ]; then
+    echo "\e[33mGIVING UP ON DATABASE CONNECTION\e[39m"
+    exit 2
+  fi
+done
+echo "Using $1 to restore to ${CONTAINER}"
+sleep 5
+docker cp "$1" "${CONTAINER}/tmp/latest.backup"
+docker-compose exec --user=root "$CONTAINER" chown postgres \
+  //tmp/latest.backup
+docker-compose exec --user=root "$CONTAINER" chmod 0644 \
+  //tmp/latest.backup
+docker-compose exec "${CONTAINER}" pg_restore -d "${DB}" --clean --if-exists \
+  -j "$NCORES" //tmp/latest.backup
+docker-compose exec --user=root "${CONTAINER}"
+# 1}}} ------------------------------------------------------------------------
