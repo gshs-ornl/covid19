@@ -1,6 +1,6 @@
 from os import path
 
-from flask import Flask, request
+from flask import Flask, request, Response
 from werkzeug.utils import secure_filename
 
 from es_app.common import get_var, pretty_time
@@ -103,17 +103,25 @@ def run_pipe():
     limit = request.args.get('limit', 0, int)
     from_ = request.args.get('from', '')
     to = request.args.get('to', '')
-    chunk = request.args.get('chunk', 500, int)
+    chunk = request.args.get('chunk', 10, int)
     tmp = Pipe(limit=limit, from_='', to='')
     # Currently omitting from_ and to until psql function updated
-    start_time = pretty_time()
-    tmp.flow(chunk_size=chunk)
-    end_time = pretty_time()
-    return {
-        'start_time': start_time,
-        'end_time': end_time,
-        'records_processed': tmp.transfer_count
-    }
+
+    def yield_shell():
+        yield f'Beginning requst: {pretty_time()}\n'
+        yield from tmp.flow(chunk_size=chunk)
+        yield f'Request complete: {pretty_time()}\n'
+        yield f'Documents uploaded: {tmp.transfer_count}\n'
+
+    # start_time = pretty_time()
+    # tmp.flow(chunk_size=chunk)
+    # end_time = pretty_time()
+    # return {
+    #     'start_time': start_time,
+    #     'end_time': end_time,
+    #     'records_processed': tmp.transfer_count
+    # }
+    return Response(yield_shell(), mimetype='text/plain')
 
 
 if __name__ == '__main__':
