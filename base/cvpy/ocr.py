@@ -29,7 +29,7 @@ class ReadImage():
                 else:
                     self.image = Image.open(self.image_file)
             except Exception as e:
-                self.logger.info(f'Image was not a URL: {e}')
+                self.logger.error(f'Image read exception: {e}')
         except FileNotFoundError as e:
             msg = f'File {image_file} not found: {e}'
             self.logger.error(msg)
