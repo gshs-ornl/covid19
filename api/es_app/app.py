@@ -20,7 +20,7 @@ flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
 flask_debug = get_var('FLASK_DEBUG', True)
 csv_dir = get_var('CSV_DIR', '/tmp/input')
 
-executor = ThreadPoolExecutor(1)
+executor = ThreadPoolExecutor(4)
 current_task: Future = Future()
 pipe_obj = Pipe()
 

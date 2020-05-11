@@ -207,4 +207,4 @@ class Pipe:
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
         for _ in sink:
-            pass
+            continue
