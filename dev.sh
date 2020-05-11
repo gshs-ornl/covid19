@@ -42,6 +42,9 @@
 #/   -S|--db-only)
 #/       only run the database (useful for testing)
 #/
+#/   -T|--test)
+#/       spin up with the test container and follow the logs
+#/
 #/   --no-cache)
 #/       build without cache; WARNING this may take > 1 hr depending on specs
 #/
@@ -63,6 +66,7 @@ LOG_CONTAINER="scraper"
 DEPLOY=0
 STRIPPED=0
 DB_ONLY=0
+TEST=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -150,6 +154,10 @@ while :; do
       DB_ONLY=1
       shift
       ;; # 3}}}
+    -T|--test) # {{{3
+      TEST=1
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -214,5 +222,12 @@ if [ "$DB_ONLY" -eq "1" ]; then
   info "Deploy with only the database"
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.db.yml up -d --build db
+fi
+if [ "$TEST" -eq "1" ]; then
+  info "Deploying with the test compose file"
+  docker-compose -f docker-compose.yml down && \
+    docker-compose -f docker-compose.tst.yml up -d --build api db tidy \
+    scraper shiny chrome tests && \
+  docker logs -f "{$DIR}_tests_1"
 fi
 # 1}}} ------------------------------------------------------------------------
