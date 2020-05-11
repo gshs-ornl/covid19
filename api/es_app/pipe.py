@@ -194,7 +194,7 @@ class Pipe:
             '_source': self._transform_data_to_document(data_point)
         }
 
-    def flow(self, chunk_size: int = 500):
+    def yield_flow(self, chunk_size: int = 500):
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
         track_session = 0
@@ -202,3 +202,9 @@ class Pipe:
             if not track_session == self.transfer_count:
                 yield f'Documents transferred: {self.transfer_count}\n'
                 track_session = self.transfer_count
+
+    def auto_flow(self, chunk_size: int = 500):
+        source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
+        sink = streaming_bulk(gen_es_client(), source, chunk_size)
+        for _ in sink:
+            pass
