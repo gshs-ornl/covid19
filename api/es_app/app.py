@@ -140,9 +140,10 @@ def schedule_background_pipe():
     to = request.args.get('to', '')
     chunk = request.args.get('chunk', 500, int)
     pipe_obj = Pipe(limit=limit, from_='', to='')
+    pipe_obj.start_time = pretty_time()
     # Currently omitting from_ and to until psql function updated
     current_task = executor.submit(pipe_obj.auto_flow, chunk)
-    return 'Pipe scheduled'
+    return f'Pipe scheduled at {pipe_obj.start_time}'
 
 
 @app.route('/check-pipe', methods=['GET'])
@@ -154,7 +155,12 @@ def check_background_pipe():
     if current_task.cancelled():
         return {'Exception raised': current_task.exception()}
     if current_task.done():
-        return f'Done. Documents transferred: {pipe_obj.transfer_count}'
+        return {
+            'message': 'Pipe complete',
+            'start_time': getattr(pipe_obj, 'start_time', ''),
+            'end_time': pretty_time(),
+            'documents_transferred': pipe_obj.transfer_count
+        }
     return 'No tasks are running or have existed'
 
 
