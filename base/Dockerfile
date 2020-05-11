@@ -23,12 +23,10 @@ ENV R_SOURCE /usr/local/src/R
 RUN mkdir -p $OUTPUT_DIR $INPUT_DIR $CLEAN_DIR $PIC_DIR
 
 RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
-      locales && \
-    sed -i 's/^E *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
-    locale-gen && echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
-    echo "export LANG=en_US.UTF-8" >> /root/.bashrc && \
-    echo "export LANGUAGE=en_US.UTF-8" >> /root/.bashrc && \
-    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc
+      locales && locale-gen en_US.UTF-8 && \
+    export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && \
+    export LANGUAGE=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && \
+    dpkg-reconfigure locales
 
 # install dependencies
 RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
@@ -41,7 +39,7 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     libtiff5 libtiff5-dev libpng16-16 libpng-dev zlib1g zlib1g-dev \
     leptonica-progs libleptonica-dev libudunits2-0 libudunits2-data \
     libudunits2-dev gdal-bin libgdal-dev libproj-dev gfortran-multilib \
-    libpcre2-32-0 libpcre2-dev && \
+    libpcre2-32-0 libpcre2-dev libgit2-dev && \
     apt-get autoremove
 
 
@@ -92,11 +90,6 @@ RUN set -eux && R --version
 
 RUN apt-get update -qqy && apt-get install -t unstable -y \
         --no-install-recommends libgcc-8-dev
-      #littler r-cran-littler  && \
-      #ln -s $R_LIB/littler/examples/install.r /usr/local/bin/install.r && \
-      #ln -s $R_LIB/littler/examples/install2.r /usr/local/bin/install2.r && \
-      #ln -s $R_LIB/littler/examples/installGithub.r \
-        #/usr/local/bin/installGithub.R 
 
 # install tippecanoe
 RUN set -eux && git clone https://github.com/mapbox/tippecanoe.git && \
@@ -107,22 +100,18 @@ ENV DB_HOST db
 ENV DB_DB covidb
 ENV DB_PORT 5432
 
+# set selenium info
+ENV SELENIUM_HOST hub
+ENV SELENIUM_PORT 4444
+
 # install python dependencies
 COPY requirements.txt .
 RUN set -eux && pip install --upgrade pip && \
         pip install --no-cache-dir -r requirements.txt
 
 # install R packages
-#RUN $R_LIB/littler/examples/install.r \
-      #-r https://cloud.r-project.org docopt RPostgres data.table \
-      #magrittr leaflet tidyverse rvest sp sf stringr jsonlite rebus lubridate \
-      #anytime snakecase remotes readxl zip rgdal tidycensus stringr \
-      #googlesheets4
 COPY install_reqs.R /tmp/install_reqs.R
 RUN Rscript /tmp/install_reqs.R
-
-#RUN R -e "install.packages('dplyr', repos = 'https://cloud.r-project.org')"
-#RUN R -e "devtools::install_github('tidyverse/googlesheets4')"
 
 # install our python package
 COPY setup.py .
@@ -131,9 +120,12 @@ RUN set -eux && python setup.py install --prefix=/usr/local
 
 # install our R package
 COPY covidR.tar.gz .
+COPY install_or_die.R .
 #RUN install.r covidR.tar.gz
-RUN set -eux R --slave -e \
-      'install.packages("/tmp/covidR.tar.gz", repos = NULL, type = "source")'
+#RUN set -eux R --slave -e \
+      #'install.packages("/tmp/covidR.tar.gz", ' \
+      #'dependencies = TRUE, repos = NULL, type = "source")'
+RUN ./install_or_die.R covidR.tar.gz
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
