@@ -142,6 +142,7 @@ def schedule_background_pipe():
     pipe_obj = Pipe(limit=limit, from_='', to='')
     # Currently omitting from_ and to until psql function updated
     current_task = executor.submit(pipe_obj.auto_flow(chunk))
+    return 'Pipe scheduled'
 
 
 @app.route('/check-pipe', methods=['GET'])
