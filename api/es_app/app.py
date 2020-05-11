@@ -113,19 +113,11 @@ def run_pipe():
     # Currently omitting from_ and to until psql function updated
 
     def yield_shell():
-        yield f'Beginning requst: {pretty_time()}\n'
+        yield f'Beginning request: {pretty_time()}\n'
         yield from tmp.yield_flow(chunk_size=chunk)
         yield f'Request complete: {pretty_time()}\n'
         yield f'Documents uploaded: {tmp.transfer_count}\n'
 
-    # start_time = pretty_time()
-    # tmp.flow(chunk_size=chunk)
-    # end_time = pretty_time()
-    # return {
-    #     'start_time': start_time,
-    #     'end_time': end_time,
-    #     'records_processed': tmp.transfer_count
-    # }
     return Response(yield_shell(), mimetype='text/plain')
 
 
