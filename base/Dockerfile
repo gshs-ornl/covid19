@@ -16,6 +16,10 @@ ENV CLEAN_DIR /tmp/clean
 ENV PIC_DIR /tmp/screenshots
 ENV R_HOME /usr/lib/R
 ENV R_SOURCE /usr/local/src/R
+ENV DEBIAN_FRONTEND noninteractive
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8 
 # Commenting out until we move to using the releases from github
 #ENV COVIDR_VERS 0.1.16
 #ENV COVIDR_URL https://github.com/nset-ornl/covidR/releases/download
@@ -23,10 +27,11 @@ ENV R_SOURCE /usr/local/src/R
 RUN mkdir -p $OUTPUT_DIR $INPUT_DIR $CLEAN_DIR $PIC_DIR
 
 RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
-      locales && locale-gen en_US.UTF-8 && \
-    export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && \
-    export LANGUAGE=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && \
-    dpkg-reconfigure locales
+      locales && rm -rf /var/lib/apt/lists/* && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias \
+      en_US.UTF-8 && \
+    sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+        locale-gen
 
 # install dependencies
 RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
@@ -120,12 +125,10 @@ RUN set -eux && python setup.py install --prefix=/usr/local
 
 # install our R package
 COPY covidR.tar.gz .
-COPY install_or_die.R .
-#RUN install.r covidR.tar.gz
-#RUN set -eux R --slave -e \
-      #'install.packages("/tmp/covidR.tar.gz", ' \
-      #'dependencies = TRUE, repos = NULL, type = "source")'
-RUN ./install_or_die.R covidR.tar.gz
+#COPY install_or_die.R .
+#RUN ./install_or_die.R covidR.tar.gz
+RUN set -eux && R --slave -e \
+      'install.packages("/tmp/covidR.tar.gz", repos = NULL, type = "source")'
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
