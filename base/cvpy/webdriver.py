@@ -4,10 +4,14 @@
    This class is responsible for initiating a webdriver. If called by itself,
    it tests for example.com using both curl and chromedriver (currently).
 """
+import os
+import time
 import logging
+import tempfile
 import requests
 import traceback
-import time
+import shutil
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -61,9 +65,9 @@ class WebDriver():
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
-                 timeout=30, implicit_wait=5, remote=True,
+                 timeout=30, implicit_wait=5,
                  logger=logging.getLogger(ce('LOGGER', 'main')),
-                 container=False, remote='http://chrome:4444/wd/hub'):
+                 container=False, remote='http://hub:4444/wd/hub'):
         """
             initiate the WebDriver class
         """
@@ -77,6 +81,7 @@ class WebDriver():
         self.driver = None
         self.container = container
         self.remote = remote
+        self.logger.info(f'Connecting with driver: {driver}')
         if script is None:
             self.script = ''
         else:
@@ -85,9 +90,9 @@ class WebDriver():
             self.script = script
         if driver.lower() in ['requests', 'curl']:
             self.out = self.request_url()
-        elif driver.lower() == 'chromedriver' and not container:
+        elif driver.lower() == 'chromedriver' and container is False:
             self.request_chrome()
-        elif driver.lower() == 'chromedriver' and container:
+        elif driver.lower() == 'chromedriver' and container is True:
             self.request_chrome_hub()
         elif driver.lower() == 'phantomjs':
             self.request_phantomjs()
@@ -113,7 +118,7 @@ class WebDriver():
             self.driver.set_window_size(window_width, window_height)
             self.logger.info('Connecting to %s' % self.url)
             self.driver.get(self.url)
-            time.sleep(sleep_time)
+            time.sleep(self.timeout)
             self.logger.info('Connected to %s' % self.url)
 
     def __str__(self):
@@ -431,40 +436,5 @@ class WebDriver():
 
 
 if __name__ == "__main__":
-    import time
-    from bs4 import BeautifulSoup as Soup
-    from selenium.webdriver.common.action_chains import ActionChains
-    from selenium.webdriver.support.ui import Select
-    test_url = 'http://www.example.com'
-    print('Testing if requests work')
-    with WebDriver(url=test_url, driver='curl') as d:
-        source = d.dump_out()
-    print(source)
-    with WebDriver(url=test_url, driver='chromedriver',
-                   options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
-                   service_args=['--ignore-ssl-errors=true',
-                                 '--ssl-protocol=any']) as d:
-        source = d.driver.page_source
-    print(source)
-    print('Running example EI ID 182')
-    url_182 = 'https://ebill.kcelectric.coop/woViewer/mapviewer.html?'
-    url_182 = url_182 + 'config=Outage+Web+Map'
-    chrome_opts = ['--no-sandbox', '--disable-gpu', '--disable-logging',
-                   '--disable-setuid-sandbox', '--disable-dev-shm-usage',
-                   '--no-zygote', 'headless']
-    service_args = ['--ignore-ssl-errors=true', '--ssl-protocol=any']
-    with WebDriver(url=url_182, driver='chromedriver',
-                   options=chrome_opts,
-                   service_args=service_args) as d:
-        xpath = '//div[@id="OMS.Customers Summary"]'
-              "GMFGE5DLD" not in str(row) and "%" not in row.get_text()):
-            custs_served.append(row.get_text())
-        else:
-            pass
-    print('Regions found: %s' % regions)
-    print('Customers out: %s' % custs_out)
-    print('Custs served: %s' % custs_served)
+    # TODO add tests here
+    pass

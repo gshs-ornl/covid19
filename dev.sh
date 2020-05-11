@@ -207,12 +207,12 @@ fi
 if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
   docker-compose -f docker-compose.yml down && \
-    docker-compose -f docker-compose.yml up -d --build api db tidy scraper
+    docker-compose -f docker-compose.yml up -d --build api db tidy scraper \
+    shiny chrome
 fi
 if [ "$DB_ONLY" -eq "1" ]; then
   info "Deploy with only the database"
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.db.yml up -d --build db
-
 fi
 # 1}}} ------------------------------------------------------------------------
