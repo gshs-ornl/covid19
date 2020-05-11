@@ -6,6 +6,9 @@ LABEL maintainer="Joshua N. Grant <grantjn@ornl.gov>" \
 
 WORKDIR /tmp
 
-COPY selenium_hub.py
+RUN mkdir -p /tmp/tests
 
-CMD ['selenium_hub.py']
+COPY  tests/* /tmp/tests/
+COPY entrypoint.sh .
+
+ENTRYPOINT /tmp/entrypoint.sh

@@ -232,8 +232,10 @@ class WebDriver():
                 for opt in self.opts:
                     self.options.add_argument(opt)
                 if self.service_args is None:
-                    self.driver = webdriver.Remote(self.remote,
-                                                   options=self.options)
+                    self.driver = webdriver.Remote(
+                        command_executor=self.remote,
+                        desired_capabilities=DesiredCapabilites.CHROME,
+                        options=self.options)
                 else:
                     self.driver = \
                         webdriver.Chrome(self.remote,
