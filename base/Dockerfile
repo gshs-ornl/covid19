@@ -132,7 +132,7 @@ RUN set -eux && python setup.py install --prefix=/usr/local
 # install our R package
 COPY covidR.tar.gz .
 #RUN install.r covidR.tar.gz
-RUN set -eux R --slave -e \
+RUN set -eux && R --slave -e \
       'install.packages("/tmp/covidR.tar.gz", repos = NULL, type = "source")'
 
 # cleanup
