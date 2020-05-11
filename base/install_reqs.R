@@ -6,4 +6,6 @@ install.packages(c('docopt', 'Rpostgres', 'data.table', 'magrittr', 'leaflet',
                    'tidyverse', 'rvest', 'sp', 'sf', 'stringr', 'jsonlite',
                    'rebus', 'lubridate', 'anytime', 'snakecase', 'remotes',
                    'readxl', 'zip', 'rgdal', 'tidycensus', 'stringr', 
-                   'googlesheets4'), repos = "https://cloud.r-project.org")
+                   'googlesheets4', 'bit64'), 
+                 dependencies = TRUE,
+                 repos = "https://cloud.r-project.org")
