@@ -149,7 +149,9 @@ class Pipe:
         if self.limit == -1:
             while _data_stream:
                 _data_stream = pg_cursor.fetchmany(chunk_size)
-                yield from map(dict, _data_stream)
+                for item in map(dict, _data_stream):
+                    yield item
+                    self.transfer_count += 1
         else:
             while _data_stream and self.transfer_count < self.limit:
                 _data_stream = pg_cursor.fetchmany(chunk_size)
@@ -207,4 +209,4 @@ class Pipe:
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
         for _ in sink:
-            pass
+            continue
