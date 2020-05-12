@@ -5,6 +5,47 @@ from time import time
 import zlib
 
 import flask_table
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+from es_app.common import get_var
+
+try:
+    from cvpy.database import Database
+except ModuleNotFoundError:
+    Database = None
+
+PGUSER: str = get_var('PGUSER', '')
+PGPASS: str = get_var('PGPASS', '')
+PGDB: str = get_var('PGDB', '')
+PGHOST: str = get_var('PGHOST', '')
+PGPORT: str = get_var('PGPORT', '5432')
+
+
+page_skeleton = """
+<!doctype html>
+<h1>nsetcovid19 Data View and Export</h1>
+<br>
+<form method=post>
+    <fieldset>
+    <legend>Column Selection</legend>
+        {checkboxes}
+        <br>
+        <div>
+            <button type="submit" value="Submit">Filter columns</button>
+            <input type="radio" id="view" name="mode" value='view' checked>
+            <label for="view">View</label>
+            <input type="radio" id="csv" name="mode" value='csv'>
+            <label for="csv">CSV</label>
+            <input type="radio" id="gzip" name="mode" value='gzip'>
+            <label for="gzip">gzip CSV</label>
+        </div>
+    </fieldset>
+</form>
+<br>
+{table}
+-----Truncated-----
+"""
 
 
 def checkbox(name: str, checked: bool = True) -> str:
