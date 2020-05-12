@@ -249,12 +249,12 @@ tested_raw = df[0]
 cases_raw = df[1]
 no_longer_isolation = df[2]
 deaths_df = df[3]
-hospitalization = df[4]
-age_group_pct = df[5]
-median_age = df[6]
-race_pct = df[7][0:8]
-county_cases_deaths = df[9]
-exposure_pct_cases = df[8]
+hospitalization = df[6]
+age_group_pct = df[7]
+median_age = df[8]
+race_pct = df[9][0:8]
+exposure_pct_cases = df[10]
+county_cases_deaths = df[11]
 
 new_date = []
 # Get the latest date
@@ -305,6 +305,21 @@ deaths_df['other'] = 'Newly reported deaths (daily)'
 state_deaths = deaths_df[['deaths']]
 state_daily_deaths = deaths_df[['updated', 'other', 'other_value']]
 
+# County-level: newly reported deaths by county of residence
+newly_reported_deaths_counties_other_text = 'Number of newly reported deaths'
+newly_reported_deaths_counties = df[4].rename(
+    columns={'County of residence': 'county', 'Age group': 'age_range',
+             newly_reported_deaths_counties_other_text: 'other_value'})
+newly_reported_deaths_counties['other'] = newly_reported_deaths_counties_other_text
+
+
+# State-level: newly reported deaths by residence type
+newly_reported_deaths_res = df[5].rename(
+    columns={'Residence type': 'other',
+             'Number of newly reported deaths': 'other_value'})
+newly_reported_deaths_res['other'] = 'residence_type_' + newly_reported_deaths_res['other']
+
+
 # State-level: hospitalization
 hospitalization = hospitalization.rename(
     columns={'Date reported': 'updated',
@@ -352,11 +367,14 @@ county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
                                                           'Cases': 'cases',
                                                           'Deaths': 'deaths'})
 
-county_df = [county_cases_deaths]
+county_df = [county_cases_deaths, newly_reported_deaths_counties]
 state_df = [tested_state, state_lab_df, ext_lab_df,
-            no_longer_isolation, state_deaths, state_daily_deaths,
-            hospitalized, icu_daily, not_icu_daily,
-            age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
+            no_longer_isolation, state_deaths,
+            state_daily_deaths, newly_reported_deaths_res
+
+            ]#,
+#            hospitalized, icu_daily, not_icu_daily,
+#            age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
@@ -370,5 +388,6 @@ if path and not path.endswith('/'):
 file_name = path + state + dt_string + '.csv'
 
 df = pd.concat([pd.DataFrame(row_csv, columns=columns),
-                county_df, state_df])
+                # county_df,
+                state_df])
 df.to_csv(file_name, index=False)
