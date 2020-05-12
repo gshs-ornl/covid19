@@ -106,7 +106,7 @@ ENV DB_DB covidb
 ENV DB_PORT 5432
 
 # set selenium info
-ENV SELENIUM_HOST hub
+ENV SELENIUM_HOST chrome
 ENV SELENIUM_PORT 4444
 
 # install python dependencies
