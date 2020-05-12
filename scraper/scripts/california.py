@@ -381,8 +381,9 @@ cases = int(re.search(r'[\d,]*[\d]', elements[0].text).group(0).replace(',', '')
 deaths = int(re.search(r'[\d,]*[\d]', elements[1].text).group(0).replace(',', ''))
 tested = int(re.search(r'[\d,]*[\d]', elements[2].text).group(0).replace(',', ''))
 
-other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[0].text).group(1))
+summary_percentage_regex = r'\((.*)\%'
 
+other_value = float(re.search(summary_percentage_regex, elements[0].text).group(1).replace(' ', ''))
 row_csv.append([
         'state', country, state, nan,
         url, get_raw_data(html_text), access_time, nan,
@@ -402,8 +403,7 @@ row_csv.append([
         nan, nan, nan, 
         nan, nan])
 
-other_value = float(re.search(r'\(\s*(.*?)\s*\%', elements[1].text).group(1))
-
+other_value = float(re.search(summary_percentage_regex, elements[1].text).group(1).replace(' ', ''))
 row_csv.append([
         'state', country, state, nan,
         url, get_raw_data(html_text), access_time, nan,
