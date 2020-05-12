@@ -51,10 +51,10 @@ for feature in raw_data['features']:
     attribute = feature['attributes']
 
     county = attribute['NAME']
-    cases = attribute['INFECT_NUM']
-    neg_test = attribute['NegativeTests']
-    recovered = attribute['Recovered']
-    deaths = attribute["DEATH_NUM"]
+    cases = attribute['TOTAL_Cases']
+    neg_test = attribute['NEG_Tests']
+    recovered = attribute['TOTAL_Recovered']
+    deaths = attribute["NEW_Deaths"]
     row_csv_raw.append([county, cases, neg_test, recovered, deaths])
 
 df = pd.DataFrame(row_csv_raw, columns=['county', 'cases', 'negative',
@@ -193,7 +193,7 @@ for race in df_most_recent[df_most_recent.cat == "RACE"]["cat_det"].values:
     row_csv.append([
         'state', country, state, nan,
         state_url_age, nan, access_time, nan,
-        nan, nan, nan, nan,
+        race_cases, nan, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
@@ -205,7 +205,7 @@ for race in df_most_recent[df_most_recent.cat == "RACE"]["cat_det"].values:
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        race, race_cases])
+        "race", race])
 
 # -----------------------------------------------------
 
