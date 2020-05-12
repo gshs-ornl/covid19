@@ -1,6 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor, Future
 from os import path
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, url_for
 from werkzeug.utils import secure_filename
 
 from es_app.common import get_var, pretty_time
@@ -18,6 +19,10 @@ except ModuleNotFoundError:
 flask_app_name = get_var('FLASK_APP_NAME', 'es_app')
 flask_debug = get_var('FLASK_DEBUG', True)
 csv_dir = get_var('CSV_DIR', '/tmp/input')
+
+executor = ThreadPoolExecutor(4)
+current_task: Future = Future()
+pipe_obj = Pipe()
 
 app = Flask(flask_app_name, static_url_path='')
 
@@ -98,7 +103,7 @@ def landing():
     return "File slurped"
 
 
-@app.route('/pipe', methods=['GET'])
+@app.route('/hack-pipe', methods=['GET'])
 def run_pipe():
     limit = request.args.get('limit', 0, int)
     from_ = request.args.get('from', '')
@@ -108,21 +113,48 @@ def run_pipe():
     # Currently omitting from_ and to until psql function updated
 
     def yield_shell():
-        yield f'Beginning requst: {pretty_time()}\n'
-        yield from tmp.flow(chunk_size=chunk)
+        yield f'Beginning request: {pretty_time()}\n'
+        yield from tmp.yield_flow(chunk_size=chunk)
         yield f'Request complete: {pretty_time()}\n'
         yield f'Documents uploaded: {tmp.transfer_count}\n'
 
-    # start_time = pretty_time()
-    # tmp.flow(chunk_size=chunk)
-    # end_time = pretty_time()
-    # return {
-    #     'start_time': start_time,
-    #     'end_time': end_time,
-    #     'records_processed': tmp.transfer_count
-    # }
     return Response(yield_shell(), mimetype='text/plain')
 
 
+@app.route('/schedule-pipe', methods=['GET'])
+def schedule_background_pipe():
+    global current_task
+    global pipe_obj
+    if current_task is not None and current_task.running():
+        return 'Pipe in progress. Please try again later.'
+    limit = request.args.get('limit', 0, int)
+    from_ = request.args.get('from', '')
+    to = request.args.get('to', '')
+    chunk = request.args.get('chunk', 500, int)
+    pipe_obj = Pipe(limit=limit, from_='', to='')
+    pipe_obj.start_time = pretty_time()
+    # Currently omitting from_ and to until psql function updated
+    current_task = executor.submit(pipe_obj.auto_flow, chunk)
+    return f'Pipe scheduled at {pipe_obj.start_time}'
+
+
+@app.route('/check-pipe', methods=['GET'])
+def check_background_pipe():
+    global current_task
+    global pipe_obj
+    if current_task.running():
+        return f'In progress. Current transfer count: {pipe_obj.transfer_count}'
+    if current_task.cancelled():
+        return {'Exception raised': current_task.exception()}
+    if current_task.done():
+        return {
+            'message': 'Pipe complete',
+            'start_time': getattr(pipe_obj, 'start_time', ''),
+            'end_time': pretty_time(),
+            'documents_transferred': pipe_obj.transfer_count
+        }
+    return 'No tasks are running or have existed'
+
+
 if __name__ == '__main__':
-    app.run(port=8888)
+    app.run(port=8080)
