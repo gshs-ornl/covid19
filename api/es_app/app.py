@@ -100,9 +100,9 @@ def slurp_csv(file, filename):
     return f"Slurped {_name}"
 
 
-def slurp_excel(tmp_path, filename):
+def slurp_excel(file, filename):
     _name = secure_filename(filename).rsplit('.', 1)[0]
-    with xlrd.open_workbook(tmp_path) as workbook:
+    with xlrd.open_workbook(file_contents=file.read()) as workbook:
         for sheet in workbook.sheets():
             _name_sheet = _name + '_sheet_00.csv'
             _path = path.join(csv_dir, _name_sheet)
@@ -119,26 +119,15 @@ def landing():
     if not request.method == 'POST':
         return landing_html
     file_type = request.form.get('mode')
-    _upload = request.files.get('CSVFile')
-    if _upload is None:
+    upload = request.files.get('CSVFile')
+    if upload is None:
         raise FileNotFoundError
-    upload = _upload
     if file_type in ['zip-csv', 'zip-excel']:
-        pass
-    file_name = secure_filename(upload.filename)
-    local_save = path.join(csv_dir, file_name)
-    with open(local_save, 'w', encoding='utf-8') as writer:
-        writer.write(upload.read())
-    if request.form.get('testmode'):
-        with open(local_save, encoding='utf-8') as f_test:
-            contents = f_test.read()
-        return {
-            'saved_file': local_save,
-            'upload_contents': upload.read().decode('utf-8'),
-            'saved_contents': contents
-        }
-    Slurp(local_save)
-    return "File slurped"
+        return "Support pending"
+    if file_type == 'excel':
+        return Response(slurp_excel(upload, upload.filename))
+    if file_type == 'csv':
+        return slurp_csv(upload, upload.filename)
 
 
 @app.route('/hack-pipe', methods=['GET'])
