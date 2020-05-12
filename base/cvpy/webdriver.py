@@ -62,6 +62,7 @@ class WebDriver():
                  options=['--no-sandbox', '--disable-logging',
                           '--disable-gpu', '--disable-dev-shm-usage',
                           'headless'],
+                 additional_options=None,
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
@@ -75,6 +76,14 @@ class WebDriver():
         self.url = url
         self.output_type = output
         self.opts = options
+        if additional_options is not None:
+            if isinstance(additional_options, str):
+                self.opts.append(additional_options)
+            elif isinstance(additional_options, list):
+                self.opts.extend(additional_options)
+            else:
+                self.logger.error(
+                    f'Unsupported additional argument: {additional_options}')
         self.service_args = service_args
         self.out = None
         self.timeout = timeout
