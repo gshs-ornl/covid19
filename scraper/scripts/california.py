@@ -381,7 +381,7 @@ cases = int(re.search(r'[\d,]*[\d]', elements[0].text).group(0).replace(',', '')
 deaths = int(re.search(r'[\d,]*[\d]', elements[1].text).group(0).replace(',', ''))
 tested = int(re.search(r'[\d,]*[\d]', elements[2].text).group(0).replace(',', ''))
 
-summary_percentage_regex = r'\(.*([+-]\s*[\d.]+).*\%'
+summary_percentage_regex = r'\((.*)\%'
 
 other_value = float(re.search(summary_percentage_regex, elements[0].text).group(1).replace(' ', ''))
 row_csv.append([
