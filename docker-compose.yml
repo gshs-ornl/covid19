@@ -11,14 +11,15 @@ volumes:
     external: true
 
 networks:
-  web:
+  covid_web:
+    external: true
  
 services:  
 
   api:
     build: ./api
     networks:
-      - web
+      - covid_web
     env_file:
       - api/api.env
     volumes:
@@ -29,7 +30,7 @@ services:
   scraper:
     build: ./scraper
     networks:
-      - web
+      - covid_web
     env_file:
       - scraper/scrape.env
     volumes:
@@ -40,7 +41,7 @@ services:
   tidy:
     build: ./tidy
     networks:
-      - web
+      - covid_web
     env_file:
       - tidy/tidy.env
     volumes:
@@ -51,7 +52,7 @@ services:
   shiny:
     build: ./shiny
     networks:
-      - web
+      - covid_web
     env_file:
       - shiny/shiny.env
       
@@ -74,7 +75,7 @@ services:
       - BACKUP_PATH=latest
 
     networks:
-      - web
+      - covid_web
     ports:
       - "5432:5432"
     volumes:
@@ -87,12 +88,12 @@ services:
     ports:
       - "4444:4444"
     networks:
-      - web
+      - covid_web
       
   chrome:
     image: selenium/standalone-chrome:latest
     networks:
-      - web
+      - covid_web
     environment:
       HUB_HOST: selenium-hub
       HUB_PORT_4444_TCP_ADDR: selenium-hub
