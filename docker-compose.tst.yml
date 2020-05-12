@@ -1,0 +1,22 @@
+version: '3.1'
+
+networks:
+  covid_web:
+    external: true
+ 
+services:  
+
+  chrome:
+    image: selenium/standalone-chrome:latest
+    networks:
+      - covid_web
+    ports:
+      - "5900:5900"
+      - "4444:4444"
+    privileged: true
+    shm_size: 2g
+
+  tests:
+    build: ./tests
+    networks:
+      - covid_web
