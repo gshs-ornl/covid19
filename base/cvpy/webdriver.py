@@ -67,7 +67,7 @@ class WebDriver():
                  window_height=1080, window_width=1920,
                  timeout=30, implicit_wait=5,
                  logger=logging.getLogger(ce('LOGGER', 'main')),
-                 container=False, remote='http://hub:4444/wd/hub'):
+                 container=False, remote='http://chrome:4444/wd/hub'):
         """
             initiate the WebDriver class
         """
