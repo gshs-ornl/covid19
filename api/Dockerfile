@@ -28,7 +28,8 @@ WORKDIR /tmp
 
 # copy over required files and install requirements
 COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -U pip
+RUN pip install --trusted-host files.pythonhosted.org -r requirements.txt
 COPY ./es_app/* ./es_app/es_app/
 COPY ./setup.py ./es_app/setup.py
 

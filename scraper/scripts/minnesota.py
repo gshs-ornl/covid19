@@ -58,22 +58,23 @@ updated = determine_updated_timestep(response)
 raw_data = response.json()
 other_keys = {'TotalCases': 'Released from isolation',
               'EvrHospNo': 'Non-hospitalized',
-              'EvrHospMisng': 'Missing hospital cases'}
+              'EvrHospMis': 'Missing hospital cases'}
 genders = ['Male', 'Female']
-cases_keys = ['RaceAsian', 'RacePacific', 'RaceWht', 'RaceBlk',
-              'RaceAsnPacIsld', 'RaceAmerIndAlaNativ', 'RaceOther',
-              'RaceUnk', 'EthnHisp', 'EthnNonHisp', 'EthnUnk']
-deaths_keys = ['DeathWht', 'DeathBlk', 'DeathAsian', 'DeathPacific',
-               'DeathNative', 'DeathOther', 'DeathUnknown',
-               'DeathHisp', 'DeathNonHisp', 'DeathHispUnknown']
-exposure_types = {'ExpsrCrzShp': 'Travel',
-                  'ExpsrIntrntnl': 'Congregate Living',
-                  'ExpsrLklyExpsr': 'Health Care',
-                  'ExpsrAnthrState': "Community Unknown",
-                  'ExpsrInMN': "Community Spread", 'ExpsrMsng': "Unknown"}
+cases_keys = ['RaceAsian', 'RacePacifi', 'RaceWht', 'RaceBlk',
+              'RaceAsnPac', 'RaceAmerIn', 'RaceOther',
+              'RaceUnk', 'EthnHisp', 'EthnNonHis', 'EthnUnk']
+deaths_keys = ['DeathWht', 'DeathBlk', 'DeathAsian', 'DeathPacif',
+               'DeathNativ', 'DeathOther', 'DeathUnkno',
+               'DeathHisp', 'DeathNonHi', 'DeathHispU']
+exposure_types = {'ExpsrCrzSh': 'Travel',
+                  'ExpsrIntrn': 'Congregate Living',
+                  'ExpsrLklyE': 'Health Care',
+                  'ExpsrAnthr': "Community Spread",
+                  'ExpsrInMN': "Community Unknown",
+                  'ExpsrMsng': "Unknown"}
 resident_types = {'ResPriv': 'Private', 'ResLTCF': 'LCTF/Assisted Living',
-                  'ResHmlShelt': 'Homeless', 'ResJail': "Jail",
-                  'ResCollDrm':'Residential Behavioural Health',
+                  'ResHmlShel': 'Homeless', 'ResJail': "Jail",
+                  'ResCollDrm': 'Residential Behavioural Health',
                   'ResOther': 'Other', 'ResMsng': 'Missing'}
 
 attribute = raw_data['features'][0]['attributes']
@@ -97,7 +98,7 @@ row_csv.append([
             nan, nan,
             nan, nan, nan, nan,
             nan, nan])
-for other_list in [other_keys, exposure_types,resident_types]:
+for other_list in [other_keys, exposure_types, resident_types]:
     for other_key in other_list.keys():
         other = other_list.get(other_key)
         other_value = attribute[other_key]
@@ -245,14 +246,15 @@ dict_info_state = {'provider': 'state', 'country': country,
                     "page": str(df), "access_time": access_time}
 
 tested_raw = df[0]
+cases_raw = df[1]
 no_longer_isolation = df[2]
 deaths_df = df[3]
-hospitalization = df[4]
-age_group_pct = df[5]
-median_age = df[6]
-race_pct = df[7][0:8]
-county_cases_deaths = df[9]
-exposure_pct_cases = df[8]
+hospitalization = df[6]
+age_group_pct = df[7]
+median_age = df[8]
+race_pct = df[9][0:8]
+exposure_pct_cases = df[10]
+county_cases_deaths = df[11]
 
 new_date = []
 # Get the latest date
@@ -279,6 +281,15 @@ ext_lab_df = tested_raw[['Completed tests reported from external laboratories (d
 ext_lab_df.columns = ['other_value']
 ext_lab_df['other'] = 'Completed tests reported from external laboratories (daily)'
 
+# State-level: cases
+cases_raw = cases_raw.rename(columns={
+    'Date reported': 'updated',
+    'Change in positive cases (daily)': 'other_value',
+    'Total confirmed positive': 'cases'})
+cases_raw['other'] = 'Change in positive cases (daily)'
+cases_raw = cases_raw[cases_raw['updated'] == latest_date]
+
+
 # State-level: no longer monitored
 no_longer_isolation = no_longer_isolation.rename(columns={'Date reported': 'updated',
                                'No longer needing isolation': 'no_longer_monitored'})
@@ -293,6 +304,21 @@ deaths_df = deaths_df[deaths_df['updated'] == latest_date]
 deaths_df['other'] = 'Newly reported deaths (daily)'
 state_deaths = deaths_df[['deaths']]
 state_daily_deaths = deaths_df[['updated', 'other', 'other_value']]
+
+# County-level: newly reported deaths by county of residence
+newly_reported_deaths_counties_other_text = 'Number of newly reported deaths'
+newly_reported_deaths_counties = df[4].rename(
+    columns={'County of residence': 'county', 'Age group': 'age_range',
+             newly_reported_deaths_counties_other_text: 'other_value'})
+newly_reported_deaths_counties['other'] = newly_reported_deaths_counties_other_text
+
+
+# State-level: newly reported deaths by residence type
+newly_reported_deaths_res = df[5].rename(
+    columns={'Residence type': 'other',
+             'Number of newly reported deaths': 'other_value'})
+newly_reported_deaths_res['other'] = 'residence_type_' + newly_reported_deaths_res['other']
+
 
 # State-level: hospitalization
 hospitalization = hospitalization.rename(
@@ -341,11 +367,14 @@ county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
                                                           'Cases': 'cases',
                                                           'Deaths': 'deaths'})
 
-county_df = [county_cases_deaths]
+county_df = [county_cases_deaths, newly_reported_deaths_counties]
 state_df = [tested_state, state_lab_df, ext_lab_df,
-            no_longer_isolation, state_deaths, state_daily_deaths,
-            hospitalized, icu_daily, not_icu_daily,
-            age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
+            no_longer_isolation, state_deaths,
+            state_daily_deaths, newly_reported_deaths_res
+
+            ]#,
+#            hospitalized, icu_daily, not_icu_daily,
+#            age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
@@ -354,8 +383,11 @@ state_df = fill_in_df(state_df, dict_info_state, columns)
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if path and not path.endswith('/'):
+    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.concat([pd.DataFrame(row_csv, columns=columns),
-                county_df, state_df])
+                # county_df,
+                state_df])
 df.to_csv(file_name, index=False)

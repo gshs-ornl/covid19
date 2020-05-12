@@ -259,6 +259,8 @@ for key in ['new_case_day', 'new_death_day', 'new_test_day', 'new_case',
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if path and not path.endswith('/'):
+    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.concat([pd.DataFrame(row_csv, columns=columns), county_df])

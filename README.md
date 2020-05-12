@@ -30,6 +30,10 @@ scraper relies upon to run.
 
 This is the covidb database container
 
+##### restore from production backup
+`./covidb/restore_from_production_db.sh /path/to/covidb_backup_file.tar.gz `
+
+
 ### scraper
 
 The scraper directory contains the actual docker image that will be used

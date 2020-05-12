@@ -380,7 +380,9 @@ for index,row in df.iterrows():
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
-file_name = path + state + dt_string + '.csv'
+if path and not path.endswith('/'):
+    path += '/'
+file_name = path + state.replace(' ','_') + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
 df.to_csv(file_name, index=False)

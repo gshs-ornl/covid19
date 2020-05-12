@@ -310,7 +310,7 @@ calculate_race_data_external_to_table(masterBodyElement.select_one('div:nth-of-t
 ''' End less stable scraping '''
 
 # this tuple should represent each table from the URL - it DOES assume that the age groups and the table orderings remain constant
-age_ranges = ('all age groups', '0-17', '18-49', '50-64', '65+')
+age_ranges = ('all age groups', '0-17', '18-34', '35-49', '50-64', '65-79', '80+')
 tables = soup.findAll('table')
 
 for tableIndex,table in enumerate(tables):
@@ -501,6 +501,8 @@ for index,row in chhs_df.iterrows():
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
+if path and not path.endswith('/'):
+    path += '/'
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
