@@ -62,7 +62,7 @@ class WebDriver():
                  options=['--no-sandbox', '--disable-logging',
                           '--disable-gpu', '--disable-dev-shm-usage',
                           'headless'],
-                 additional_options=None,
+                 additional_options=None, javascript=False,
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
@@ -90,6 +90,7 @@ class WebDriver():
         self.driver = None
         self.container = container
         self.remote = remote
+        self.javascript = javascript
         self.logger.info(f'Connecting with driver: {driver}')
         if script is None:
             self.script = ''
@@ -203,6 +204,8 @@ class WebDriver():
         """ method to create driver based on chrome """
         self.logger.info(f'Using chrome to connect to {self.url}')
         self.options = webdriver.ChromeOptions()
+        if self.javascript:
+            self.options.add_argument("javascript.enabled", True)
         try:
             if isinstance(self.preferences, dict):
                 tmp_dir_name = tempfile.TemporaryDirectory().name
