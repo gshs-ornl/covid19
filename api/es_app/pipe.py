@@ -47,6 +47,7 @@ def gen_es_client() -> Elasticsearch:
     )
 
 
+# TODO: Move this to common
 def gen_pg_client():
     if Database is None:
         return psycopg2.connect(

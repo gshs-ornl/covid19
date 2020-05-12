@@ -66,3 +66,19 @@ def gen_table(name: str, *columns: str, **kwargs) -> flask_table.Table:
     for col in columns:
         table.add_column(col.lower(), flask_table.Col(col))
     return table
+
+
+# TODO: Move this to common
+def gen_db_client():
+    if Database is None:
+        return psycopg2.connect(
+            dbname=PGDB,
+            user=PGUSER,
+            password=PGPASS,
+            host=PGHOST,
+            port=PGPORT
+        )
+    tmp = Database()
+    tmp.open()
+    tmp.cursor = tmp.con.cursor
+    return tmp
