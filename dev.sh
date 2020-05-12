@@ -96,6 +96,30 @@ show_help() { # {{{2 ----------------------------------------------------------
   grep '^#/' "${BASH_SOURCE[0]}" | cut -c4- || \
     die "Failed to display usage information"
 } # 2}}} ----------------------------------------------------------------------
+check_volume() { # {{{2 ------------------------------------------------------
+    VOLUMES=$(docker volume ls --format "{{.Name}}")
+    if echo "$VOLUMES" | grep -q "$1"; then
+        info "$1 found"
+    else
+        info "creating $1"
+    docker volume create --name="$1"
+    fi
+} # 2}}} ----------------------------------------------------------------------
+check_volumes() {
+    check_volume covidb_pg
+    check_volume covid_out
+    check_volume covid_in
+    check_volume covid_clean
+}
+check_network() {
+    NETWORKS=$(docker network ls --format "{{.Name}}")
+    if echo "$NETWORKS" | grep -q "covid_web"; then
+        info "Network found"
+    else
+        info "Creating network"
+        docker network create web
+    fi
+}
 # 1}}} ------------------------------------------------------------------------
 # arguments {{{1 --------------------------------------------------------------
 while :; do
@@ -193,6 +217,8 @@ if [ "$PUSH" -eq "1" ]; then
 fi
 if [ "$UP" -eq "1" ]; then
   info "Spinning up stack"
+  check_volumes
+  check_network
   docker-compose up -d --build scraper tidy db api shiny
 fi
 if [ "$INTERACTIVE" -eq "1" ]; then
@@ -204,30 +230,37 @@ if [[ "$RUN" -eq "1" && "$DEPLOY" -eq "1" ]]; then
 fi
 if [ "$RUN" -eq "1" ]; then
   info "Running"
+  check_volumes
+  check_network
   docker-compose down && docker-compose up -d --build api db tidy scraper && \
     docker logs -f "$LOG_CONTAINER"
 fi
 if [ "$STRIPPED" -eq 1 ]; then
   info "Deploy without API and UI"
+  check_volumes
+  check_network
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.yml up -d --build db tidy scraper
 fi
 if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
+  check_volumes
+  check_network
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.yml up -d --build api db tidy scraper \
     shiny chrome
 fi
 if [ "$DB_ONLY" -eq "1" ]; then
   info "Deploy with only the database"
+  check_volumes
+  check_network
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.db.yml up -d --build db
 fi
 if [ "$TEST" -eq "1" ]; then
   info "Deploying with the test compose file"
-  docker-compose -f docker-compose.yml down && \
-    docker-compose -f docker-compose.tst.yml up -d --build api db tidy \
-    scraper shiny chrome tests && \
-  docker logs -f "{$DIR}_tests_1"
+  check_network
+  docker-compose -f docker-compose.yml down --remove-orphans && \
+    docker-compose -f docker-compose.tst.yml up 
 fi
 # 1}}} ------------------------------------------------------------------------
