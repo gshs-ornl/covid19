@@ -19,6 +19,7 @@ import json
 import collections
 import inspect
 import fnmatch
+import pathlib
 from psycopg2.extras import Json
 import argparse
 
@@ -33,12 +34,18 @@ parser.add_argument("--op", help="operation ('replace' will remove all records f
 parser.add_argument("--exclude", help="exclude specified CSVs and zips from processing (globs Ok)", nargs='*', type=str, default=[])
 parser.add_argument("--start", help="start processing with the specified CSV or zip (must be an exact match)", type=str)
 parser.add_argument("--rows", help="load only specified rows, e.g., -10,11-13,15,17- (use =, intervals inclusive, all files, start row=0, header ignored)", type=str)
+parser.add_argument("--datadir", "-C", help="directory with the data", default=".", type=pathlib.Path)
+parser.add_argument("--logdir", help="directory for log files", default="logs", type=pathlib.Path)
+parser.add_argument("--batch", help="CSV batch name", default=datetime.datetime.now().replace(microsecond=0).isoformat(), type=str)
 parser.add_argument("-k", "--dry-run", action="count", default=0, help="dry run, add more k to do more")
 parser.add_argument("-v", "--verbosity", action="count", default=0, help="add more v to increase verbosity, e.g., -vvvv")
 
 args = parser.parse_args()
 
 print(f"Loading from {args.files} to {args.dsn} schema={args.schema}")
+
+logdir = pathlib.Path(args.logdir, args.batch)
+logdir.mkdir(parents=True, exist_ok=True)
 
 def lno():
     """current line number (for debugging)
@@ -107,8 +114,8 @@ def next_csv():
             excl[ff_zip] = []
         if len(ff_parts) > 2:
             excl[ff_zip].append(ff_parts[2])
-    print(excl)
-    for ff in args.files:
+
+    for ff in [ pathlib.PurePath(args.datadir, p) for p in args.files ]:
 
         if any([fnmatch.fnmatch(ff, ef) for ef in args.exclude]): # GLOBS!!
             print(f"Skipping excluded file {ff}...")
@@ -122,14 +129,14 @@ def next_csv():
                 else:
                     yield open(fn, "r", encoding='utf-8-sig', errors='replace'), fn
 
-        elif ff.lower().endswith(".csv"):
+        elif ff.suffix.lower() == ".csv":
             yield open(ff, "r", encoding='utf-8-sig', errors='replace'), ff
 
         # TODO: option to select a file inside a zip
-        elif ff.lower().endswith(".zip") or re.search(".zip:", ff, flags=re.IGNORECASE):
+        elif ff.suffix.lower() == ".zip" or re.search(".zip:", ff, flags=re.IGNORECASE):
 
-            # extrascting zip and csv fanmes for synatx like x.zip:y.csv
-            ff_parts = re.split("(\.zip):", ff, flags=re.IGNORECASE)
+            # extrascting zip and csv fnames for synatx like x.zip:y.csv
+            ff_parts = re.split("(\.zip):", str(ff), flags=re.IGNORECASE)
             ff_zip = ff_parts[0] + ( ff_parts[1] if len(ff_parts) > 1 else '' )
             ff_csv = ff_parts[2] if len(ff_parts) > 2 else None
 
@@ -262,12 +269,21 @@ with psycopg2.connect(args.dsn) as conn:
                 provider = vendor = dataset = None
                 current_range = 0
 
+                # open CSV-file specific log file
+                fname_log = pathlib.Path(\
+                     logdir,\
+                     str(pathlib.Path(fname).relative_to(args.datadir)).replace('/', '%').replace('..','')\
+                 ).with_suffix(".log")
+                print(f"Logging into {fname_log}...")
+                # write log file top
+                # starting filename, time
+
                 if args.dry_run:
                     print("...dry run...")
                     continue
 
                 if args.op == 'replace':
-                    # FIXME: transcation isolation --- the count of deleted data points is not correct when multiple processes are running
+                    # FIXME: transaction isolation --- the count of deleted data points is not correct when multiple processes are running
                     cur.execute(f"SELECT count(*) from {args.schema}.stav")
                     cnt = cur.fetchone()[0]
                     cur.execute(f"""
