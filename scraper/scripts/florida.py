@@ -14,6 +14,7 @@ state = 'Florida'
 columns = Headers.updated_site
 row_csv = []
 url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0//query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=standard&f=pjson&token='
+zipcode_cases_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_Cases_Zips_COVID19/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=COUNTYNAME%20asc&resultOffset=0&resultRecordCount=4000&resultType=standard&cacheHint=true'
 state_tot_cases_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22T_positive%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 state_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Case_Line_Data/FeatureServer/0/query?f=json&where=Jurisdiction%3C%3E%27Non-FL%20resident%27%20AND%20Died%3D%27Yes%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectId%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 state_tested_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_Testing/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22T_total%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
@@ -45,8 +46,7 @@ age_keys = ['Age_0_4', 'Age_5_14', 'Age_15_24',
             'Age_25_34', 'Age_35_44', 'Age_45_54',
             'Age_55_64', 'Age_65_74', 'Age_75_84',
             'Age_85plus', 'Age_Unkn']
-other_keys = ['C_AgeRange',
-    'C_AgeMedian']
+other_keys = ['C_AgeRange', 'C_AgeMedian']
 race_eth_keys = ['C_RaceWhite', 'C_RaceBlack', 'C_RaceOther', 'C_RaceUnknown',
              'C_HispanicYES', 'C_HispanicNO', 'C_HispanicUnk']
 
@@ -120,6 +120,37 @@ for feature in raw_data['features']:
                 nan, sex, sex_counts, nan,
                 nan, nan])
 
+        for race_eth_key in race_eth_keys:
+            if 'Race' in race_eth_key:
+                other = 'race'
+                other_value = race_eth_key.replace('C_Race', '')
+            elif 'Hispanic' in race_eth_key:
+                other = 'ethnicity'
+                if race_eth_key == 'C_HispanicYES':
+                    other_value = 'Hispanic'
+                elif race_eth_key == 'C_HispanicNO':
+                    other_value = 'Not_Hispanic'
+                elif race_eth_key == 'C_HispanicUnk':
+                    other_value = 'Unknown_Hispanic'
+            cases = attribute[race_eth_key]
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, updated, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
+
+
 # Added the aggregated gender data for state-level
 resolution = 'state'
 for state_gender_data_key in state_gender_data.keys():
@@ -169,7 +200,7 @@ for state_gender_data_key in state_gender_data.keys():
 resolution = 'county'
 if len(county_list) > 0:
     for county in county_list:
-        url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID_19_Cases_by_Day_For_Time_Series/FeatureServer/0//query?where=County+%3D+%27'+county+'%27&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=standard&f=pjson&token='
+        url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID_19_Cases_by_Day_For_Time_Series/FeatureServer/0/query?where=County+%3D+%27'+county+'%27&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=standard&f=pjson&token='
         response = requests.get(url)
         access_time = datetime.datetime.utcnow()
         updated = determine_updated_timestep(response)
@@ -199,6 +230,36 @@ if len(county_list) > 0:
                 nan, nan,
                 nan, nan, nan, nan,
                 other, other_value])
+
+# zipcode level data
+resolution = 'zipcode'
+url = zipcode_cases_url
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+
+for feature in raw_data['features']:
+    attribute = feature['attributes']
+    cases = attribute['Cases_1'].replace('<', '')
+    region = attribute['ZIP']
+    if cases != "SUPPRESSED":
+        row_csv.append([
+            'state', country, state, region,
+            url, str(raw_data), access_time, nan,
+            cases, updated, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            nan, nan, nan,
+            resolution, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan, nan,
+            nan, nan, nan,
+            nan, nan,
+            nan, nan, nan, nan,
+            nan, nan])
 
 
 # State-level data
