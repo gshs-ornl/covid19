@@ -66,7 +66,8 @@ class WebDriver():
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
-                 timeout=30, implicit_wait=5,
+                 preferences = {},
+                 timeout=30, implicit_wait=5, sleep_time = None,
                  logger=logging.getLogger(ce('LOGGER', 'main')),
                  container=False, remote='http://chrome:4444/wd/hub'):
         """
@@ -91,6 +92,8 @@ class WebDriver():
         self.container = container
         self.remote = remote
         self.javascript = javascript
+        self.preferences = preferences
+        self.sleep_time = sleep_time
         self.logger.info(f'Connecting with driver: {driver}')
         if script is None:
             self.script = ''
