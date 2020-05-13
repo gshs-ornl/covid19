@@ -23,12 +23,36 @@ def get_raw_dataframe(dataframe: pd.DataFrame):
     return dataframe.to_string()
     #return 'ALL_DATA_GOES_HERE'
 
+def fill_in_df(df_list, dict_info, columns):
+    if isinstance(df_list, list):
+        all_df = []
+        for each_df in df_list:
+            all_df.append(fill_in_df_iter(each_df, dict_info, columns))
+        return pd.concat(all_df)
+    else:
+        return fill_in_df_iter(df_list, dict_info, columns)
+
+def fill_in_df_iter(each_df, dict_info, columns):
+    for key in dict_info.keys():
+        each_df[key] = dict_info[key]
+    df_columns = list(each_df.columns)
+    for column in columns:
+        if column not in df_columns:
+            each_df[column] = nan
+        else:
+            pass
+    return each_df.reindex(columns=columns)
+
 country = 'US'
 state = 'California'
 columns = Headers.updated_site
 # Additional values 
 columns.extend(['race', 'race_age_cases', 'race_age_percent_cases', 
-                'race_age_deaths', 'race_age_percent_deaths'])
+                'race_age_deaths', 'race_age_percent_deaths',
+                'facility',
+                'hcw_new_cases', 'facility_resident_new_cases', 
+                'hcw_deaths', 'facility_resident_deaths',
+                'hcw_cases', 'facility_resident_cases'])
 
 resolution = 'state'
 
@@ -173,6 +197,10 @@ def do_image_scrape():
                 nan, nan, nan, nan,
                 nan, nan, # additional values after this row
                 nan, nan, nan, 
+                nan, nan,
+                nan,
+                nan, nan,
+                nan, nan,
                 nan, nan])
     else:
         print("There is not a 1:1 mapping of age_group_keys:age_group_values")
@@ -198,6 +226,10 @@ def do_image_scrape():
                 nan, sex, sex_counts, nan,
                 nan, nan, # additional values after this row
                 nan, nan, nan, 
+                nan, nan,
+                nan,
+                nan, nan,
+                nan, nan,
                 nan, nan])
     else:
         print("There is not a 1:1 mapping of age_group_keys:age_group_values")
@@ -223,6 +255,10 @@ def do_image_scrape():
                 nan, nan, nan, nan,
                 other, other_value, # additional values after this row
                 nan, nan, nan, 
+                nan, nan,
+                nan,
+                nan, nan,
+                nan, nan,
                 nan, nan])
     else:
         print("The lengths for other keys and values are not equal")
@@ -344,7 +380,11 @@ for tableIndex,table in enumerate(tables):
                 nan, nan, nan, nan,
                 'Percent CA population', other_value, # additional values after this row
                 race, race_age_cases, race_age_percent, 
-                race_age_deaths, race_age_deaths_percent])
+                race_age_deaths, race_age_deaths_percent,
+                nan,
+                nan, nan,
+                nan, nan,
+                nan, nan])
 
     # add unknown race case values here
     row_csv.append([
@@ -364,7 +404,11 @@ for tableIndex,table in enumerate(tables):
         nan, nan, nan, nan,
         nan, nan, # additional values after this row
         'unknown', unknown_race_cases[tableIndex], unknown_race_case_percentages[tableIndex], 
-        unknown_race_deaths[tableIndex], unknown_race_death_percentages[tableIndex]])
+        unknown_race_deaths[tableIndex], unknown_race_death_percentages[tableIndex],
+        nan,
+        nan, nan,
+        nan, nan,
+        nan, nan])
 
 ### dedicated COVID website ###
 url = 'https://covid19.ca.gov/'
@@ -401,6 +445,10 @@ row_csv.append([
         nan, nan, nan, nan,
         'case_percentage_increase', other_value, # additional values after this row
         nan, nan, nan, 
+        nan, nan,
+        nan,
+        nan, nan,
+        nan, nan,
         nan, nan])
 
 other_value = float(re.search(summary_percentage_regex, elements[1].text).group(1).replace(' ', ''))
@@ -421,6 +469,10 @@ row_csv.append([
         nan, nan, nan, nan,
         'death_percentage_increase', other_value, # additional values after this row
         nan, nan, nan, 
+        nan, nan,
+        nan,
+        nan, nan,
+        nan, nan,
         nan, nan])
 
 ### data.chhs.ca.gov CSV file - by county
@@ -472,6 +524,10 @@ for index,row in chhs_df.iterrows():
             nan, nan, nan, nan,
             other, other_value, # additional values after this row
             nan, nan, nan, 
+            nan, nan,
+            nan,
+            nan, nan,
+            nan, nan,
             nan, nan])
     
     other = chhs_df_dict_list[5]
@@ -494,7 +550,68 @@ for index,row in chhs_df.iterrows():
             nan, nan, nan, nan,
             other, other_value, # additional values after this row
             nan, nan, nan, 
+            nan, nan,
+            nan,
+            nan, nan,
             nan, nan])
+
+## web tables of facility
+url = 'https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/COVID-19/SNFsCOVID_19.aspx'
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+html_text = response.text
+soup = BeautifulSoup(html_text, "html5lib")
+tables = soup.findAll('tbody')
+
+# facility/county level data
+resolution = 'county'
+rows = tables[0].findAll('tr')
+data = []
+# last row contains the total
+for row in rows[:-1]:
+    cols = row.find_all('td')
+    cols = [ele.text.strip() for ele in cols]
+    data.append([ele for ele in cols if ele]) # Get rid of empty values
+fac_df = pd.DataFrame(data, columns=['facility', 'county', 'hcw_new_cases', 'facility_resident_new_cases', 
+                'hcw_deaths', 'facility_resident_deaths'])
+fac_df = fac_df.replace({'N/A': '', '<11': '10'})
+for i in range(2, 6):
+    try:
+        fac_df[fac_df.columns[i]] = fac_df[fac_df.columns[i]].str.replace(',', '')
+    except AttributeError:
+        # was read in as integer, float, or other non-string
+        pass
+fac_df = fac_df.dropna()
+dict_info = {'provider': 'state', 'country': country, "url": url,
+                   "state": state, "resolution": resolution,
+                   "page": get_raw_data(html_text), "access_time": access_time}
+fac_df = fill_in_df(fac_df, dict_info, columns)
+
+# get total facility data
+resolution = 'state'
+data = [[]]
+
+total_columns = rows[-1].find_all('td')
+total_columns = [ele.text.strip() for ele in total_columns]
+for i in range(2, 6):
+    data[0].append(total_columns[i])
+total_facility_cases = tables[1].findAll('tr')[1].find_all('td')
+total_facility_cases = [ele.text.strip() for ele in total_facility_cases]
+for i in total_facility_cases:
+    data[0].append(i)
+
+fac_state_df = pd.DataFrame(data, columns=['hcw_new_cases', 'facility_resident_new_cases', 
+                'hcw_deaths', 'facility_resident_deaths',
+                'hcw_cases', 'facility_resident_cases'])
+for i in range(0, len(fac_state_df.columns)):
+    try:
+        fac_state_df[fac_state_df.columns[i]] = fac_state_df[fac_state_df.columns[i]].str.replace(',', '')
+    except AttributeError:
+        # was read in as integer, float, or other non-string
+        pass
+dict_info['resolution'] = resolution
+fac_state_df = fill_in_df(fac_state_df, dict_info, columns)
 
 ### finished ###
 
@@ -506,4 +623,5 @@ if path and not path.endswith('/'):
 file_name = path + state + dt_string + '.csv'
 
 df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, index=False)
+all_df = pd.concat([df, fac_df, fac_state_df])
+all_df.to_csv(file_name, index=False)
