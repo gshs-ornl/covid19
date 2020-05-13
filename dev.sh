@@ -261,6 +261,8 @@ if [ "$TEST" -eq "1" ]; then
   info "Deploying with the test compose file"
   check_network
   docker-compose -f docker-compose.yml down --remove-orphans && \
+  docker-compose -f docker-compose.tst.yml up -d --build tests && \
+    docker-compose -f docker-compose.yml down --remove-orphans && \
     docker-compose -f docker-compose.tst.yml up 
 fi
 # 1}}} ------------------------------------------------------------------------
