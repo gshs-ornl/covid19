@@ -94,6 +94,7 @@ class WebDriver():
         self.javascript = javascript
         self.preferences = preferences
         self.sleep_time = sleep_time
+        self.driver_type = driver
         self.logger.info(f'Connecting with driver: {driver}')
         if script is None:
             self.script = ''
