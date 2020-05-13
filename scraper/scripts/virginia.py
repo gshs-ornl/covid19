@@ -17,8 +17,8 @@ state_age_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_' + \
     'By-Age-Group.csv'
 state_gender_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
 state_race_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
-health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + '\
-    Cases_By-District-Death-Hospitalization.csv'
+health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + \
+                  'Cases_By-District-Death-Hospitalization.csv'
 confirmation_url = f'{base}04/VDH-COVID-19-PublicUseDataset-Cases_By' + \
     '-Confirmation.csv'
 event_url = f'{base}05/VDH-COVID-19-PublicUseDataset-EventDate.csv'
@@ -28,6 +28,9 @@ hosp_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Hospitals.csv'
 labs_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Labs.csv'
 state = 'Virginia'
 columns = Headers.updated_site
+new_columns = ['case_status', 'race', 'patients', 'patients_on_ventillators',
+               'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+columns.extend(new_columns)
 
 
 def fill_in_df(df_list, dict_info, columns):
@@ -261,7 +264,7 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
 # key_url
-with WebDriver(url=hosp_url, driver='chromedriver',
+with WebDriver(url=labs_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
                         '--disable-logging',
                         '--disable-setuid-sandbox',
@@ -275,7 +278,7 @@ df.columns = ['updated', 'tested', 'positive_tests']
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
-                         "url": key_url, "state": state,
+                         "url": labs_url, "state": state,
                          "resolution": "state", "page": str(df),
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
