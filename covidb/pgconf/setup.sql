@@ -73,6 +73,17 @@ CREATE TABLE IF NOT EXISTS static.fips_lut
   fips varchar(5),
   alt_name varchar);
 
+create table  if not exists static.geounits (
+    id serial PRIMARY KEY,
+    county_id int references static.county(id),
+    state_id int references static.states(id),
+    country_id int references static.country(id)
+	, name TEXT
+    , resolution TEXT -- country, state, county, etc.
+    , details TEXT
+    , meta JSONB
+);
+
 CREATE TABLE IF NOT EXISTS static.urls
 (
     id serial primary key ,
@@ -84,62 +95,6 @@ CREATE TABLE IF NOT EXISTS static.urls
 
 CREATE SCHEMA IF NOT EXISTS scraping AUTHORIZATION jesters;
 
-CREATE TABLE IF NOT EXISTS scraping.raw_data
-(
-provider varchar DEFAULT 'UNKNOWN' NOT NULL,
-country varchar default null,
-state varchar default null,
-region varchar default null,
-url varchar default null,
-page text default null,
-access_time timestamp not null,
-county varchar default null,
-cases integer default null,
-updated timestamp with time zone default now(),
-deaths integer default null,
-presumptive integer default null,
-recovered integer default null,
-tested integer default null,
-hospitalized integer default null,
-negative integer default null,
-counties integer default null,
-severe integer default null,
-lat numeric default null,
-lon numeric default null,
-fips varchar default null,
-monitored integer default null,
-no_longer_monitored integer default null,
-pending integer default null,
-active integer default null,
-inconclusive integer default null,
-quarantined integer default null,
-scrape_group integer default null,
-resolution varchar default null,
-icu integer default null,
-cases_male integer default null,
-cases_female integer default null,
-lab varchar default null,
-lab_tests integer default null,
-lab_positive integer default null,
-lab_negative integer default null,
-age_range varchar default null,
-age_cases integer default null,
-age_percent varchar default null,
-age_deaths integer default null,
-age_hospitalized integer default null,
-age_tested integer default null,
-age_negative integer default null,
-age_hospitalized_percent varchar default null,
-age_negative_percent varchar default null,
-age_deaths_percent varchar default null,
-sex varchar default null,
-sex_counts integer default null,
-sex_percent varchar default null,
-sex_death integer default null,
-other  varchar default null,
-other_value varchar default null
-);
-
 CREATE TABLE IF NOT EXISTS scraping.age_ranges
 (
     id         SERIAL PRIMARY KEY,
@@ -147,193 +102,13 @@ CREATE TABLE IF NOT EXISTS scraping.age_ranges
     CONSTRAINT cons_url UNIQUE (age_ranges)
 );
 
-CREATE TABLE IF NOT EXISTS scraping.pages
-(
-    id          SERIAL PRIMARY KEY,
-    page        text,
-    url         varchar,
-    hash        varchar(64),
-    access_time timestamp with time zone
-);
-CREATE TABLE IF NOT EXISTS scraping.scrape_group
-(
-    id           SERIAL PRIMARY KEY,
-    scrape_group integer NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS scraping.country_data
-(
-provider varchar DEFAULT 'UNKNOWN' NOT NULL,
-country_id integer REFERENCES static.country (id),
-region varchar default null,
-url_id integer REFERENCES static.urls (id),
-page_id integer references scraping.pages(id),
-access_time timestamp not null,
-cases integer default null,
-updated date not null,
-deaths integer default null,
-presumptive integer default null,
-recovered integer default null,
-tested integer default null,
-hospitalized integer default null,
-negative integer default null,
-counties integer default null,
-severe integer default null,
-lat numeric default null,
-lon numeric default null,
-monitored integer default null,
-no_longer_monitored integer default null,
-pending integer default null,
-active integer default null,
-inconclusive integer default null,
-quarantined integer default null,
-scrape_group_id integer REFERENCES scraping.scrape_group (id),
-resolution varchar default null,
-icu integer default null,
-cases_male integer default null,
-cases_female integer default null,
-lab varchar default null,
-lab_tests integer default null,
-lab_positive integer default null,
-lab_negative integer default null,
-age_range integer REFERENCES scraping.age_ranges(id) default 1,
-age_cases integer default null,
-age_percent varchar default null,
-age_deaths integer default null,
-age_hospitalized integer default null,
-age_tested integer default null,
-age_negative integer default null,
-age_hospitalized_percent varchar default null,
-age_negative_percent varchar default null,
-age_deaths_percent varchar default null,
-sex varchar default null,
-sex_counts integer default null,
-sex_percent varchar default null,
-sex_death integer default null,
-other  varchar default null,
-other_value integer default null,
-CONSTRAINT const_country UNIQUE (country_id, provider, updated, sex, age_range)
-);
-
-
-CREATE TABLE IF NOT EXISTS scraping.state_data
-(
-provider varchar DEFAULT 'UNKNOWN' NOT NULL,
-country_id integer REFERENCES static.country(id),
-state_id integer REFERENCES static.states(id),
-region varchar default null,
-url_id integer references static.urls(id),
-page_id integer references scraping.pages(id),
-access_time timestamp not null,
-cases integer default null,
-updated date not null,
-deaths integer default null,
-presumptive integer default null,
-recovered integer default null,
-tested integer default null,
-hospitalized integer default null,
-negative integer default null,
-counties integer default null,
-severe integer default null,
-lat numeric default null,
-lon numeric default null,
-monitored integer default null,
-no_longer_monitored integer default null,
-pending integer default null,
-active integer default null,
-inconclusive integer default null,
-quarantined integer default null,
-scrape_group_id integer references scraping.scrape_group(id),
-resolution varchar default null,
-icu integer default null,
-cases_male integer default null,
-cases_female integer default null,
-lab varchar default null,
-lab_tests integer default null,
-lab_positive integer default null,
-lab_negative integer default null,
-age_range integer REFERENCES scraping.age_ranges(id) default 1,
-age_cases integer default null,
-age_percent varchar default null,
-age_deaths integer default null,
-age_hospitalized integer default null,
-age_tested integer default null,
-age_negative integer default null,
-age_hospitalized_percent varchar default null,
-age_negative_percent varchar default null,
-age_deaths_percent varchar default null,
-sex varchar default null,
-sex_counts integer default null,
-sex_percent varchar default null,
-sex_death integer default null,
-other  varchar default null,
-other_value integer default null,
-CONSTRAINT const_state UNIQUE (country_id,state_id,provider,updated, sex, age_range)
-);
-
-CREATE TABLE IF NOT EXISTS scraping.county_data
-(
-provider varchar DEFAULT 'UNKNOWN' NOT NULL,
-country_id integer REFERENCES static.country(id),
-state_id integer REFERENCES static.states(id),
-county_id integer REFERENCES static.county(id),
-region varchar default null,
-url_id integer references static.urls(id),
-page_id integer references scraping.pages(id),
-access_time timestamp not null,
-county varchar default null,
-cases integer default null,
-updated date not null,
-deaths integer default null,
-presumptive integer default null,
-recovered integer default null,
-tested integer default null,
-hospitalized integer default null,
-negative integer default null,
-counties integer default null,
-severe integer default null,
-lat numeric default null,
-lon numeric default null,
-fips_id int references static.fips_lut(id),
-monitored integer default null,
-no_longer_monitored integer default null,
-pending integer default null,
-active integer default null,
-inconclusive integer default null,
-quarantined integer default null,
-scrape_group_id integer references scraping.scrape_group(id),
-resolution varchar default null,
-icu integer default null,
-cases_male integer default null,
-cases_female integer default null,
-lab varchar default null,
-lab_tests integer default null,
-lab_positive integer default null,
-lab_negative integer default null,
-age_range integer REFERENCES scraping.age_ranges(id) default 1,
-age_cases integer default null,
-age_percent varchar default null,
-age_deaths integer default null,
-age_hospitalized integer default null,
-age_tested integer default null,
-age_negative integer default null,
-age_hospitalized_percent varchar default null,
-age_negative_percent varchar default null,
-age_deaths_percent varchar default null,
-sex varchar default null,
-sex_counts integer default null,
-sex_percent varchar default null,
-sex_death integer default null,
-other  varchar default null,
-other_value integer default null,
-CONSTRAINT const_county UNIQUE (county_id,state_id, provider, updated, sex, age_range) --TODO: Add Age Bracket
-);
 
 
 --"Melt" Tables
 
 CREATE TABLE IF NOT EXISTS scraping.attribute_classes
- (id SERIAL PRIMARY KEY,
+ (
+  id SERIAL PRIMARY KEY,
   name varchar NOT NULL,
   units varchar,
   class varchar
@@ -344,13 +119,45 @@ CREATE TABLE IF NOT EXISTS scraping.attributes
   attribute varchar NOT NULL
 );
 
+create table scraping.providers
+(
+	id serial not null
+		constraint provider_pkey
+			primary key,
+	provider_abb text UNIQUE,
+	provider_name text
+);
+
+CREATE TABLE IF NOT EXISTS scraping.vendors (
+    id serial PRIMARY KEY ,
+    name text UNIQUE,
+    details text
+);
+
+CREATE TABLE if not exists  scraping.datasets (
+    id serial PRIMARY KEY ,
+	vendor_id int REFERENCES scraping.vendors(id)
+	, name TEXT DEFAULT 'FIXME: replace this autogenerated text'
+	, details TEXT
+    ,UNIQUE (vendor_id, name));
+
+CREATE TABLE if not exists scraping.scrapes (
+      id SERIAL PRIMARY KEY
+    , provider_id int REFERENCES scraping.providers(id)
+	, dataset_id int REFERENCES scraping.datasets(id)
+    , uri TEXT
+    , scraped_ts TIMESTAMP WITH TIME ZONE
+    , doc TEXT
+    , csv_file TEXT -- source CSV file
+    , csv_row INT -- row in the CSV file
+    ,UNIQUE (provider_id, uri, scraped_ts));
+
 CREATE TABLE IF NOT EXISTS scraping.melt
- (country_id integer REFERENCES static.country(id),
-  state_id integer REFERENCES static.country(id),
-  county_id integer REFERENCES static.county(id),
+(
+  dataset_id int references scraping.datasets(id),
+  geounit_id int references static.geounits(id),
   updated timestamp with time zone NOT NULL,
-  page_id integer REFERENCES scraping.pages(id),
-  scrape_group integer REFERENCES scraping.scrape_group(id),
+  scrape_id integer REFERENCES scraping.scrapes(id),
   attribute_class integer REFERENCES scraping.attribute_classes(id),
   attribute integer REFERENCES scraping.attributes(id),
   value numeric NOT NULL
@@ -359,7 +166,7 @@ CREATE TABLE IF NOT EXISTS scraping.melt
 \set myschema staging
 \i setup-staging.sql
 
-create or replace function staging.get_provider(v_provider text) RETURNS int
+create or replace function :myschema.get_provider(v_provider text) RETURNS int
     language plpgsql
 as
 $$
@@ -372,36 +179,48 @@ BEGIN
 end;
 $$;
 
-create or replace function staging.get_scrape(v_provider text, v_url text, v_access text) RETURNS int
+create or replace function :myschema.get_vendor(v_vendor text) RETURNS int
     language plpgsql
 as
 $$
-DECLARE _result int := (select scrape_id from staging.scrapes where provider_id = v_provider
-                        and scraped_ts = TO_TIMESTAMP(v_access, 'YYYY-MM-DD hh24:MI:SS')
-                        and uri = v_url);
+DECLARE _result text := (select vendor_id from staging.vendors where name = v_vendor);
 BEGIN
     IF _result is null then
-        INSERT INTO staging.scrapes (provider_id, uri, scraped_ts)
-        values (v_provider, v_url, TO_TIMESTAMP(v_access, 'YYYY-MM-DD hh24:MI:SS'))
-        returning scrape_id into _result;
+        INSERT INTO staging.vendors (name) values (v_vendor) RETURNING vendor_id into _result;
     end if;
     return _result;
 end;
 $$;
 
-create or replace function staging.save_region(v_region text, v_region_type text) returns void
+create or replace function :myschema.save_geounit(v_geounit text, v_resolution text) returns void
     language plpgsql
 as
 $$
 
 BEGIN
     INSERT INTO staging.geounits (geounit_id, resolution)
-    values (v_region, v_region_type)
+    values (v_geounit, v_resolution)
     ON CONFLICT DO NOTHING;
 end;
 $$;
 
-create or replace procedure staging.save_attribute_data(v_region text, v_region_type text,  v_data jsonb)
+create or replace function :myschema.get_scrape(v_provider text, v_dataset text, v_url text, v_access text) RETURNS int
+    language plpgsql
+as
+$$
+DECLARE _result int := (select scrape_id from staging.scrapes where provider_id = v_provider and dataset_id = v_dataset
+                        and scraped_ts = TO_TIMESTAMP(v_access, 'YYYY-MM-DD hh24:MI:SS')
+                        and uri = v_url);
+BEGIN
+    IF _result is null then
+        INSERT INTO staging.scrapes (provider_id, dataset_id, uri, scraped_ts)
+        values (v_provider, dataset_id, v_url, TO_TIMESTAMP(v_access, 'YYYY-MM-DD hh24:MI:SS'))
+        returning scrape_id into _result;
+    end if;
+    return _result;
+end;
+$$;
+create or replace procedure :myschema.save_attribute_data(v_region text, v_region_type text,  v_data jsonb)
     language plpgsql
 as
 $$
@@ -411,18 +230,20 @@ DECLARE
     _provider int;
     _scrape   int;
     _access   text := (v_data ->> 'access_time');
+    _dataset int;
 BEGIN
 
     _provider = staging.get_provider(v_data ->> 'provider');
+    _dataset = staging.get_dataset(v_data ->> 'dataset');
     _scrape = staging.get_scrape(_provider, v_data->>'url', _access);
 
-    perform staging.save_region(v_region, v_region_type);
+    perform staging.save_geounit(v_geounit, v_resolution);
 
     FOR _key, _value IN
         SELECT key, value FROM jsonb_each_text(v_data)
         LOOP
             --Insert into def table
-            INSERT INTO staging.attrributes(attr, details)
+            INSERT INTO staging.attributes(attr, details)
             values (_key, 'Automated Insert')
             ON CONFLICT DO NOTHING;
 
@@ -434,7 +255,7 @@ BEGIN
 end
 $$;
 
-CREATE OR REPLACE FUNCTION staging.isnumeric(text) RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION :myschema.isnumeric(text) RETURNS BOOLEAN AS $$
 DECLARE x NUMERIC;
 BEGIN
     x = $1::NUMERIC;
@@ -446,20 +267,6 @@ $$
 STRICT
 LANGUAGE plpgsql IMMUTABLE;
 
-/*
-select pid, query, query_start from pg_stat_activity where datname = 'staging' and pid != pg_backend_pid()
-and query != 'SHOW TRANSACTION ISOLATION LEVEL'
-order by query_start desc;
-
-select * from staging.regions where region_id like '%Florida%'
-
-select * from staging.attr_val v
-join staging.regions r ON r.region_id = v.region_id
-where v.val != 'None';
-*/
-
-
-
 -- CALL staging.save_attribute_data ('US^Montana^Beaverhead'::text, 'county'::text, '{"provider": "state", "country": "US", "state": "Montana", "region": null, "url": "https://services.arcgis.com/qnjIrwR8z5Izc0ij/ArcGIS/rest/services/COVID_Cases_Production_View/FeatureServer/0/query?f=json&where=Total%20%3C%3E%200&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=NewCases%20desc%2CNAMELABEL%20asc&resultOffset=0&resultRecordCount=56&cacheHint=true", "access_time": "2020-04-21 13:24:22.212315", "county": "Beaverhead", "cases": 1.0, "updated": null, "deaths": 0.0, "presumptive": null, "recovered": 0.0, "tested": null, "hospitalized": 0.0, "negative": null, "counties": null, "severe": null, "lat": null, "lon": null, "fips": null, "monitored": null, "no_longer_monitored": null, "pending": null, "active": null, "inconclusive": null, "quarantined": null, "private_tests": null, "state_tests": null, "scrape_group": null, "resolution": "county", "icu": null, "cases_male": null, "cases_female": null, "lab": null, "lab_tests": null, "lab_positive": null, "lab_negative": null, "age_range": "0_9", "age_cases": 0.0, "age_percent": null, "age_deaths": null, "age_hospitalized": null, "age_tested": null, "age_negative": null, "age_hospitalized_percent": null, "age_negative_percent": null, "age_deaths_percent": null, "sex": null, "sex_counts": null, "sex_percent": null, "other": null, "other_value": null}'::jsonb);
 
 
@@ -468,16 +275,22 @@ where v.val != 'None';
 
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
-GRANT SELECT ON ALL TABLES IN SCHEMA scraping,static TO reporters;
-GRANT USAGE ON SCHEMA staging TO jesters, cvadmin;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO jesters, cvadmin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA staging TO jesters, cvadmin;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA staging TO jesters, cvadmin;
+GRANT USAGE ON SCHEMA public TO reporters;
+GRANT SELECT ON ALL TABLES IN SCHEMA public,scraping,static TO reporters;
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public,scraping,static TO reporters;
+GRANT USAGE ON SCHEMA :myschema TO jesters, cvadmin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA :myschema TO jesters, cvadmin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA :myschema TO jesters, cvadmin;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA :myschema TO jesters, cvadmin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping TO jesters, cvadmin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA scraping, static TO jesters, cvadmin;
 GRANT SELECT ON ALL TABLES IN SCHEMA static TO jesters;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA static TO ingester, cvadmin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA scraping to ingester;
+
+--Grant Default Priv to reporters for all tables in public.
+alter default privileges in schema public grant all on tables to reporters;
+alter default privileges in schema public grant all on sequences to reporters;
 
 --cvadmin ability to backup
 GRANT USAGE ON SCHEMA topology TO cvadmin;

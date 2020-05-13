@@ -6,7 +6,7 @@ import pandas as pd
 import urllib.request
 from PIL import Image
 from PIL import UnidentifiedImageError
-from pytesseract import image_to_data, image_to_string
+from pytesseract import image_to_data
 from pytesseract import Output
 from urllib.error import HTTPError
 from cvpy.common import check_environment as ce
@@ -26,9 +26,10 @@ class ReadImage():
             try:
                 if re.match(UrlRegex.RE, image_file):
                     self.image = Image.open(urllib.request.urlopen(image_file))
+                else:
+                    self.image = Image.open(self.image_file)
             except Exception as e:
-                self.logger.info(f'Image was not a URL: {e}')
-                self.image = Image.open(self.image_file)
+                self.logger.error(f'Image read exception: {e}')
         except FileNotFoundError as e:
             msg = f'File {image_file} not found: {e}'
             self.logger.error(msg)
@@ -52,18 +53,13 @@ class ReadImage():
             self.logger.error(msg)
             raise ReadImageException(msg)
 
-    def process(self, ptype='data'):
+    def process(self):
         """Process the read image into a string."""
         try:
-            if ptype == 'data':
-                self.text = image_to_data(self.image, lang='eng', nice=1,
-                                          output_type=Output.DATAFRAME,
-                                          timeout=self.timeout,
-                                          pandas_config=ImageConfig.PD)
-            elif ptype == 'string':
-                self.text = image_to_string(self.image, timeout=self.timeout)
-            else:
-                raise ReadImageException(f'Unrecognized ptype: {ptype}')
+            self.text = image_to_data(self.image, lang='eng', nice=1,
+                                      output_type=Output.DATAFRAME,
+                                      timeout=self.timeout,
+                                      pandas_config=ImageConfig.PD)
         except RuntimeError as e:
             msg = f'Image file {self.image_file} timed out with timeout of ' +\
                 f'{self.timeout}. Consider increasing timeout. {e}'
