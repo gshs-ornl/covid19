@@ -128,6 +128,7 @@ def next_csv():
         if len(ff_parts) > 2:
             excl[ff_zip].append(ff_parts[2])
 
+    # TODO: support globs in args.files
     for ff in [ pathlib.PurePath(args.datadir, p) for p in args.files ]:
 
         if any([fnmatch.fnmatch(ff, ef) for ef in args.exclude]): # GLOBS!!
@@ -136,7 +137,7 @@ def next_csv():
 
         if os.path.isdir(ff):
             print(f"Looking for CSV files in dir {ff} ...")
-            for fn in glob.glob(ff + "/*.csv") + glob.glob(ff + "/*.CSV") :
+            for fn in glob.glob(str(ff) + "/*.csv") + glob.glob(str(ff) + "/*.CSV") :
                 if any([fnmatch.fnmatch(fn, ef) for ef in args.excludei]):
                     print(f"Skipping excluded file {ff}...")
                 else:
