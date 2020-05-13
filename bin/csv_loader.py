@@ -53,11 +53,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 con_h = logging.StreamHandler(sys.stdout)
 if args.verbosity == 1:
-    con_h.setLevel(logging.INFO)
-elif args.verbosity == 2:
-    con_h.setLevel(logging.WARNING)
-elif args.verbosity > 2:
     con_h.setLevel(logging.ERROR)
+elif args.verbosity == 2:
+    con_h.setLevel(logging.INFO)
+elif args.verbosity > 2:
+    con_h.setLevel(logging.DEBUG)
 logger.addHandler(con_h)
 
 def lno():
@@ -298,6 +298,7 @@ with psycopg2.connect(args.dsn) as conn:
                 group_type = group_type_prev = group_hospital_name = None
                 provider = vendor = dataset = None
                 current_range = 0
+                missing_columns = []
 
                 if args.dry_run:
                     print("...dry run...")
@@ -339,6 +340,21 @@ with psycopg2.connect(args.dsn) as conn:
                         else:
                             row[k.lower()] = None
 
+                    # fill columns missing in manual scrapes
+                    if not row['access_time']:
+                        logger.error(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
+                        continue
+                    if not 'provider' in row or row['provider'] == 'state':
+                        row['provider'] = 'doe-covid19'
+                    if not 'country' in row:
+                        row['country'] = 'US'
+                    if 'other value' in row:
+                        row['other_value'] = row['other value']
+                        del row['other value']
+                    if 'quarantine' in row:
+                        row['quarantined'] = row['quarantine']
+                        del row['quarantine']
+
                     # actions before the 1st row
                     if row_no == 0:
                         # check for essential columns once per file
@@ -348,6 +364,16 @@ with psycopg2.connect(args.dsn) as conn:
                         except KeyError as e:
                             logger.warn(f"Column '{c}' not found in {fname}, file skipped")
                             break
+
+                        # these are columns missing either in manually or automatically scraped CSVs
+                        for c in ('resolution', 'no_longer_monitored', 'page', 'pending', 'quarantined', 'percent', 'county', 'other_value'):
+                            if not c in row:
+                                missing_columns.append(c)
+
+                        logger.warn(f"Missing columns: {missing_columns}")
+
+                    for c in missing_columns:
+                        row[c] = None
 
                     # skip row if requestd
                     if rows:
@@ -365,26 +391,6 @@ with psycopg2.connect(args.dsn) as conn:
                     if not any(row.values()):
                         logger.warn(f"Skipped empty row in {fname}:{row_no}")
                         continue
-
-                    # fill columns missing in manual scrapes
-                    # TODO: factor this out into a separate function
-                    if not row['access_time']:
-                        logger.error(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
-                        continue
-                    if not 'provider' in row or row['provider'] == 'state':
-                        row['provider'] = 'doe-covid19'
-                    if not 'country' in row:
-                        row['country'] = 'US'
-                    if 'other value' in row:
-                        row['other_value'] = row['other value']
-                        del row['other value']
-                    if 'quarantine' in row:
-                        row['quarantined'] = row['quarantine']
-                        del row['quarantine']
-                    # these are columns missing either in manually or automatically scraped CSVs
-                    for c in ('resolution', 'no_longer_monitored', 'page', 'pending', 'quarantined', 'percent', 'county'):
-                        if not c in row:
-                            row[c] = None
 
                     # save provider, dataset, and vendor
                     if row['provider'] != provider:
@@ -741,8 +747,7 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row[attr], row_no, attr)
 
                         elif row['other']:
-                            pass
-                            # print(f"None-empty 'other' while 'other_value' is empty in {fname}:{row_no}")
+                            logger.warn(f"None-empty 'other' while 'other_value' is empty in {fname}:{row_no}")
                         else:
                             # the bulk of the values comes from here
                             for attr in simple_attrs:
