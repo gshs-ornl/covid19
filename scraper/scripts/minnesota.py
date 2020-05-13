@@ -342,7 +342,7 @@ not_icu_daily['other'] = 'Hospitalized, not in ICU (daily)'
 age_group_pct = age_group_pct.rename(
     columns={'Age Group': 'age_range', 'Percent of Cases': 'age_percent',
              'Percent of Deaths': 'age_deaths_percent'})
-
+'''
 # State-level: Race - cases and deaths percent
 race_cases_pct = race_pct[['Race', 'Percent of Cases']]
 race_cases_pct = race_cases_pct.rename(
@@ -366,15 +366,13 @@ exposure_pct_cases['other'] = exposure_pct_cases['other'].astype(str) +\
 county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
                                                           'Cases': 'cases',
                                                           'Deaths': 'deaths'})
-
+'''
 county_df = [county_cases_deaths, newly_reported_deaths_counties]
 state_df = [tested_state, state_lab_df, ext_lab_df,
             no_longer_isolation, state_deaths,
-            state_daily_deaths, newly_reported_deaths_res
-
-            ]#,
-#            hospitalized, icu_daily, not_icu_daily,
-#            age_group_pct, race_cases_pct, median_age, exposure_pct_cases]
+            state_daily_deaths, newly_reported_deaths_res, hospitalized,
+            icu_daily, not_icu_daily,
+            age_group_pct] #, race_cases_pct, median_age, exposure_pct_cases]
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)

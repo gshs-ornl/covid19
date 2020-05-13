@@ -140,7 +140,7 @@ def fill_in_df(df_list, dict_info, columns):
         final_df = df_list.reindex(columns=columns)
     return final_df
 
-
+'''
 with WebDriver(url=state_web_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
                         '--disable-logging',
@@ -256,7 +256,7 @@ state_df = [tested_df, neg_test_df, hospitalized_df, age_group_df,
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
-
+'''
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
@@ -264,6 +264,7 @@ if path and not path.endswith('/'):
     path += '/'
 file_name = path + state + dt_string + '.csv'
 
-df = pd.concat([pd.DataFrame(row_csv, columns=columns),
-                county_df, state_df])
+# df = pd.concat([pd.DataFrame(row_csv, columns=columns), county_df, state_df])
+
+df = pd.DataFrame(row_csv, columns=columns)
 df.to_csv(file_name, index=False)

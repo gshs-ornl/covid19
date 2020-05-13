@@ -45,8 +45,7 @@ age_keys = ['Age_0_4', 'Age_5_14', 'Age_15_24',
             'Age_25_34', 'Age_35_44', 'Age_45_54',
             'Age_55_64', 'Age_65_74', 'Age_75_84',
             'Age_85plus', 'Age_Unkn']
-other_keys = ['C_AgeRange',
-    'C_AgeMedian']
+other_keys = ['C_AgeRange', 'C_AgeMedian']
 race_eth_keys = ['C_RaceWhite', 'C_RaceBlack', 'C_RaceOther', 'C_RaceUnknown',
              'C_HispanicYES', 'C_HispanicNO', 'C_HispanicUnk']
 
@@ -119,6 +118,37 @@ for feature in raw_data['features']:
                 nan, nan,
                 nan, sex, sex_counts, nan,
                 nan, nan])
+
+        for race_eth_key in race_eth_keys:
+            if 'Race' in race_eth_key:
+                other = 'race'
+                other_value = race_eth_key.replace('C_Race', '')
+            elif 'Hispanic' in race_eth_key:
+                other = 'ethnicity'
+                if race_eth_key == 'C_HispanicYES':
+                    other_value = 'Hispanic'
+                elif race_eth_key == 'C_HispanicNO':
+                    other_value = 'Not_Hispanic'
+                elif race_eth_key == 'C_HispanicUnk':
+                    other_value = 'Unknown_Hispanic'
+            cases = attribute[race_eth_key]
+            row_csv.append([
+                'state', country, state, nan,
+                url, str(raw_data), access_time, county,
+                cases, updated, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                nan, nan, nan,
+                resolution, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan, nan,
+                nan, nan, nan,
+                nan, nan,
+                nan, nan, nan, nan,
+                other, other_value])
+
 
 # Added the aggregated gender data for state-level
 resolution = 'state'
