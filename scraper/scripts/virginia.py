@@ -28,6 +28,9 @@ hosp_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Hospitals.csv'
 labs_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Labs.csv'
 state = 'Virginia'
 columns = Headers.updated_site
+new_columns = ['case_status', 'race', 'patients', 'patients_on_ventillators',
+               'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+columns.extend(new_columns)
 
 
 def fill_in_df(df_list, dict_info, columns):
