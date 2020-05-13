@@ -342,6 +342,16 @@ with psycopg2.connect(args.dsn) as conn:
                         else:
                             row[k.lower()] = None
 
+                    # actions before the 1st row
+                    if row_no == 0:
+                        # check for essential columns once per file
+                        try:
+                            for c in ('access_time', 'state' ):
+                                _ = row[c]
+                        except KeyError as e:
+                            logger.warning(f"Column '{c}' not found in {fname}, file skipped")
+                            break
+
                     # fill columns missing in manual scrapes
                     if not row['access_time']:
                         logger.warning(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
@@ -357,16 +367,7 @@ with psycopg2.connect(args.dsn) as conn:
                         row['quarantined'] = row['quarantine']
                         del row['quarantine']
 
-                    # actions before the 1st row
                     if row_no == 0:
-                        # check for essential columns once per file
-                        try:
-                            for c in ('access_time', 'state' ):
-                                _ = row[c]
-                        except KeyError as e:
-                            logger.warning(f"Column '{c}' not found in {fname}, file skipped")
-                            break
-
                         # these are columns missing either in manually or automatically scraped CSVs
                         for c in ('resolution', 'no_longer_monitored', 'page', 'pending', 'quarantined', 'percent', 'county', 'other_value'):
                             if not c in row:
