@@ -8,6 +8,7 @@ services:
 
   chrome:
     image: selenium/standalone-chrome:latest
+    hostname: chrome
     networks:
       - covid_web
     ports:
