@@ -52,7 +52,9 @@ logdir.mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 con_h = logging.StreamHandler(sys.stdout)
-if args.verbosity == 1:
+if args.verbosity == 0:
+    con_h.setLevel(logging.CRITICAL)
+elif args.verbosity == 1:
     con_h.setLevel(logging.ERROR)
 elif args.verbosity == 2:
     con_h.setLevel(logging.INFO)
@@ -197,7 +199,7 @@ def store_value_tuple(scrape_id, geounit_id, vtime, attr, val, csv_row=None, csv
 
     except psycopg2.IntegrityError as e:
         # this is needed to collect errors while processing all files
-        logger.error(f"IntegrityError in file {fname}:{row_no} from {sys.argv[0]}:{inspect.currentframe().f_back.f_lineno}, failure on value={val}: {e}")
+        logger.warning(f"IntegrityError in file {fname}:{row_no} from {sys.argv[0]}:{inspect.currentframe().f_back.f_lineno}, failure on value={val}: {e}")
         conn.rollback()
 
     else:
@@ -342,7 +344,7 @@ with psycopg2.connect(args.dsn) as conn:
 
                     # fill columns missing in manual scrapes
                     if not row['access_time']:
-                        logger.error(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
+                        logger.warning(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
                         continue
                     if not 'provider' in row or row['provider'] == 'state':
                         row['provider'] = 'doe-covid19'
@@ -362,7 +364,7 @@ with psycopg2.connect(args.dsn) as conn:
                             for c in ('access_time', 'state' ):
                                 _ = row[c]
                         except KeyError as e:
-                            logger.warn(f"Column '{c}' not found in {fname}, file skipped")
+                            logger.warning(f"Column '{c}' not found in {fname}, file skipped")
                             break
 
                         # these are columns missing either in manually or automatically scraped CSVs
@@ -370,7 +372,7 @@ with psycopg2.connect(args.dsn) as conn:
                             if not c in row:
                                 missing_columns.append(c)
 
-                        logger.warn(f"Missing columns: {missing_columns}")
+                        logger.warning(f"Missing columns: {missing_columns}")
 
                     for c in missing_columns:
                         row[c] = None
@@ -389,7 +391,7 @@ with psycopg2.connect(args.dsn) as conn:
 
                     # skip all rows with all empty values
                     if not any(row.values()):
-                        logger.warn(f"Skipped empty row in {fname}:{row_no}")
+                        logger.warning(f"Skipped empty row in {fname}:{row_no}")
                         continue
 
                     # save provider, dataset, and vendor
@@ -442,7 +444,7 @@ with psycopg2.connect(args.dsn) as conn:
                         else:
                             row['access_time'] = parsed_time
                     except ValueError as e:
-                        logger.error(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped:", row['access_time'], e)
+                        logger.warning(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped:", row['access_time'], e)
                         continue
                     # extract day of the record, the logic
                     #   * use 'updated' if avavilable
@@ -460,7 +462,7 @@ with psycopg2.connect(args.dsn) as conn:
                                 jd = json.loads(row['updated'].replace("'", '"'))
                                 valid_time = datetime.date(jd['year'], jd['month'], jd['day'])
                             except json.decoder.JSONDecodeError as e:
-                                logger.error(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped:", row['updated'], e)
+                                logger.warning(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped:", row['updated'], e)
                                 continue
                         else:
                             try:
@@ -470,7 +472,7 @@ with psycopg2.connect(args.dsn) as conn:
                                 else:
                                     valid_time = ts_for_valid_time.date()
                             except ValueError as e:
-                                logger.error(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped:", row['updated'], e)
+                                logger.warning(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped:", row['updated'], e)
                                 continue
                     # no good valid_time
                     if valid_time is None:
@@ -479,7 +481,7 @@ with psycopg2.connect(args.dsn) as conn:
                     # insert scrapes
                     # I am doing explicit check on the row to prevent filling postgresql logs
                     if not row['url']:
-                        logger.error(f"Missing URL in {fname}:{row_no}, row skipped: {row}")
+                        logger.warning(f"Missing URL in {fname}:{row_no}, row skipped: {row}")
                         continue
                     cur.execute(f"""
                         SELECT scrape_id
@@ -588,7 +590,7 @@ with psycopg2.connect(args.dsn) as conn:
                                     create_attribute(dataset, attr_name, ignore_duplicate=True)
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr, row[attr], row_no, attr)
                                 elif row[attr] != row_prev[attr]:
-                                    logger.warn(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
+                                    logger.warning(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
 
                         elif group_type == 'age.sex':
                             # process age-specific sex here
@@ -609,9 +611,9 @@ with psycopg2.connect(args.dsn) as conn:
 
                                     elif row[attr] != row_prev[attr]:
                                         # skip repeating values in other than the 1st row
-                                        logger.warn(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
-                                        logger.warn(f"prev: {simpl_vals_prev}")
-                                        logger.warn(f"curr: {simpl_vals}")
+                                        logger.warning(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warning(f"prev: {simpl_vals_prev}")
+                                        logger.warning(f"curr: {simpl_vals}")
 
                         elif group_type == 'age.other':
                             # process 'other' groupings like comorbidities
@@ -631,9 +633,9 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                                     elif not same_ign_none(simpl_vals, simpl_vals_prev):
-                                        logger.warn(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
-                                        logger.warn(f"prev: {simpl_vals_prev}")
-                                        logger.warn(f"curr: {simpl_vals}")
+                                        logger.warning(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warning(f"prev: {simpl_vals_prev}")
+                                        logger.warning(f"curr: {simpl_vals}")
 
                                 except ValueError as e:
                                     # treat other_value as a mofifier simple attributes
@@ -672,7 +674,7 @@ with psycopg2.connect(args.dsn) as conn:
                                     create_attribute(dataset, attr_name, ignore_duplicate=True)
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr, row[attr], row_no, attr)
                                 elif row[attr] != row_prev[attr]:
-                                    logger.warn(f"None-repeating attribute '{attr}' in group '{group_type}' in {fname}:{row_no} " + lno())
+                                    logger.warning(f"None-repeating attribute '{attr}' in group '{group_type}' in {fname}:{row_no} " + lno())
 
                         elif group_type == 'sex.other':
 
@@ -692,9 +694,9 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                                     elif not same_ign_none(simpl_vals, simpl_vals_prev):
-                                        logger.warn(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
-                                        logger.warn(f"prev: {simpl_vals_prev}")
-                                        logger.warn(f"curr: {simpl_vals}")
+                                        logger.warning(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warning(f"prev: {simpl_vals_prev}")
+                                        logger.warning(f"curr: {simpl_vals}")
 
                                 except Exception as e:
 
@@ -722,7 +724,7 @@ with psycopg2.connect(args.dsn) as conn:
                             store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                         if group_row > 0 and not same_ign_none(simpl_vals, simpl_vals_prev):
-                            logger.warn(f"None-empty or none-repeating simple attribute values in '{group_type}' group in {fname}:{row_no} " + lno())
+                            logger.warning(f"None-empty or none-repeating simple attribute values in '{group_type}' group in {fname}:{row_no} " + lno())
                             print(f"prev: {simpl_vals_prev}")
                             print(f"curr: {simpl_vals}")
 
@@ -747,7 +749,7 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row[attr], row_no, attr)
 
                         elif row['other']:
-                            logger.warn(f"None-empty 'other' while 'other_value' is empty in {fname}:{row_no}")
+                            logger.warning(f"None-empty 'other' while 'other_value' is empty in {fname}:{row_no}")
                         else:
                             # the bulk of the values comes from here
                             for attr in simple_attrs:
