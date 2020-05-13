@@ -20,6 +20,7 @@ import collections
 import inspect
 import fnmatch
 import pathlib
+import logging
 from psycopg2.extras import Json
 import argparse
 
@@ -46,6 +47,18 @@ print(f"Loading from {args.files} to {args.dsn} schema={args.schema}")
 
 logdir = pathlib.Path(args.logdir, args.batch)
 logdir.mkdir(parents=True, exist_ok=True)
+
+# logging for bulk errors
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+con_h = logging.StreamHandler(sys.stdout)
+if args.verbosity == 1:
+    con_h.setLevel(logging.INFO)
+elif args.verbosity == 2:
+    con_h.setLevel(logging.WARNING)
+elif args.verbosity > 2:
+    con_h.setLevel(logging.ERROR)
+logger.addHandler(con_h)
 
 def lno():
     """current line number (for debugging)
@@ -183,7 +196,7 @@ def store_value_tuple(scrape_id, geounit_id, vtime, attr, val, csv_row=None, csv
 
     except psycopg2.IntegrityError as e:
         # this is needed to collect errors while processing all files
-        print(f"IntegrityError in file {fname}:{row_no} from {sys.argv[0]}:{inspect.currentframe().f_back.f_lineno}, failure on value={val}: ", e)
+        logger.error(f"IntegrityError in file {fname}:{row_no} from {sys.argv[0]}:{inspect.currentframe().f_back.f_lineno}, failure on value={val}: {e}")
         conn.rollback()
 
     else:
@@ -214,7 +227,7 @@ def mk_attr_name(row, *arg_parts, check_prc=False):
         if row['percent'].strip().lower() == 'yes':
             parts.append('percent')
         else:
-            print(f"The value of 'percent' column is not Yes or empty {row['percent']}")
+            logger.warning(f"The value of 'percent' column is not Yes or empty {row['percent']}")
 
     attr_name='_'.join(parts)
 
@@ -247,15 +260,31 @@ if args.rows:
 with psycopg2.connect(args.dsn) as conn:
     with conn.cursor() as cur:
 
+        logfh = None
+
         for csv_stream, fname in next_csv():
+
+            if args.start and args.start == fname:
+                args.start = None
+
+            if args.start:
+                print(f"Skipping before start {fname}")
+                continue
+
+            # open CSV-file specific log file
+            if not logfh is None:
+                logger.removeHandler(logfh)
+
+            fname_log = pathlib.Path(\
+                 logdir,\
+                 str(pathlib.Path(fname).relative_to(args.datadir)).replace('/', '%').replace('..','')\
+            ).with_suffix(".log")
+            print(f"Logging into {fname_log}...")
+            logfh = logging.FileHandler(fname_log)
+            logfh.setLevel(logging.DEBUG)
+            logger.addHandler(logfh)
+            logger.info("Parsing {} started at {}".format(fname, datetime.datetime.now().isoformat()) )
             try:
-
-                if args.start and args.start == fname:
-                    args.start = None
-
-                if args.start:
-                    print(f"Skipping before start {fname}")
-                    continue
 
                 print(f"\nOpening {fname}")
                 csvr = csv.DictReader(csv_stream)
@@ -268,15 +297,6 @@ with psycopg2.connect(args.dsn) as conn:
                 group_type = group_type_prev = group_hospital_name = None
                 provider = vendor = dataset = None
                 current_range = 0
-
-                # open CSV-file specific log file
-                fname_log = pathlib.Path(\
-                     logdir,\
-                     str(pathlib.Path(fname).relative_to(args.datadir)).replace('/', '%').replace('..','')\
-                 ).with_suffix(".log")
-                print(f"Logging into {fname_log}...")
-                # write log file top
-                # starting filename, time
 
                 if args.dry_run:
                     print("...dry run...")
@@ -293,7 +313,7 @@ with psycopg2.connect(args.dsn) as conn:
                         (fname,))
                     cur.execute(f"SELECT count(*) from {args.schema}.stav")
                     cnt -= cur.fetchone()[0]
-                    print(f'Removed {cnt} data points previously loaded from this file')
+                    logger.info(f'Removed {cnt} data points previously loaded from this file')
                     conn.commit()
                 elif args.op == 'new':
                     # load only CSVs not already loaded
@@ -304,7 +324,7 @@ with psycopg2.connect(args.dsn) as conn:
                         """,
                         (fname,))
                     if cur.rowcount:
-                        print(f"{fname} already loaded, skipping...")
+                        logger.info(f"{fname} already loaded, skipping...")
                         continue
 
                 for row_no, raw_row in enumerate(csvr):
@@ -325,31 +345,30 @@ with psycopg2.connect(args.dsn) as conn:
                             for c in ('access_time', 'state' ):
                                 _ = row[c]
                         except KeyError as e:
-                            print(f"Column '{c}' not found in {fname}, file skipped")
+                            logger.warn(f"Column '{c}' not found in {fname}, file skipped")
                             break
 
                     # skip row if requestd
                     if rows:
                         crange = rows[current_range]
                         if not ( len(crange)==1 and row_no == crange[0] or row_no >= crange[0] and row_no <= crange[1] ):
-                            if args.verbosity > 0:
-                                print(f"\rSkipped CSV row {row_no}  ", end='', flush=True)
+                            logger.info(f"\rSkipped CSV row {row_no}  ", end='', flush=True)
                             continue
                         if len(crange) == 1 or row_no == crange[1]:
                             current_range += 1
                             if current_range >= len(rows):
-                                print("The rest of the file skipped")
+                                logger.info("The rest of the file skipped")
                                 break
 
                     # skip all rows with all empty values
                     if not any(row.values()):
-                        print(f"Skipped empty row in {fname}:{row_no}")
+                        logger.warn(f"Skipped empty row in {fname}:{row_no}")
                         continue
 
                     # fill columns missing in manual scrapes
                     # TODO: factor this out into a separate function
                     if not row['access_time']:
-                        print(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
+                        logger.error(f"Value in 'access_time' is None, skipping row {fname}:{row_no}")
                         continue
                     if not 'provider' in row or row['provider'] == 'state':
                         row['provider'] = 'doe-covid19'
@@ -416,7 +435,7 @@ with psycopg2.connect(args.dsn) as conn:
                         else:
                             row['access_time'] = parsed_time
                     except ValueError as e:
-                        print(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped:", row['access_time'], e)
+                        logger.error(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped:", row['access_time'], e)
                         continue
                     # extract day of the record, the logic
                     #   * use 'updated' if avavilable
@@ -434,7 +453,7 @@ with psycopg2.connect(args.dsn) as conn:
                                 jd = json.loads(row['updated'].replace("'", '"'))
                                 valid_time = datetime.date(jd['year'], jd['month'], jd['day'])
                             except json.decoder.JSONDecodeError as e:
-                                print(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped:", row['updated'], e)
+                                logger.error(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped:", row['updated'], e)
                                 continue
                         else:
                             try:
@@ -444,7 +463,7 @@ with psycopg2.connect(args.dsn) as conn:
                                 else:
                                     valid_time = ts_for_valid_time.date()
                             except ValueError as e:
-                                print(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped:", row['updated'], e)
+                                logger.error(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped:", row['updated'], e)
                                 continue
                     # no good valid_time
                     if valid_time is None:
@@ -453,7 +472,7 @@ with psycopg2.connect(args.dsn) as conn:
                     # insert scrapes
                     # I am doing explicit check on the row to prevent filling postgresql logs
                     if not row['url']:
-                        print(f"Missing URL in {fname}:{row_no}, row skipped:", row)
+                        logger.error(f"Missing URL in {fname}:{row_no}, row skipped: {row}")
                         continue
                     cur.execute(f"""
                         SELECT scrape_id
@@ -562,7 +581,7 @@ with psycopg2.connect(args.dsn) as conn:
                                     create_attribute(dataset, attr_name, ignore_duplicate=True)
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr, row[attr], row_no, attr)
                                 elif row[attr] != row_prev[attr]:
-                                    print(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no}", lno())
+                                    logger.warn(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
 
                         elif group_type == 'age.sex':
                             # process age-specific sex here
@@ -583,9 +602,9 @@ with psycopg2.connect(args.dsn) as conn:
 
                                     elif row[attr] != row_prev[attr]:
                                         # skip repeating values in other than the 1st row
-                                        print(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no}", lno())
-                                        print("prev:", simpl_vals_prev)
-                                        print("curr:", simpl_vals)
+                                        logger.warn(f"None-repeating attribute '{attr}' ({row[attr]} vs {row_prev[attr]}) in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warn(f"prev: {simpl_vals_prev}")
+                                        logger.warn(f"curr: {simpl_vals}")
 
                         elif group_type == 'age.other':
                             # process 'other' groupings like comorbidities
@@ -605,9 +624,9 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                                     elif not same_ign_none(simpl_vals, simpl_vals_prev):
-                                        print(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no}", lno())
-                                        print("prev:", simpl_vals_prev)
-                                        print("curr:", simpl_vals)
+                                        logger.warn(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warn(f"prev: {simpl_vals_prev}")
+                                        logger.warn(f"curr: {simpl_vals}")
 
                                 except ValueError as e:
                                     # treat other_value as a mofifier simple attributes
@@ -625,7 +644,8 @@ with psycopg2.connect(args.dsn) as conn:
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row[attr], row_no, attr)
 
                         else:
-                            print(f"BUG: Unknown age subgroup {group_type}")
+                            logger.critical(f"BUG: Unknown age subgroup {group_type}")
+                            raise ValueError(f"BUG: Unknown age subgroup {group_type}")
 
                     # special case: sex
                     elif group_type and group_type.startswith('sex'):
@@ -645,7 +665,7 @@ with psycopg2.connect(args.dsn) as conn:
                                     create_attribute(dataset, attr_name, ignore_duplicate=True)
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr, row[attr], row_no, attr)
                                 elif row[attr] != row_prev[attr]:
-                                    print(f"None-repeating attribute '{attr}' in group '{group_type}' in {fname}:{row_no}", lno())
+                                    logger.warn(f"None-repeating attribute '{attr}' in group '{group_type}' in {fname}:{row_no} " + lno())
 
                         elif group_type == 'sex.other':
 
@@ -665,9 +685,9 @@ with psycopg2.connect(args.dsn) as conn:
                                         store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                                     elif not same_ign_none(simpl_vals, simpl_vals_prev):
-                                        print(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no}", lno())
-                                        print("prev:", simpl_vals_prev)
-                                        print("curr:", simpl_vals)
+                                        logger.warn(f"None-repeating attribute in group '{group_type}' in {fname}:{row_no} " + lno())
+                                        logger.warn(f"prev: {simpl_vals_prev}")
+                                        logger.warn(f"curr: {simpl_vals}")
 
                                 except Exception as e:
 
@@ -684,8 +704,8 @@ with psycopg2.connect(args.dsn) as conn:
                                     create_attribute(dataset, attr_name, ignore_duplicate=True)
                                     store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row[attr], row_no, attr)
                         else:
-                            print(f"BUG: Unknown age subgroup {group_type}")
-
+                            logger.critical(f"BUG: Unknown age subgroup {group_type}")
+                            raise ValueError(f"BUG: Unknown age subgroup {group_type}")
 
                     elif group_type == 'other.hospital':
 
@@ -695,9 +715,9 @@ with psycopg2.connect(args.dsn) as conn:
                             store_value_tuple(scrape_id, geounit_id, valid_time, attr_name, row['other_value'], row_no, 'other_value')
 
                         if group_row > 0 and not same_ign_none(simpl_vals, simpl_vals_prev):
-                            print(f"None-empty or none-repeating simple attribute values in '{group_type}' group in {fname}:{row_no}", lno())
-                            print("prev:", simpl_vals_prev)
-                            print("curr:", simpl_vals)
+                            logger.warn(f"None-empty or none-repeating simple attribute values in '{group_type}' group in {fname}:{row_no} " + lno())
+                            print(f"prev: {simpl_vals_prev}")
+                            print(f"curr: {simpl_vals}")
 
                     elif group_type is None:
                         # special case: other outside of age and sex
@@ -741,10 +761,11 @@ with psycopg2.connect(args.dsn) as conn:
                 if args.verbosity > 0:
                     print()
                 print(f"Finished {fname}")
+                logger.info("Parsing of {} completed at {}".format(fname, datetime.datetime.now().isoformat()) )
             except IOError as e:
-                print(f"Failure in {fname}: {e}")
+                logger.error(f"Failure in {fname}: {e}")
             except zipfile.BadZipfile as e:
-                print(f"Bad zip, skipping the rest of {fname} after line {row_no}: {e}")
+                logger.error(f"Bad zip, skipping the rest of {fname} after line {row_no}: {e}")
 
     conn.commit()
 

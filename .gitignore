@@ -1,2 +1,3 @@
-covidbenv
-data
+covidbenv/
+data/
+logs/
