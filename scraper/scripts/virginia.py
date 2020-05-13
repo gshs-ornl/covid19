@@ -17,8 +17,8 @@ state_age_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_' + \
     'By-Age-Group.csv'
 state_gender_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
 state_race_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
-health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + '\
-    Cases_By-District-Death-Hospitalization.csv'
+health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + \
+    'Cases_By-District-Death-Hospitalization.csv'
 confirmation_url = f'{base}04/VDH-COVID-19-PublicUseDataset-Cases_By' + \
     '-Confirmation.csv'
 event_url = f'{base}05/VDH-COVID-19-PublicUseDataset-EventDate.csv'
