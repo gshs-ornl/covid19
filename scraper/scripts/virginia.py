@@ -260,8 +260,8 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
-# key_url
-with WebDriver(url=hosp_url, driver='chromedriver',
+# labs_url
+with WebDriver(url=labs_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
                         '--disable-logging',
                         '--disable-setuid-sandbox',
@@ -275,7 +275,7 @@ df.columns = ['updated', 'tested', 'positive_tests']
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
-                         "url": key_url, "state": state,
+                         "url": labs_url, "state": state,
                          "resolution": "state", "page": str(df),
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
