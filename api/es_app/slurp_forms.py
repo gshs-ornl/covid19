@@ -30,9 +30,12 @@ slurp_html = """
         <input type="radio" id="excel" name="mode" value='excel'>
         <label for="csv">Excel</label>
         <input type="radio" id="zip-csv" name="mode" value='zip-csv'>
-        <label for="view">Zipped (specifically .zip) CSV</label>
+        <label for="view">Zipped CSV</label>
         <input type="radio" id="zip-excel" name="mode" value='zip-excel'>
-        <label for="csv">Zipped (specifically .zip) Excel</label>
+        <label for="csv">Zipped Excel</label>
+        <br>
+        Zip support: .zip only
+        <br><br>
         <input type=file name=CSVFile>
         <br><br>
         <input type=submit value=Upload>
