@@ -261,7 +261,6 @@ class CSVLoader(object):
                 continue
 
             # save provider, dataset, and vendor
-            # FIXME factor it into function, use hash lookup for speedup
             if row['provider'] != provider:
                 provider = row['provider']
                 try:
