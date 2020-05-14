@@ -244,7 +244,7 @@ dict_info_state = {'provider': 'state', 'country': country,
                     "url": state_table_url,
                     "state": state, "resolution": "state",
                     "page": str(df), "access_time": access_time}
-
+'''
 tested_raw = df[0]
 cases_raw = df[1]
 no_longer_isolation = df[2]
@@ -261,6 +261,7 @@ new_date = []
 tested_raw = tested_raw.rename(columns={
     'Date reported': 'updated',
     'Total approximate number of completed tests': 'tested'})
+print(tested_raw)
 date_list = tested_raw['updated'].to_list()
 for date in date_list:
     new_date.append(datetime.datetime.strptime(date, '%m/%d'))
@@ -342,7 +343,7 @@ not_icu_daily['other'] = 'Hospitalized, not in ICU (daily)'
 age_group_pct = age_group_pct.rename(
     columns={'Age Group': 'age_range', 'Percent of Cases': 'age_percent',
              'Percent of Deaths': 'age_deaths_percent'})
-'''
+
 # State-level: Race - cases and deaths percent
 race_cases_pct = race_pct[['Race', 'Percent of Cases']]
 race_cases_pct = race_cases_pct.rename(
@@ -366,7 +367,7 @@ exposure_pct_cases['other'] = exposure_pct_cases['other'].astype(str) +\
 county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
                                                           'Cases': 'cases',
                                                           'Deaths': 'deaths'})
-'''
+
 county_df = [county_cases_deaths, newly_reported_deaths_counties]
 state_df = [tested_state, state_lab_df, ext_lab_df,
             no_longer_isolation, state_deaths,
@@ -376,7 +377,7 @@ state_df = [tested_state, state_lab_df, ext_lab_df,
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
-
+'''
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
@@ -385,7 +386,8 @@ if path and not path.endswith('/'):
     path += '/'
 file_name = path + state + dt_string + '.csv'
 
-df = pd.concat([pd.DataFrame(row_csv, columns=columns),
-                # county_df,
-                state_df])
+#df = pd.concat([pd.DataFrame(row_csv, columns=columns),
+                # county_df,state_df])
+
+df = pd.DataFrame(row_csv)
 df.to_csv(file_name, index=False)

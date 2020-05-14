@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Provides methods for reading images and recognizing characters."""
 import re
+import sys
+import camelot
 import logging
+import requests
+import tempfile
 import pandas as pd
 import urllib.request
 from PIL import Image
@@ -84,7 +88,20 @@ class ReadImage():
             raise ReadImageException(msg)
 
 
-class ReadPDF():
-    """Provide module performing OCR for PDFs."""
-    # TODO finish this
-    pass
+class ReadPDFTables():
+    """Provide module for reading PDF tables."""
+    def __init__(self, pdf_file, url=True,
+                 logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
+        if url is True:
+            try:
+                temp = 'content.pdf'
+                r = requests.get(pdf_file, allow_redirects=True)
+                open(f'/tmp/{temp}', 'wb').write(r.content)
+                pdf_file = temp
+            except Exception as e:
+                self.logger.error(f'Error {e} occurred reading {pdf_file}')
+        self.pdf = camelot.read_pdf(pdf_file)
+
+    def return_df(self, index=1):
+        return self.pdf[index].df
+

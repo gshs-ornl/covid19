@@ -34,5 +34,5 @@ use the script `pgconf/setup.sql`
 ## Create SQL Dump (pg_dumpall from localhost)
 
 ```
-PGPASSWORD=covidb2 pg_dumpall -d "postgresql://postgres:covidb2@localhost:5433/covidb2" | gzip > covidb2.$(date -Is).dump_all.gz
+PGPASSWORD=covidb2 pg_dumpall -d "postgresql://covidb2:covidb2@localhost:5433/covidb2" | gzip > covidb2.$(date -Is).dump_all.gz
 

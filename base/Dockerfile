@@ -44,9 +44,14 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     libtiff5 libtiff5-dev libpng16-16 libpng-dev zlib1g zlib1g-dev \
     leptonica-progs libleptonica-dev libudunits2-0 libudunits2-data \
     libudunits2-dev gdal-bin libgdal-dev libproj-dev gfortran-multilib \
-    libpcre2-32-0 libpcre2-dev libgit2-dev && \
+    libpcre2-32-0 libpcre2-dev libgit2-dev ghostscript libsodium-dev && \
     apt-get autoremove
 
+# Install google chrome
+RUN set -eux && wget \
+    https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && apt-get -yqq install ./google-chrome-stable_current_amd64.deb && \
+    rm -f google-chrome-stable_current_abd64.deb
 
 # confirm tesseract version
 RUN set -eux && tesseract --version
@@ -116,7 +121,7 @@ RUN set -eux && pip install --upgrade pip && \
 
 # install R packages
 COPY install_reqs.R /tmp/install_reqs.R
-RUN Rscript /tmp/install_reqs.R
+RUN Rscript /tmp/install_reqs.R && R --slave -e "install.packages('shiny')"
 
 # install our python package
 COPY setup.py .
