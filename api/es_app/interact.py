@@ -35,8 +35,6 @@ page_skeleton = """
             <button type="submit" value="Submit">Filter columns</button>
             <input type="radio" id="view" name="mode" value='view' checked>
             <label for="view">View</label>
-            <input type="radio" id="csv" name="mode" value='csv'>
-            <label for="csv">CSV</label>
             <input type="radio" id="gzip" name="mode" value='gzip'>
             <label for="gzip">gzip CSV</label>
         </div>
