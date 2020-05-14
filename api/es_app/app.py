@@ -1,8 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor, Future
 import csv
+from itertools import chain
 from os import path
+import zipfile
 
-from flask import Flask, request, Response, url_for
+from flask import Flask, request, Response
 from werkzeug.utils import secure_filename
 import xlrd
 
@@ -91,10 +93,10 @@ landing_html = """
 def slurp_csv(file, filename):
     _name = secure_filename(filename)
     _path = path.join(csv_dir, _name)
-    with open(_path, 'w', encoding='utf-8') as csv:
+    with open(_path, 'w', encoding='utf-8') as _csv:
         chunk = file.read(file_chunk_size)
         while chunk:
-            csv.write(chunk)
+            _csv.write(chunk)
             chunk = file.read(file_chunk_size)
     Slurp(_path)
     return f"Slurped {_name}"
@@ -114,6 +116,17 @@ def slurp_excel(file, filename):
             yield f"Slurped {_name}"
 
 
+def slurp_zip(zip_file: zipfile.ZipFile, type_: str):
+    for item in zip_file.namelist():
+        with zip_file.open(item) as file:
+            if type_ == 'zip-csv':
+                yield slurp_csv(file, item)
+            elif type_ == 'zip-excel':
+                yield from slurp_excel(file, item)
+            else:
+                yield 'Not sure how you got here'
+
+
 @app.route('/', methods=['GET', 'POST'])
 def landing():
     if not request.method == 'POST':
@@ -121,9 +134,12 @@ def landing():
     file_type = request.form.get('mode')
     upload = request.files.get('CSVFile')
     if upload is None:
-        raise FileNotFoundError
+        return "File not found. Did you upload one?"
     if file_type in ['zip-csv', 'zip-excel']:
-        return "Support pending"
+        if not zipfile.is_zipfile(upload):
+            return Response('Unsupported archive', status=415)
+        with zipfile.ZipFile(upload) as z_upload:
+            return Response(slurp_zip(z_upload, file_type))
     if file_type == 'excel':
         return Response(slurp_excel(upload, upload.filename))
     if file_type == 'csv':
