@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# FIXME: this will owrk only on ontoserv
+# to make it work on the docker compose we need what excatly we are dumping (everything or a specific schema)
+
+
+PGPASSWORD=covidb2 pg_dumpall -d "postgresql://covidb2:covidb2@localhost:5433/covidb2" | gzip > covidb2.$(date -Is).dump_all.gz
+
