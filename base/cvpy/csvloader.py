@@ -151,6 +151,8 @@ class CSVLoader(object):
         if not logger:
             logger = self._logger
 
+        logger.info("Loading of {} started at {}".format(fname, datetime.datetime.now().isoformat()) )
+
         if not csv_stream:
             csv_stream=open(fname, "r", encoding='utf-8-sig', errors='replace')
         csvr = csv.DictReader(csv_stream)

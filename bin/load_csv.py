@@ -194,5 +194,5 @@ with Database(dsn=args.dsn) as db:
         except IOError as e:
             logger.error(f"Failure in {fname}: {e}")
         except zipfile.BadZipfile as e:
-            logger.error(f"Bad zip, skipping the rest of {fname} after line {row_no}: {e}")
+            logger.error(f"Bad zip, skipping the rest of {fname}: {e}")
 
