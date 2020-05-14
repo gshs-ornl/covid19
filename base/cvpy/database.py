@@ -9,23 +9,31 @@ from sqlalchemy import create_engine
 from cvpy.common import check_environment as ce
 from cvpy.common import create_uri
 from cvpy.exceptions import DatabaseException
-
+import dsnparse
 
 class Database(object):
     """Provides a convenient API-like interface to the covidb database.
     The database object is the interface to the covidb database.
         :param db_name the name of the database to connect to
     """
-    def __init__(self, logger=logging.getLogger(ce('PY_LOGGER', 'main')),
+    def __init__(self, logger=logging.getLogger(ce('PY_LOGGER', 'main')), dsn=None,
                  email_list=['grantjn@ornl.gov', 'piburnjo@ornl.gov',
                              'kaufmanjc@ornl.gov']):
         """Initiate the database object."""
         self.timeout = int(ce('DB_TIMEOUT', '60'))
-        self.user = ce('DB_USER', 'guest')
-        self.passwd = ce('DB_PASS', 'abc123')
-        self.host = ce('DB_HOST', 'localhost')
-        self.database = ce('DB_DATABASE', 'covidb')
-        self.port = int(ce('DB_PORT', '5432'))
+        if dsn:
+            dp = dsnparse.parse(dsn)
+            self.user = dp.username
+            self.passwd = dp.password
+            self.host = dp.host
+            self.database = dp.paths[0]
+            self.port = int(dp.port)
+        else:
+            self.user = ce('DB_USER', 'guest')
+            self.passwd = ce('DB_PASS', 'abc123')
+            self.host = ce('DB_HOST', 'localhost')
+            self.database = ce('DB_DATABASE', 'covidb')
+            self.port = int(ce('DB_PORT', '5432'))
         self.con = None
         self.cur = None
         self.uri = None
