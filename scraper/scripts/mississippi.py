@@ -15,7 +15,7 @@ state = 'Mississippi'
 columns = Headers.updated_site
 new_column_names = ['black_cases', 'white_cases',
            'native_cases', 'asian_cases', 'other_race_cases',
-           'unknown_race_cases', 'deaths', 'black_deaths',
+           'unknown_race_cases', 'black_deaths',
            'white_deaths', 'native_deaths', 'asian_deaths',
            'other_race_deaths', 'unknown_race_deaths']
 columns.extend(new_column_names)
@@ -82,13 +82,29 @@ dict_info_county = {'provider': 'state', 'country': country,
                     "state": state, "resolution": "county",
                     "page": str(df), "access_time": access_time}
 
+# Daily deaths for today
+county_deaths_today_df = df[0]
+county_deaths_today_df = county_deaths_today_df.rename(
+        columns={"County": "county", "Deaths reported today": 'other_value'})
+county_deaths_today_df['other'] = 'Deaths reported today'
+
 # County-level data
-county_level_df = df[0]
-county_level_df = county_level_df.rename(
+county_level_df = df[1].rename(
         columns={"County": "county", "Total Cases": 'cases',
-                 "Total Deaths": 'deaths',
-                 "Total Cases in LTC Facilities": 'other_value'})
-county_level_df['other'] = "Total Cases in LTC Facilities"
+                 "Total Deaths": 'deaths'})
+ltc_cases_txt = 'Total LTC Facility Cases'
+county_ltc_cases = county_level_df[['county', ltc_cases_txt]]
+county_ltc_cases = county_ltc_cases.rename(
+        columns={ltc_cases_txt: 'other_value'})
+county_ltc_cases['other'] = ltc_cases_txt
+
+ltc_deaths_txt = 'Total LTC Facility Deaths'
+county_ltc_deaths = county_level_df[['county', 'Total LTC Facility Deaths']]
+county_ltc_deaths = county_ltc_deaths.rename(
+        columns={ltc_deaths_txt: 'other_value'})
+county_ltc_deaths['other'] = ltc_deaths_txt
+
+county_level_df = county_level_df[['county', 'deaths', 'cases']]
 
 cases_deaths_state_level_df = county_level_df[
         county_level_df['county'] == 'Total'].drop('county', axis=1)
@@ -96,7 +112,9 @@ cases_deaths_state_level_df = county_level_df[
 county_level_df = county_level_df[county_level_df['county'] != 'Total']
 
 # Put parsed data in data frame
-county_level_df = fill_in_df(county_level_df, dict_info_county, columns)
+county_level_df = fill_in_df([county_level_df, county_deaths_today_df,
+                              county_ltc_cases, county_ltc_cases],
+                             dict_info_county, columns)
 cases_deaths_state_level_df = fill_in_df(cases_deaths_state_level_df,
                                          dict_info_state, columns)
 
@@ -186,6 +204,7 @@ print('state_total_lab_test', state_total_lab_test.shape)
 print('race_cases', race_cases.shape)
 print('county_cases', county_cases.shape)
 print('ltcdf', ltcdf.shape)
+print(cases_deaths_state_level_df)
 
 df = pd.concat([county_level_df, cases_deaths_state_level_df,
                 state_total_test, state_total_lab_test, race_cases,
