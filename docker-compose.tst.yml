@@ -21,3 +21,5 @@ services:
     build: ./tests
     networks:
       - covid_web
+    links:
+      - chrome:tests
