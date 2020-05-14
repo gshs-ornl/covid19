@@ -105,8 +105,9 @@ def slurp_csv(file, filename):
 def slurp_excel(file, filename):
     _name = secure_filename(filename).rsplit('.', 1)[0]
     with xlrd.open_workbook(file_contents=file.read()) as workbook:
+        sheet_num = 0
         for sheet in workbook.sheets():
-            _name_sheet = _name + '_sheet_00.csv'
+            _name_sheet = _name + f'_sheet_{sheet_num}.csv'
             _path = path.join(csv_dir, _name_sheet)
             with open(_path, 'w', encoding='utf-8') as _file:
                 _writer = csv.writer(_file, quoting=csv.QUOTE_ALL)
@@ -114,6 +115,7 @@ def slurp_excel(file, filename):
                     _writer.writerow(row)
             Slurp(_path)
             yield f"Slurped {_name}"
+            sheet_num += 1
 
 
 def slurp_zip(zip_file: zipfile.ZipFile, type_: str):
