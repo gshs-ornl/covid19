@@ -63,6 +63,7 @@ class WebDriver():
                           '--disable-gpu', '--disable-dev-shm-usage',
                           'headless'],
                  additional_options=None, javascript=False,
+                 experimental_options=None,
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
@@ -93,6 +94,7 @@ class WebDriver():
         self.remote = remote
         self.javascript = javascript
         self.preferences = preferences
+        self.experimental_options = experimental_options
         self.sleep_time = sleep_time
         self.driver_type = driver
         self.logger.info(f'Connecting with driver: {driver}')
@@ -208,6 +210,9 @@ class WebDriver():
         """ method to create driver based on chrome """
         self.logger.info(f'Using chrome to connect to {self.url}')
         self.options = webdriver.ChromeOptions()
+        if self.experimental_options is not None:
+            self.options.add_experimental_option('prefs',
+                                                 self.experimental_options)
         if self.javascript:
             self.options.add_argument("javascript.enabled", True)
         try:
