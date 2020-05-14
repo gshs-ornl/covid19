@@ -112,7 +112,7 @@ def slurp_excel(file, filename):
             with open(_path, 'w', encoding='utf-8') as _file:
                 _writer = csv.writer(_file, quoting=csv.QUOTE_ALL)
                 for row in sheet.get_rows():
-                    _writer.writerow(row)
+                    _writer.writerow(cell.value for cell in row)
             Slurp(_path)
             yield f"Slurped {_name}"
             sheet_num += 1
