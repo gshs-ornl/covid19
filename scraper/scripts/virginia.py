@@ -18,7 +18,7 @@ state_age_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_' + \
 state_gender_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
 state_race_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
 health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + \
-                  'Cases_By-District-Death-Hospitalization.csv'
+    'Cases_By-District-Death-Hospitalization.csv'
 confirmation_url = f'{base}04/VDH-COVID-19-PublicUseDataset-Cases_By' + \
     '-Confirmation.csv'
 event_url = f'{base}05/VDH-COVID-19-PublicUseDataset-EventDate.csv'
@@ -263,7 +263,7 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
-# key_url
+# labs_url
 with WebDriver(url=labs_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
                         '--disable-logging',

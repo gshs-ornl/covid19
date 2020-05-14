@@ -20,7 +20,8 @@ state_deaths_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/se
 state_tested_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_Testing/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22T_total%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 state_negative_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22T_negative%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
 state_agegrp_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_0_4%22%2C%22outStatisticFieldName%22%3A%22C_Age_0_4%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_5_14%22%2C%22outStatisticFieldName%22%3A%22C_Age_5_14%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_15_24%22%2C%22outStatisticFieldName%22%3A%22C_Age_15_24%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_25_34%22%2C%22outStatisticFieldName%22%3A%22C_Age_25_34%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_35_44%22%2C%22outStatisticFieldName%22%3A%22C_Age_35_44%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_45_54%22%2C%22outStatisticFieldName%22%3A%22C_Age_45_54%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_55_64%22%2C%22outStatisticFieldName%22%3A%22C_Age_55_64%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_65_74%22%2C%22outStatisticFieldName%22%3A%22C_Age_65_74%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_75_84%22%2C%22outStatisticFieldName%22%3A%22C_Age_75_84%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_Age_85plus%22%2C%22outStatisticFieldName%22%3A%22C_Age_85plus%22%7D%5D&resultType=standard&cacheHint=true'
-
+state_race_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_RaceWhite%22%2C%22outStatisticFieldName%22%3A%22C_RaceWhite%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_RaceBlack%22%2C%22outStatisticFieldName%22%3A%22C_RaceBlack%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_RaceOther%22%2C%22outStatisticFieldName%22%3A%22C_RaceOther%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_RaceUnknown%22%2C%22outStatisticFieldName%22%3A%22C_RaceUnknown%22%7D%5D&resultType=standard&cacheHint=true'
+state_ethnicity_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_HispanicNO%22%2C%22outStatisticFieldName%22%3A%22C_HispanicNO%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_HispanicYES%22%2C%22outStatisticFieldName%22%3A%22C_HispanicYES%22%7D%2C%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_HispanicUnk%22%2C%22outStatisticFieldName%22%3A%22C_HispanicUnk%22%7D%5D&resultType=standard&cacheHint=true'
 
 # FL residents
 state_flres_cases_url = 'https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/arcgis/rest/services/Florida_COVID19_Cases/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22C_AllResTypes%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true'
@@ -353,6 +354,68 @@ for url in [state_flres_hospitalized_url, state_flres_cases_url,
         nan, nan, nan, nan,
         other, other_value])
 
+url = state_race_url
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+attribute = raw_data['features'][0]['attributes']
+race_keys = attribute.keys()
+for race_key in race_keys:
+    other = 'race'
+    other_value = race_key.replace('C_Race', '')
+    cases = attribute[race_key]
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        cases, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
+
+url = state_ethnicity_url
+response = requests.get(url)
+access_time = datetime.datetime.utcnow()
+updated = determine_updated_timestep(response)
+raw_data = response.json()
+attribute = raw_data['features'][0]['attributes']
+eth_keys = attribute.keys()
+for eth_key in eth_keys:
+    other = 'ethnicity'
+    if eth_key == 'C_HispanicNO':
+        other_value = 'Non-Hispanic'
+    elif eth_key == 'C_HispanicYES':
+        other_value = 'Hispanic'
+    elif eth_key == 'C_HispanicUnk':
+        other_value = 'Unknown_or_no_data'
+    else:
+        other_value = eth_key
+    cases = attribute[eth_key]
+    row_csv.append([
+        'state', country, state, nan,
+        url, str(raw_data), access_time, nan,
+        cases, updated, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        other, other_value])
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")

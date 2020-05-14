@@ -72,3 +72,9 @@ class ReadImageException(BaseException):
     def __init__(self, text):
         """Initialize the database exception."""
         super().__init__(text, ErrorType.Image)
+
+class ReadPDFException(BaseException):
+    """An error occurred while trying to use ReadImage()."""
+    def __init__(self, text):
+        """Initialize the database exception."""
+        super().__init__(text, ErrorType.PDF)
