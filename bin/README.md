@@ -7,6 +7,7 @@ python3 -m venv covidbenv
 . ./covidbenv/bin/activate
 pip install --upgrade pip
 pip install -r ./base/db-requirements.txt
+(cd base && python setup.py install)
 ```
 
 ## Load Data from automatically scraped CSVs
