@@ -13,7 +13,6 @@ import psycopg2
 import zipfile
 import io
 import datetime
-import collections
 import fnmatch
 import pathlib
 import logging
@@ -156,8 +155,11 @@ if args.rows:
 
 with Database(dsn=args.dsn) as db:
 
+    if not db.con:
+        raise ConnectionError(f"Failed to connect to {args.dsn}")
+
     logfh = None
-    csvloader = CSVLoader(db, dry_run=args.dry_run)
+    csvloader = CSVLoader(db, schema=args.schema, dry_run=args.dry_run)
 
     for csv_stream, fname in next_csv():
 
@@ -185,7 +187,7 @@ with Database(dsn=args.dsn) as db:
         try:
             print(f"Loading {fname}")
 
-            csvloader.load(csv_stream, op=args.op, logger=logger, rows=rows)
+            csvloader.load(csv_stream=csv_stream, fname=str(fname), op=args.op, logger=logger, rows=rows)
 
             print(f"Finished {fname}")
 
@@ -193,8 +195,4 @@ with Database(dsn=args.dsn) as db:
             logger.error(f"Failure in {fname}: {e}")
         except zipfile.BadZipfile as e:
             logger.error(f"Bad zip, skipping the rest of {fname} after line {row_no}: {e}")
-
-conn.commit()
-
-conn.close()
 

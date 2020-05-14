@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS scraping.melt
 );
 
 \set myschema staging
-\i setup-staging.sql
+\ir setup-staging.sql
 
 create or replace function :myschema.get_provider(v_provider text) RETURNS int
     language plpgsql
