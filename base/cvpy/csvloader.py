@@ -247,7 +247,7 @@ class CSVLoader(object):
             if rows:
                 crange = rows[current_range]
                 if not ( len(crange)==1 and row_no == crange[0] or row_no >= crange[0] and row_no <= crange[1] ):
-                    logger.info(f"\rSkipped CSV row {row_no}  ", end='', flush=True)
+                    logger.info(f"\rSkipped CSV row {row_no}  ")
                     continue
                 if len(crange) == 1 or row_no == crange[1]:
                     current_range += 1
@@ -311,7 +311,7 @@ class CSVLoader(object):
                 else:
                     row['access_time'] = parsed_time
             except ValueError as e:
-                logger.warning(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped:", row['access_time'], e)
+                logger.warning(f"Unparseable time in 'access_time' {fname}:{row_no}, row skipped: {row['access_time']}, {e}")
                 continue
             # extract day of the record, the logic
             #   * use 'updated' if avavilable
@@ -329,7 +329,7 @@ class CSVLoader(object):
                         jd = json.loads(row['updated'].replace("'", '"'))
                         valid_time = datetime.date(jd['year'], jd['month'], jd['day'])
                     except json.decoder.JSONDecodeError as e:
-                        logger.warning(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped:", row['updated'], e)
+                        logger.warning(f"Unparseable 'updated' JSON in {fname}:{row_no}, row skipped: {row['updated']}, {e}")
                         continue
                 else:
                     try:
@@ -339,7 +339,7 @@ class CSVLoader(object):
                         else:
                             valid_time = ts_for_valid_time.date()
                     except ValueError as e:
-                        logger.warning(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped:", row['updated'], e)
+                        logger.warning(f"Unparseable time in 'updated' {fname}:{row_no}, row skipped: {row['updated']}, {e}")
                         continue
             # no good valid_time
             if valid_time is None:
