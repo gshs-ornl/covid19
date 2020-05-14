@@ -25,6 +25,7 @@ state_cases_gender_url = 'https://kygisserver.ky.gov/arcgis/rest/services/WGS84W
 state_cases_age_url = 'https://kygisserver.ky.gov/arcgis/rest/services/WGS84WM_Services/Ky_Cnty_COVID19_Cases_WGS84WM/FeatureServer/1/query?f=json&where=AgeGroup%3C%3E%27Unconfirmed%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&groupByFieldsForStatistics=AgeGroup&orderByFields=AgeGroup%20asc&outStatistics=%5B%7B%22statisticType%22%3A%22count%22%2C%22onStatisticField%22%3A%22ObjectID%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&outSR=102100&resultType=standard'
 state = 'Kentucky'
 columns = Headers.updated_site
+columns.extend(['race', 'race_percentage', 'ethnicity', 'ethnicity_percentage'])
 row_csv = []
 
 # Main website
@@ -33,35 +34,28 @@ resolution = 'state'
 
 response = requests.get(url)
 access_time = datetime.datetime.utcnow()
-#updated = determine_updated_timestep(response)
+updated = determine_updated_timestep(response)
 html_text = response.text
 soup = BeautifulSoup(html_text, "html5lib")
 
-summary = str(soup.select_one('.alert-success')).split('<br/>')
-cases = None
-deaths = None
-tested = None
-updated = None
-for item in summary:
-    text = str(BeautifulSoup(item, "html5lib").text)
-    if (text.startswith('Current')):
-        parts = text.split(' ')
-        updatedStr = ' '.join([parts[3], parts[4], parts[5], parts[7], parts[8].replace('.', '').upper()])
-        # time on website is listed as EST, save as GMT
-        updatedEST = datetime.datetime.strptime(updatedStr, '%B %d, %Y %I %p')
-        updated = updatedEST + datetime.timedelta(hours=5)
-    elif (text.startswith('Number')):
-        tested = text.split(': ')[1].replace(',', '')
-    elif (text.startswith('Positive')):
-        cases = text.split(': ')[1].replace(',', '')
-    elif (text.startswith('Deaths')):
-        deaths = text.split(': ')[1].replace(',', '')
+summary_data = soup.select('.number')
+tested = summary_data[0].text.strip().replace(',', '')
+cases = summary_data[1].text.strip().replace(',', '')
+deaths = summary_data[2].text.strip().replace(',', '')
+recovered = summary_data[3].text.strip().replace(',', '')
 
-row_csv.append([
+tables = soup.select('.table-covid')
+
+# race
+for tr in tables[0].select_one('tbody').select('tr'):
+    data = tr.select('td')
+    race = data[0].text
+    race_percentage = data[1].text.replace('%', '')
+    row_csv.append([
         'state', country, state, nan,
         url, get_raw_data(html_text), access_time, nan,
         cases, updated, deaths, nan,
-        nan, tested, nan, nan,
+        recovered, tested, nan, nan,
         nan, nan, nan, nan, nan,
         nan, nan, nan,
         nan, nan, nan,
@@ -72,7 +66,54 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        nan, nan])
+        nan, nan,
+        race, race_percentage, nan, nan])
+
+# ethnicity
+for tr in tables[1].select_one('tbody').select('tr'):
+    data = tr.select('td')
+    ethnicity = data[0].text
+    ethnicity_percentage = data[1].text.replace('%', '')
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_data(html_text), access_time, nan,
+        cases, updated, deaths, nan,
+        recovered, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, nan, nan, nan,
+        nan, nan,
+        nan, nan, ethnicity, ethnicity_percentage])
+
+# sex
+for tr in tables[2].select_one('tbody').select('tr'):
+    data = tr.select('td')
+    sex = data[0].text
+    sex_percentage = data[1].text.replace('%', '')
+    row_csv.append([
+        'state', country, state, nan,
+        url, get_raw_data(html_text), access_time, nan,
+        cases, updated, deaths, nan,
+        recovered, tested, nan, nan,
+        nan, nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        nan, nan, nan,
+        resolution, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan, nan,
+        nan, nan, nan,
+        nan, nan,
+        nan, sex, nan, sex_percentage,
+        nan, nan,
+        nan, nan, nan, nan])
 
 # County-level data
 url = county_url
@@ -112,7 +153,8 @@ for feature in raw_data['features']:
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        nan, nan])
+        nan, nan,
+        nan, nan, nan, nan])
 
 # Aggregated data
 resolution = 'state'
@@ -131,7 +173,8 @@ row_csv.append([
         nan, nan, nan,
         nan, nan,
         nan, nan, nan, nan,
-        nan, nan])
+        nan, nan,
+        nan, nan, nan, nan])
 
 # State-level data - genders deaths
 url = state_death_gender_url
@@ -159,7 +202,8 @@ for feature in raw_data['features']:
         nan, nan, nan,
         nan, nan,
         nan, sex, nan, nan,
-        nan, nan])
+        nan, nan,
+        nan, nan, nan, nan])
 
 # State-level data - age groups deaths
 url = state_death_age_url
@@ -187,7 +231,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            nan, nan])
+            nan, nan,
+            nan, nan, nan, nan])
 
 # State-level data - genders cases
 url = state_cases_gender_url
@@ -216,7 +261,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, sex, sex_counts, nan,
-            nan, nan])
+            nan, nan,
+            nan, nan, nan, nan])
 
 # State-level data - age groups cases
 url = state_cases_age_url
@@ -244,7 +290,8 @@ for feature in raw_data['features']:
             nan, nan, nan,
             nan, nan,
             nan, nan, nan, nan,
-            nan, nan])
+            nan, nan,
+            nan, nan, nan, nan])
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
