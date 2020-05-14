@@ -234,7 +234,7 @@ class CSVLoader(object):
 
             if row_no == 0:
                 # these are columns missing either in manually or automatically scraped CSVs
-                for c in ('resolution', 'no_longer_monitored', 'page', 'pending', 'quarantined', 'percent', 'county', 'other_value'):
+                for c in ('resolution', 'no_longer_monitored', 'page', 'pending', 'quarantined', 'percent', 'county', 'other_value', 'region'):
                     if not c in row:
                         missing_columns.append(c)
 
