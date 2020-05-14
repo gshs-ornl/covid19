@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 from struct import pack
 from time import time
+from typing import Generator, Iterable, Tuple
 import zlib
 
 import flask_table
@@ -80,3 +81,51 @@ def gen_db_client():
     tmp.open()
     tmp.cursor = tmp.con.cursor
     return tmp
+
+
+def gen_data(query: str, chunk: int = 500) -> Generator[Tuple]:
+    client = gen_db_client()
+    cursor = client.cursor(name='export-provider')
+    cursor.execute(query)
+    _rows = (cursor.fetchone(),)
+    yield tuple((col.name for col in cursor.description))
+    while _rows:
+        yield from _rows
+        _rows = cursor.fetchmany(chunk)
+    cursor.close()
+    client.close()
+
+
+def stream_csv(stream: Iterable) -> Generator[str]:
+    output: StringIO = StringIO()
+    for row in stream:
+        writer = csv.writer(output, quoting=csv.QUOTE_ALL)
+        writer.writerow(row)
+        yield output.getvalue()
+        output = StringIO()
+
+
+def stream_gzip(stream: Iterable[str]) -> Generator[bytes]:
+    yield bytes([
+        0x1F, 0x8B, 0x08, 0x00,
+        *pack('<L', int(time())),
+        0x02, 0xFF,
+    ])
+    # gzip magic numbers
+    zipper = zlib.compressobj(
+        9,
+        zlib.DEFLATED,
+        -zlib.MAX_WBITS,
+        zlib.DEF_MEM_LEVEL
+    )
+    crc = zlib.crc32(b'')
+    data_len = 0
+    for line in stream:
+        data = line.encode('utf-8')
+        chunk = zipper.compress(data)
+        if chunk:
+            yield chunk
+        crc = zlib.crc32(data, crc) & 0xFFFFFFFF
+        data_len += len(data)
+    yield zipper.flush()
+    yield pack('<2L', crc, data_len & 0xFFFFFFFF)
