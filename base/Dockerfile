@@ -44,14 +44,27 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
     libtiff5 libtiff5-dev libpng16-16 libpng-dev zlib1g zlib1g-dev \
     leptonica-progs libleptonica-dev libudunits2-0 libudunits2-data \
     libudunits2-dev gdal-bin libgdal-dev libproj-dev gfortran-multilib \
-    libpcre2-32-0 libpcre2-dev libgit2-dev ghostscript libsodium-dev && \
+    libpcre2-32-0 libpcre2-dev libgit2-dev ghostscript libsodium-dev \
+    build-essential nodejs libnss3 libgconf-2-4 unzip && \
     apt-get autoremove
 
 # Install google chrome
-RUN set -eux && wget \
-    https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && apt-get -yqq install ./google-chrome-stable_current_amd64.deb && \
-    rm -f google-chrome-stable_current_abd64.deb
+ARG CHROME_VERSION="google-chrome-stable"
+ARG CHROME_PUBLIC_KEY="https://dl-ssl.google.com/linux/linux_signing_key.pub"
+ARG CHROMEDRIVER_URL="http://chromedriver.storage.googleapis.com"
+RUN set -eux && wget -q -O - "$CHROME_PUBLIC_KEY" | apt-key add - && \
+      echo "deb https://dl.google.com/linux/chrome/deb/ stable main" >> \
+        /etc/apt/sources.list.d/google-chrome.list && \
+      apt-get update -yqq && apt-get upgrade -yqq && apt-get -yqq install \
+        ${CHROME_VERSION:-google-chrome-stable} && \
+      rm /etc/apt/sources.list.d/google-chrome.list && \
+      rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+RUN set -eux && GCV=$(google-chrome --version) && echo "$GCV"
+
+RUN wget "$CHROMEDRIVER_URL/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" \
+      && unzip chromedriver_linux64.zip && rm chromedriver_linux64.zip && \
+      mv /tmp/chromedriver /usr/local/bin
 
 # confirm tesseract version
 RUN set -eux && tesseract --version
