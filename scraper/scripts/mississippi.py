@@ -13,6 +13,12 @@ from cvpy.url_helpers import determine_updated_timestep
 country = 'US'
 state = 'Mississippi'
 columns = Headers.updated_site
+new_column_names = ['black_cases', 'white_cases',
+           'native_cases', 'asian_cases', 'other_race_cases',
+           'unknown_race_cases', 'deaths', 'black_deaths',
+           'white_deaths', 'native_deaths', 'asian_deaths',
+           'other_race_deaths', 'unknown_race_deaths']
+columns.extend(new_column_names)
 web_table_url = 'https://msdh.ms.gov/msdhsite/_static/14,0,420.html'
 
 
@@ -136,9 +142,9 @@ dict_info_county = {'provider': 'state', 'country': country,
                     "url": web_table_url,
                     "state": state, "resolution": "county",
                     "page": str(df1), "access_time": access_time}
-county_cases = fill_in_df(df_tot, dict_info_county,
-                          columns=['county', 'cases'])
-race_cases = fill_in_df(dfm, dict_info_county, columns=['county', 'race'])
+
+county_cases = fill_in_df(df_tot, dict_info_county, columns)
+race_cases = fill_in_df(dfm, dict_info_county, columns)
 
 # PDF 2
 url = 'https://msdh.ms.gov/msdhsite/_static/resources/8578.pdf'
@@ -160,7 +166,7 @@ headers = ['county', 'active', 'cases', 'black_cases', 'white_cases',
            'white_deaths', 'native_deaths', 'asian_deaths',
            'other_race_deaths', 'unknown_race_deaths']
 df1.columns = headers
-ltcdf = fill_in_df(df1, ltc_dict_info, headers)
+ltcdf = fill_in_df(df1, ltc_dict_info, columns)
 
 
 # Put parsed data in data frame
@@ -173,6 +179,13 @@ path = os.getenv("OUTPUT_DIR", "")
 if path and not path.endswith('/'):
     path += '/'
 file_name = path + state.replace(' ', '_') + dt_string + '.csv'
+print('county_level_df', county_level_df.shape)
+print('cases_deaths_state_level_df', cases_deaths_state_level_df.shape)
+print('state_total_test', state_total_test.shape)
+print('state_total_lab_test', state_total_lab_test.shape)
+print('race_cases', race_cases.shape)
+print('county_cases', county_cases.shape)
+print('ltcdf', ltcdf.shape)
 
 df = pd.concat([county_level_df, cases_deaths_state_level_df,
                 state_total_test, state_total_lab_test, race_cases,
