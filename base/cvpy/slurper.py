@@ -26,30 +26,27 @@ class Slurp():
             csvs = glob_csvs(clean_dir, self.logger)
             for c in csvs:
                 if os.path.exists(c):
-                    df = get_csv(c, self.logger)
-                    self.process(df, c)
+                    self.process(c)
                 else:
                     self.logger.warning(f'File {c} was not found, skipping.')
         elif os.path.isdir(self.path):
             if os.path.exists(self.path):
                 csvs = glob_csvs(clean_dir, self.logger)
                 for c in csvs:
-                    df = get_csv(c, self.logger)
-                    self.process(df, c)
+                    self.process(c)
         elif os.path.isfile(self.path):
-            df = get_csv(self.path, self.logger)
-            self.process(df, self.path)
+            self.process(self.path)
         else:
             traceback.print_stack()
             raise SlurpException(f'Unknown way to process: {self.path}')
 
-    def process(self, df, c):
+    def process(self, c):
         """Process the CSV passed during Slurp initialization."""
         # TODO fill in with better logic
         self.logger.info(f'Proceeding with file {self.path}')
         try:
             with Database() as db:
-                db.insert_raw_data(df)
+                db.insert_raw_data(c)
             os.remove(c)
         # TODO better exception handling
         except OSError as e:

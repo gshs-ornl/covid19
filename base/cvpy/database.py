@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from cvpy.common import check_environment as ce
 from cvpy.common import create_uri
 from cvpy.exceptions import DatabaseException
+from cvpy.csvloader import CSVLoader
 import dsnparse
 
 class Database(object):
@@ -131,17 +132,8 @@ class Database(object):
             res = self.query(query)
         return res
 
-    def insert_raw_data(self, df, uri=None):
+    def insert_raw_data(self, csv_fname, uri=None):
         """Insert raw data into database."""
-        if not isinstance(df, pd.DataFrame):
-            msg = f'Object passed was of type {type(df)}, not a ' + \
-                'Pandas DataFrame'
-            self.logger.error(msg)
-            raise DatabaseException(msg)
-        if uri is None:
-            self.logger.warning('URI was not passed, please pass explicitly.')
-            uri = create_uri(self.logger)
-        if not hasattr(self, 'engine'):
-            self.engine = create_engine(uri)
-        df.to_sql('raw_data', self.engine, schema='scraping',
-                  if_exists='append', index=False, method='multi')
+
+        csvloader = CSVLoader(self)
+        csvloader.load(fname=csv_fname, schema='scraping')
