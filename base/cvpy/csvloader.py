@@ -93,7 +93,7 @@ class CSVLoader(object):
 
         :l1: 1st list
         :l2: 2nd list
-        :returns: True if allelements are the same, nones ignored
+        :returns: True if all elements are the same, None values ignored
 
         """
 
@@ -261,7 +261,7 @@ class CSVLoader(object):
                 continue
 
             # save provider, dataset, and vendor
-            # FIXME for speedup add provider and vendor on the 1st row only
+            # FIXME factor it into function, use hash lookup for speedup
             if row['provider'] != provider:
                 provider = row['provider']
                 try:

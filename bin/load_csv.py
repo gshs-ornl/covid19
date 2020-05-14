@@ -26,7 +26,9 @@ parser.add_argument("files", type=str, nargs='+', help="CSV files, zip archives,
 parser.add_argument("--dsn", help="database to load CSVs to", type=str, default="postgresql://ingester:AngryMoose@localhost:5432/covidb")
 parser.add_argument("--schema", help="database schema to load data to", type=str, default='staging')
 parser.add_argument("--op", help="operation ('replace' will remove all records for the specific file before appending)", type=str, choices=['append', 'replace', 'new'], default='append')
+# TODO: operation 'remove'
 parser.add_argument("--exclude", help="exclude specified CSVs and zips from processing (globs Ok)", nargs='*', type=str, default=[])
+# TODO: option only
 parser.add_argument("--start", help="start processing with the specified CSV or zip (must be an exact match)", type=str)
 parser.add_argument("--rows", help="load only specified rows, e.g., -10,11-13,15,17- (use =, intervals inclusive, all files, start row=0, header ignored)", type=str)
 parser.add_argument("--datadir", "-C", help="directory with the data", default=".", type=pathlib.Path)
@@ -196,3 +198,4 @@ with Database(dsn=args.dsn) as db:
         except zipfile.BadZipfile as e:
             logger.error(f"Bad zip, skipping the rest of {fname}: {e}")
 
+print("Loading completed")
