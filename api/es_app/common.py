@@ -59,6 +59,18 @@ def make_getter(key: str, *methods: Callable) -> Any:
 
 
 class Backoff:
+    """Wrapper class for adding exponential back-off to a
+    function that is failing due to external circumstances.
+
+    While it could be used for any exception, code guaranteed
+    to fail will just use up the entire back-off duration
+
+    Example
+        @Backoff(TimeoutError, TransportError, etc)
+        def some_api_call():
+            ...
+
+    """
     def __init__(self,
                  *exceptions: Exception,
                  start: float = 0.5,

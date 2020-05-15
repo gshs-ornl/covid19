@@ -12,7 +12,7 @@ from cvpy.url_helpers import determine_updated_timestep
 country = 'US'
 va_url = 'https://www.vdh.virginia.gov/coronavirus/'
 base = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/'
-county_cases_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases.csv'
+county_cases_url = f'{base}05/VDH-COVID-19-PublicUseDataset-Cases.csv'
 state_age_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_' + \
     'By-Age-Group.csv'
 state_gender_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
@@ -253,8 +253,8 @@ with WebDriver(url=hosp_url, driver='chromedriver',
                              '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
     df = d.get_csv()
-df.columns = ['updated', 'patients', 'icu', 'patients_on_ventillators',
-              'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+df.columns = ['updated', 'beds_in_use', 'surge_capacity', 'capacity',
+              'patients_on_ventillators', 'icu', 'ppe', 'patients']
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,

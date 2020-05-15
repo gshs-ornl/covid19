@@ -1,3 +1,7 @@
+"""WARNING:
+This module is deprecated in favor of db to db interaction or
+submitting a file for slurp.
+"""
 from datetime import datetime
 from hashlib import md5
 from time import sleep

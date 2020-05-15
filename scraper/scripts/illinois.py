@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-
+import lxml.html as lh
 import requests
 import datetime
 import os
 from numpy import nan
+import numpy as np
 import pandas as pd
 from cvpy.static import ColumnHeaders as Headers
 from cvpy.url_helpers import determine_updated_timestep
@@ -18,8 +19,9 @@ county_demo_url = 'http://www.dph.illinois.gov/sitefiles/CountyDemos.json?nocach
 zipcode_cases_url = 'http://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1'
 county_ltc_url = 'http://www.dph.illinois.gov/sitefiles/COVIDLTC.json?nocache=1'
 county_rate_url = 'http://www.dph.illinois.gov/sitefiles/COVIDRates.json?nocache=1'
-race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/'+\
-               date_url_xlsx+'/case_deaths_rate_charts_data_website.xlsx'
+race_eth_url = 'https://www.chicago.gov/content/dam/city/sites/covid/reports/' + \
+               date_url_xlsx + '/case_deaths_rate_charts_data_website.xlsx'
+chicago_url = "https://www.chicago.gov/city/en/sites/covid-19/home/hospital-capacity.html"
 
 columns = Headers.updated_site
 row_csv = []
@@ -428,6 +430,54 @@ for column in df_column_list[1:]:
 
 chicago_df = state_df = fill_in_df(all_df, dict_info_chicago, columns)
 '''
+## Chicago Data -------------------------------------------------------
+url_chicago = "https://www.chicago.gov/city/en/sites/covid-19/home/hospital-capacity.html"
+resolution = "region"
+region = "Chicago"
+provider = "region"
+
+page = requests.get(url_chicago)
+doc = lh.fromstring(page.content)
+tr_elements = doc.xpath('//tr')
+# Create empty list
+data = {}
+# For each row, store each first element (header) and an empty list
+for i in range(1, len(tr_elements)):
+    t = tr_elements[i]
+    vals = []
+    for j in range(len(t)):
+        name = t[j].text_content()
+        if j == 0:
+            col = name.strip("\r\n")
+        else:
+            vals.append(name)
+    data.update({col: vals})
+
+cols = ["icu_bed_capacity", "non_icu_bed_capacity", "covid_occupied_icu_bed", "covid_occupied_non_icu_bed",
+        "ventilators",
+        "ventilators_in_use", "ventilators_available"]
+
+icu_bed_capacity = int(data["Total capacity"][0])
+non_icu_bed_capacity = int(data["Total capacity"][2])
+covid_occupied_icu_bed = int(data["Occupied beds (COVID-19)"][0])
+covid_occupied_non_icu_bed = int(data["Occupied beds (COVID-19)"][2])
+ventilators = int(data["Total ventilators (includes EAMC2)"][0])
+ventilators_in_use = int(data["Ventilators in use (total)"][0])
+ventilators_available = int(data["Available ventilators (total)"][0])
+
+vals = [icu_bed_capacity, non_icu_bed_capacity, covid_occupied_icu_bed, covid_occupied_non_icu_bed, ventilators,
+        ventilators_in_use, ventilators_available]
+
+df = pd.DataFrame(row_csv, columns=columns)
+
+for i in range(len(cols)):
+    df[cols[i]] = nan
+df_row = pd.DataFrame([list(np.append([np.repeat(nan, len(columns))], vals))], columns=df.keys())
+dict_info = {'provider': [provider], 'country': [country], "url": [url_chicago],
+             "state": [state], "resolution": [resolution], "access_time": [str(access_time)], "region": [region]}
+df_row.update(pd.DataFrame.from_dict(dict_info))
+df = pd.concat([df, df_row], ignore_index=True)
+
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
@@ -435,5 +485,4 @@ if path and not path.endswith('/'):
     path += '/'
 file_name = path + state + dt_string + '.csv'
 
-df = pd.DataFrame(row_csv, columns=columns)
 df.to_csv(file_name, index=False)

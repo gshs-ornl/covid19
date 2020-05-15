@@ -232,13 +232,15 @@ if [ "$RUN" -eq "1" ]; then
   info "Running"
   check_volumes
   check_network
-  docker-compose down && docker-compose up -d --build api db tidy scraper && \
+  docker-compose down --remove-orphans
+  docker-compose up -d --build api db tidy scraper && \
     docker logs -f "$LOG_CONTAINER"
 fi
 if [ "$STRIPPED" -eq 1 ]; then
   info "Deploy without API and UI"
   check_volumes
   check_network
+  docker-compose down --remove-orphans
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.yml up -d --build db tidy scraper
 fi
@@ -246,6 +248,7 @@ if [ "$DEPLOY" -eq "1" ]; then
   info "Deploy bypassing overrides file"
   check_volumes
   check_network
+  docker-compose down --remove-orphans
   docker-compose -f docker-compose.yml down && \
     docker-compose -f docker-compose.yml up -d --build api db tidy scraper \
     shiny chrome

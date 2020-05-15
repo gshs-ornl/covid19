@@ -8,6 +8,7 @@ WORKDIR /tmp
 
 ENV PYTHONOPTIMIZE True
 ENV CHROME_DRIVER_VERSION 80.0.3987.106 
+ENV CHROME_DRIVER_URL http://chromedriver.storage.googleapis.com
 ENV R_VERSION 4.0.0
 ENV R_LIB /usr/lib/R/site-library
 ENV OUTPUT_DIR /tmp/output
@@ -51,7 +52,10 @@ RUN apt-get update -yqq && apt-get -yqq install --no-install-recommends \
 RUN set -eux && wget \
     https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get -yqq install ./google-chrome-stable_current_amd64.deb && \
-    rm -f google-chrome-stable_current_abd64.deb
+    rm -f google-chrome-stable_current_abd64.deb && \
+    wget "$CHROME_DRIVER_URL/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" \
+    && unzip chromedriver_linux64.zip && rm chromedriver_linux64.zip && \
+    mv /tmp/chromedriver /usr/local/bin
 
 # confirm tesseract version
 RUN set -eux && tesseract --version
