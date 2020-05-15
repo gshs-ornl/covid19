@@ -119,9 +119,10 @@ for feature in raw_data['features']:
     tested = attribute["TOTAL_Tests"]
     neg = attribute["NEG_Tests"]
 
-    state_data.append([day, hospitalized, recovered, cases, deaths, tested, neg])
+    state_data_hospital.append([day, hospitalized, recovered, cases, deaths, tested, neg])
 
-df_state = pd.DataFrame(state_data, columns=["date", "hospital", "recovered", "cases", "deaths", "tested", "neg"])
+df_state = pd.DataFrame(state_data_hospital,
+                        columns=["date", "hospital", "recovered", "cases", "deaths", "tested", "neg"])
 most_recent = df_state.date.max()
 df_most_recent = df_state[df_state.date == most_recent]
 
