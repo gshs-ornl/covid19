@@ -7,7 +7,6 @@ import zlib
 
 import flask_table
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 from es_app.common import get_var
 
@@ -48,6 +47,12 @@ page_skeleton = """
 
 
 def checkbox(name: str, checked: bool = True) -> str:
+    """Generates basic checkbox html
+
+    :param name: name assigned to checkbox field
+    :param checked: checked status on creation
+    :return: generated html text
+    """
     _check = 'checked' if checked else ''
     _input = f'type="checkbox" name="{name}" value="checked" {_check}'
     _label = f'<label for="{name}">{name}</label>'
@@ -61,6 +66,14 @@ def checkbox(name: str, checked: bool = True) -> str:
 
 
 def gen_table(name: str, *columns: str, **kwargs) -> flask_table.Table:
+    """Wrapper around flask_table.create_table for easier
+    dynamic generation
+
+    :param name: table name
+    :param columns: column names in table as separate args
+    :param kwargs: any arguments to be passed to create_table
+    :return: generated html table
+    """
     table = flask_table.create_table(name=name, **kwargs)
     for col in columns:
         table.add_column(col.lower(), flask_table.Col(col))
@@ -69,6 +82,12 @@ def gen_table(name: str, *columns: str, **kwargs) -> flask_table.Table:
 
 # TODO: Move this to common
 def gen_db_client():
+    """Using environment variables, create database connection
+
+    If cvpy is not installed, defaults to standard psycopg2
+
+    :return: connection object or cvpy Database class
+    """
     if Database is None:
         return psycopg2.connect(
             dbname=PGDB,
@@ -84,6 +103,13 @@ def gen_db_client():
 
 
 def gen_data(query: str, chunk: int = 500) -> Generator[Tuple]:
+    """Pulls data from connection made by db_client and steps
+    through it
+
+    :param query: query text sent to client
+    :param chunk: numbers of rows to pull at one time
+    :return: generator of all data pulled
+    """
     client = gen_db_client()
     cursor = client.cursor(name='export-provider')
     cursor.execute(query)
@@ -97,6 +123,11 @@ def gen_data(query: str, chunk: int = 500) -> Generator[Tuple]:
 
 
 def stream_csv(stream: Iterable) -> Generator[str]:
+    """Converts iterable of iterables to lines of a csv file
+
+    :param stream: iterable of iterables for conversion
+    :return: generator of all lines converted
+    """
     output: StringIO = StringIO()
     for row in stream:
         writer = csv.writer(output, quoting=csv.QUOTE_ALL)
@@ -106,6 +137,11 @@ def stream_csv(stream: Iterable) -> Generator[str]:
 
 
 def stream_gzip(stream: Iterable[str]) -> Generator[bytes]:
+    """Compresses iterable of strings to gzip file
+
+    :param stream: iterable of strings to be written to file
+    :return: generator of lines to compressed data for writing
+    """
     yield bytes([
         0x1F, 0x8B, 0x08, 0x00,
         *pack('<L', int(time())),
