@@ -2,7 +2,7 @@
 
 echo -e "\e[33m Running tests for covid19scrapers \e[39m"
 
-sleep 60
+sleep 20
 
 echo -e "\e[35m selenium is up\e[36m -- executing tests\e[39m"
 
