@@ -253,8 +253,8 @@ with WebDriver(url=hosp_url, driver='chromedriver',
                              '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
     df = d.get_csv()
-df.columns = ['updated', 'patients', 'icu', 'patients_on_ventillators',
-              'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+df.columns = ['updated', 'beds_in_use', 'surge_capacity', 'capacity',
+              'patients_on_ventillators', 'icu', 'ppe', 'patients']
 access_time = datetime.datetime.utcnow()
 
 dict_info_state_cases = {'provider': 'state', 'country': country,
