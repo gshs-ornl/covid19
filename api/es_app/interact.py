@@ -86,7 +86,7 @@ def gen_db_client():
 
     If cvpy is not installed, defaults to standard psycopg2
 
-    :return: connection object or cvpy Database class
+    :return: connection object or cvpy Database object
     """
     if Database is None:
         return psycopg2.connect(

@@ -41,6 +41,10 @@ TCFG = Dict[str, Callable[[Dict[str, Any]], Any]]
 
 
 def gen_es_client() -> Elasticsearch:
+    """Using environment variables, create elasticsearch connection
+
+    :return: connection object
+    """
     return Elasticsearch(
         hosts=host_list,
         http_auth=(ESUSER, ESPASS)
@@ -49,6 +53,12 @@ def gen_es_client() -> Elasticsearch:
 
 # TODO: Move this to common
 def gen_pg_client():
+    """Using environment variables, create database connection
+
+    If cvpy is no installed, defaults to standard psycopg2
+
+    :return: connection object or cvpy Database object
+    """
     if Database is None:
         return psycopg2.connect(
             dbname=PGDB,
@@ -65,6 +75,14 @@ def gen_pg_client():
 
 @Backoff(requests.exceptions.RequestException)
 def get_fips(lat: float, lon: float, scope: int = 1) -> Dict[str, Any]:
+    """Requests fips information from fcc api
+
+    :param lat: latitude of block/county/state
+    :param lon: longitude of block/county/state
+    :param scope: alters return dictionary to match document scope
+                  0: State, 1: County, 2: Block
+    :return: dictionary of fips information
+    """
     url = fips_api.format(
         latitude=lat,
         longitude=lon
@@ -88,6 +106,17 @@ def access_to_scrape(item: datetime) -> str:
 
 
 def county_gen_id(item: Dict[str, Any]) -> str:
+    """Generate unique id from county scoped data
+
+    id is generated from an md5 hash of the concatenation of
+        access_time
+        country
+        state
+        county_name
+
+    :param item: raw document dictionary
+    :return: unique id
+    """
     head = dt_to_str(item.get('access_time'))
     raw = head + ''.join([
         item.get(key, '') for key in
@@ -121,6 +150,9 @@ pg_to_es_county_config: TCFG = {
 
 
 class Pipe:
+    """Manages connection and process information for database
+    to elasticsearch data transfers
+    """
     _op_type: str = 'index'
     _index: str = ESINDEX
     _id_gen: Callable[[Dict], str] = county_gen_id
@@ -139,6 +171,12 @@ class Pipe:
             self.from_to = ', '.join(['1970-01-01', to])
 
     def gen_data_source(self, chunk_size: int = 500) -> Generator:
+        """Creates iterator of database results up to limit
+        or all results available
+
+        :param chunk_size: number of documents to pull at a time
+        :return: generator of database documents
+        """
         pg_connect = gen_pg_client()
         pg_cursor = pg_connect.cursor(
             name='data-pipe-cur',
@@ -167,6 +205,13 @@ class Pipe:
                                     data_point: Dict,
                                     lat_name: str = 'lat',
                                     lon_name: str = 'lon') -> Dict:
+        """Applies transformation schema to database document
+
+        :param data_point: raw data dictionary
+        :param lat_name: dictionary key for latitude
+        :param lon_name: dictionary key for longitude
+        :return: converted dictionary for elasticsearch insertion
+        """
         doc = dict()
         for key, val in self.transform_config.items():
             doc[key] = val(data_point)
@@ -190,6 +235,11 @@ class Pipe:
         return doc
 
     def gen_action_from_data(self, data_point: Dict) -> Dict:
+        """Converts database document to elasticsearch action
+
+        :param data_point: raw document from database
+        :return: action for elasticsearch.helpers.bulk or variant
+        """
         return {
             '_op_type': self._op_type,
             '_index': self._index,
@@ -198,6 +248,11 @@ class Pipe:
         }
 
     def yield_flow(self, chunk_size: int = 500):
+        """Generate and upload data yielding status updates
+
+        :param chunk_size: number of documents per chunk
+        :return: generator of status messages
+        """
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
         track_session = 0
@@ -207,6 +262,11 @@ class Pipe:
                 track_session = self.transfer_count
 
     def auto_flow(self, chunk_size: int = 500):
+        """Generate and upload data silently
+
+        :param chunk_size: number of documents per chunk
+        :return: None
+        """
         source = map(self.gen_action_from_data, self.gen_data_source(chunk_size))
         sink = streaming_bulk(gen_es_client(), source, chunk_size)
         for _ in sink:
