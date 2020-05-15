@@ -129,8 +129,10 @@ columns.extend([
 
 row_csv = []
 
-resolution = 'state'
-
+'''
+Unlike most of the scripts, this script gradually appends data to the file
+instead of all at once, to avoid possible memory issues.
+'''
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
@@ -140,6 +142,7 @@ file_name = path + state.replace(' ', '_') + dt_string + '.csv'
 
 ## state data
 # 211 data from this FeatureService is junk
+resolution = 'state'
 url = 'https://services7.arcgis.com/Z0rixLlManVefxqY/ArcGIS/rest/services/survey123_cb9a6e9a53ae45f6b9509a23ecdf7bcf/FeatureServer/0/query?where=1%3D1&orderBy=EditDate+desc&outFields=*&returnGeometry=false&f=json'
 response = requests.get(url)
 access_time = datetime.datetime.utcnow()
@@ -240,8 +243,8 @@ for feature in raw_data[FEATURES]:
         calls_211, texts_211, njpies_daily, njpies_total])
 
 raw_data = None
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, mode='a', index=False)
+df = pd.DataFrame(row_csv)
+df.to_csv(file_name, mode='a', index=False, header=False)
 df = None
 row_csv = []
 
@@ -298,8 +301,8 @@ for feature in raw_data[FEATURES]:
         nan, nan, nan, nan])
 
 raw_data = None
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, mode='a', index=False)
+df = pd.DataFrame(row_csv)
+df.to_csv(file_name, mode='a', index=False, header=False)
 df = None
 row_csv = []
 
@@ -910,8 +913,8 @@ for smi in structure_measure_identifiers:
 
     # one indentation - append to the file until making a new SMI query
     raw_data = None
-    df = pd.DataFrame(row_csv, columns=columns)
-    df.to_csv(file_name, mode='a', index=False)
+    df = pd.DataFrame(row_csv)
+    df.to_csv(file_name, mode='a', index=False, header=False)
     df = None
     row_csv = []
 
@@ -977,8 +980,8 @@ for feature in raw_data[FEATURES]:
         nan, nan, nan, nan])
 
 raw_data = None
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, mode='a', index=False)
+df = pd.DataFrame(row_csv)
+df.to_csv(file_name, mode='a', index=False, header=False)
 df = None
 row_csv = []
 
@@ -1042,8 +1045,8 @@ for feature in raw_data[FEATURES]:
         nan, nan, nan, nan])
 
 raw_data = None
-df = pd.DataFrame(row_csv, columns=columns)
-df.to_csv(file_name, mode='a', index=False)
+df = pd.DataFrame(row_csv)
+df.to_csv(file_name, mode='a', index=False, header=False)
 df = None
 row_csv = []
 
@@ -1077,19 +1080,4 @@ second sheet has county data, generally behind the feature server already being 
 third sheet has no useful information
 '''
 
-### finished
-
-ltc_df.to_csv(file_name, mode='a', index=False)
-
-'''
-now = datetime.datetime.now()
-dt_string = now.strftime("_%Y-%m-%d_%H%M")
-path = os.getenv("OUTPUT_DIR", "")
-if path and not path.endswith('/'):
-    path += '/'
-file_name = path + state.replace(' ', '_') + dt_string + '.csv'
-
-df = pd.DataFrame(row_csv, columns=columns)
-all_df = pd.concat([df, ltc_df])
-all_df.to_csv(file_name, index=False)
-'''
+ltc_df.to_csv(file_name, mode='a', index=False, header=False)
