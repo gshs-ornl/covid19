@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Scrapes the Virginia provided CSV links."""
 
 import datetime
 import os
@@ -9,16 +10,31 @@ from cvpy.webdriver import WebDriver
 from cvpy.url_helpers import determine_updated_timestep
 
 country = 'US'
-county_cases_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases.csv'
-state_age_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Age-Group.csv'
-state_gender_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
-state_race_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
-health_dist_url = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/04/VDH-COVID-19-PublicUseDataset-Cases_By-District-Death-Hospitalization.csv'
+va_url = 'https://www.vdh.virginia.gov/coronavirus/'
+base = 'http://www.vdh.virginia.gov/content/uploads/sites/182/2020/'
+county_cases_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases.csv'
+state_age_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_' + \
+    'By-Age-Group.csv'
+state_gender_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Sex.csv'
+state_race_url = f'{base}03/VDH-COVID-19-PublicUseDataset-Cases_By-Race.csv'
+health_dist_url = f'{base}04/VDH-COVID-19-PublicUseDataset-' + \
+    'Cases_By-District-Death-Hospitalization.csv'
+confirmation_url = f'{base}04/VDH-COVID-19-PublicUseDataset-Cases_By' + \
+    '-Confirmation.csv'
+event_url = f'{base}05/VDH-COVID-19-PublicUseDataset-EventDate.csv'
+ethnicity_url = f'{base}05/VDH-COVID-19-PublicUseDataset-Cases_By-' + \
+    'Ethnicity.csv'
+hosp_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Hospitals.csv'
+labs_url = f'{base}05/VDH-COVID-19-PublicUseDataset-KeyMeasures-Labs.csv'
 state = 'Virginia'
 columns = Headers.updated_site
+new_columns = ['case_status', 'race', 'patients', 'patients_on_ventillators',
+               'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+columns.extend(new_columns)
 
 
 def fill_in_df(df_list, dict_info, columns):
+    """Fill in the dataframe."""
     if isinstance(df_list, list):
         all_df = []
         for each_df in df_list:
@@ -56,16 +72,16 @@ def fill_in_df(df_list, dict_info, columns):
 
 
 all_df = []
-# county_cases_url
+# county_cases_url {{{1
 with WebDriver(url=county_cases_url, driver='chromedriver',
-                   options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
-                   service_args=['--ignore-ssl-errors=true',
-                                 '--ssl-protocol=any'], sleep_time=15,
-                   preferences={}) as d:
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
     df = d.get_csv()
 df.columns = ['updated', 'fips', 'county', 'health_district', 'cases',
               'hospitalized', 'deaths']
@@ -76,14 +92,14 @@ dict_info_county_cases = {'provider': 'state', 'country': country,
                           "state": state, "resolution": "county",
                           "page": str(df), "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_county_cases, columns))
-
-# state_age_url
+# 1}}}
+# state_age_url {{{1
 with WebDriver(url=state_age_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
                service_args=['--ignore-ssl-errors=true',
                              '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
@@ -103,10 +119,10 @@ all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 # state_gender_url
 with WebDriver(url=state_gender_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
                service_args=['--ignore-ssl-errors=true',
                             '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
@@ -126,10 +142,10 @@ all_df.append(fill_in_df(df, dict_info_state_cases,
 # state_race_url
 with WebDriver(url=state_race_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
                service_args=['--ignore-ssl-errors=true',
                              '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
@@ -149,10 +165,10 @@ all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 # health_dist_url
 with WebDriver(url=health_dist_url, driver='chromedriver',
                options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
                service_args=['--ignore-ssl-errors=true',
                              '--ssl-protocol=any'], sleep_time=15,
                preferences={}) as d:
@@ -166,6 +182,107 @@ dict_info_state_cases = {'provider': 'state', 'country': country,
                          "access_time": access_time}
 all_df.append(fill_in_df(df, dict_info_state_cases, columns))
 
+# confirmation_url
+with WebDriver(url=confirmation_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'case_status', 'cases', 'hospitalized', 'deaths']
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": confirmation_url, "state": state,
+                         "resolution": "state", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
+
+# event_url
+with WebDriver(url=event_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'case_status', 'cases', 'hospitalized', 'deaths']
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": event_url, "state": state,
+                         "resolution": "state", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
+
+# ethnicity_url
+with WebDriver(url=ethnicity_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'region', 'race', 'cases', 'hospitalized', 'deaths']
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": ethnicity_url, "state": state,
+                         "resolution": "health district", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
+
+# hosp_url
+with WebDriver(url=hosp_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'patients', 'icu', 'patients_on_ventillators',
+              'ppe', 'beds_in_use', 'surge_capacity', 'capacity']
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": hosp_url, "state": state,
+                         "resolution": "state", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
+
+# labs_url
+with WebDriver(url=labs_url, driver='chromedriver',
+               options=['--no-sandbox', '--disable-gpu',
+                        '--disable-logging',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--no-zygote', 'headless'],
+               service_args=['--ignore-ssl-errors=true',
+                             '--ssl-protocol=any'], sleep_time=15,
+               preferences={}) as d:
+    df = d.get_csv()
+df.columns = ['updated', 'tested', 'positive_tests']
+access_time = datetime.datetime.utcnow()
+
+dict_info_state_cases = {'provider': 'state', 'country': country,
+                         "url": labs_url, "state": state,
+                         "resolution": "state", "page": str(df),
+                         "access_time": access_time}
+all_df.append(fill_in_df(df, dict_info_state_cases, columns))
+
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
 path = os.getenv("OUTPUT_DIR", "")
@@ -175,4 +292,3 @@ file_name = path + state + dt_string + '.csv'
 
 df = pd.concat(all_df)
 df.to_csv(file_name, index=False)
-

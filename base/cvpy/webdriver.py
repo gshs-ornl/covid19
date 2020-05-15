@@ -4,12 +4,12 @@
    This class is responsible for initiating a webdriver. If called by itself,
    it tests for example.com using both curl and chromedriver (currently).
 """
+import os
+import time
 import logging
+import tempfile
 import requests
 import traceback
-import time
-import os
-import tempfile
 import shutil
 import pandas as pd
 from selenium import webdriver
@@ -54,31 +54,48 @@ class WebDriver():
                        out
         :param implicit_wait set how long to wait on a DOM object
         :param logger the logger to log the logs
+        :param container bool, should we use a chromedriver container
+                         connection?
 
     """
     def __init__(self, url=None, driver='chromedriver', output='text',
                  options=['--no-sandbox', '--disable-logging',
                           '--disable-gpu', '--disable-dev-shm-usage',
                           'headless'],
+                 additional_options=None, javascript=False,
                  service_args=['--ignore-ssl-errors=true',
                                '--ssl-protocol=any'], script=None,
                  window_height=1080, window_width=1920,
-                 timeout=30, implicit_wait=5, remote=True,
-                 sleep_time=0, preferences=None,
-                 logger=logging.getLogger(ce('LOGGER', 'main'))):
+                 preferences = {},
+                 timeout=30, implicit_wait=5, sleep_time = None,
+                 logger=logging.getLogger(ce('LOGGER', 'main')),
+                 container=False, remote='http://chrome:4444/wd/hub'):
         """
             initiate the WebDriver class
         """
         self.logger = logger
         self.url = url
-        self.driver_type = driver
         self.output_type = output
         self.opts = options
+        if additional_options is not None:
+            if isinstance(additional_options, str):
+                self.opts.append(additional_options)
+            elif isinstance(additional_options, list):
+                self.opts.extend(additional_options)
+            else:
+                self.logger.error(
+                    f'Unsupported additional argument: {additional_options}')
         self.service_args = service_args
-        self.preferences = preferences
         self.out = None
         self.timeout = timeout
         self.driver = None
+        self.container = container
+        self.remote = remote
+        self.javascript = javascript
+        self.preferences = preferences
+        self.sleep_time = sleep_time
+        self.driver_type = driver
+        self.logger.info(f'Connecting with driver: {driver}')
         if script is None:
             self.script = ''
         else:
@@ -87,7 +104,15 @@ class WebDriver():
             self.script = script
         if driver.lower() in ['requests', 'curl']:
             self.out = self.request_url()
-        elif driver.lower() == 'chromedriver':
+        elif driver.lower() == 'chromedriver' and container is False:
+            self.request_chrome()
+        elif driver.lower() == 'chromedriver' and container is True:
+            self.request_chrome_hub()
+        elif driver.lower() == 'phantomjs':
+            self.request_phantomjs()
+        elif driver.lower() == 'firefox':
+            # handle firefox here
+            pass
             self.request_chrome()
         elif driver.lower() == 'phantomjs':
             self.request_phantomjs()
@@ -107,7 +132,7 @@ class WebDriver():
             self.driver.set_window_size(window_width, window_height)
             self.logger.info('Connecting to %s' % self.url)
             self.driver.get(self.url)
-            time.sleep(sleep_time)
+            time.sleep(self.timeout)
             self.logger.info('Connected to %s' % self.url)
 
     def __str__(self):
@@ -183,6 +208,8 @@ class WebDriver():
         """ method to create driver based on chrome """
         self.logger.info(f'Using chrome to connect to {self.url}')
         self.options = webdriver.ChromeOptions()
+        if self.javascript:
+            self.options.add_argument("javascript.enabled", True)
         try:
             if isinstance(self.preferences, dict):
                 tmp_dir_name = tempfile.TemporaryDirectory().name
@@ -207,6 +234,35 @@ class WebDriver():
                 else:
                     self.driver = \
                         webdriver.Chrome(self.driver_type,
+                                         service_args=self.service_args)
+        except WebDriverException as e:
+            self.logger.error(f'Webdriver Exception thrown: {e}')
+        except Exception as e:
+            self.logger.error(f'Unknown exception while creating driver  {e}')
+
+    def request_chrome_hub(self):
+        self.logger.info(f'Using chrome to connect to {self.remote}')
+        self.options = webdriver.ChromeOptions()
+        try:
+            if self.opts is not None:
+                for opt in self.opts:
+                    self.options.add_argument(opt)
+                if self.service_args is None:
+                    self.driver = webdriver.Remote(
+                        command_executor=self.remote,
+                        desired_capabilities=DesiredCapabilites.CHROME,
+                        options=self.options)
+                else:
+                    self.driver = \
+                        webdriver.Chrome(self.remote,
+                                         service_args=self.service_args,
+                                         options=self.options)
+            else:
+                if self.service_args is None:
+                    self.driver = webdriver.Remote(self.remote)
+                else:
+                    self.driver = \
+                        webdriver.Chrome(self.remote,
                                          service_args=self.service_args)
         except WebDriverException as e:
             self.logger.error(f'Webdriver Exception thrown: {e}')
@@ -398,62 +454,5 @@ class WebDriver():
 
 
 if __name__ == "__main__":
-    import time
-    from bs4 import BeautifulSoup as Soup
-    from selenium.webdriver.common.action_chains import ActionChains
-    from selenium.webdriver.support.ui import Select
-    test_url = 'http://www.example.com'
-    print('Testing if requests work')
-    with WebDriver(url=test_url, driver='curl') as d:
-        source = d.dump_out()
-    print(source)
-    with WebDriver(url=test_url, driver='chromedriver',
-                   options=['--no-sandbox', '--disable-gpu',
-                            '--disable-logging',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--no-zygote', 'headless'],
-                   service_args=['--ignore-ssl-errors=true',
-                                 '--ssl-protocol=any']) as d:
-        source = d.driver.page_source
-    print(source)
-    print('Running example EI ID 182')
-    url_182 = 'https://ebill.kcelectric.coop/woViewer/mapviewer.html?'
-    url_182 = url_182 + 'config=Outage+Web+Map'
-    chrome_opts = ['--no-sandbox', '--disable-gpu', '--disable-logging',
-                   '--disable-setuid-sandbox', '--disable-dev-shm-usage',
-                   '--no-zygote', 'headless']
-    service_args = ['--ignore-ssl-errors=true', '--ssl-protocol=any']
-    with WebDriver(url=url_182, driver='chromedriver',
-                   options=chrome_opts,
-                   service_args=service_args) as d:
-        xpath = '//div[@id="OMS.Customers Summary"]'
-        # d.wait_for_element(xpath, 'xpath')
-        # arget = d.driver.find_element_by_xpath(xpath)
-        target = d.get_xpath(xpath)
-        ActionChains(d.driver).move_to_element(target).click(target).perform()
-        d.wait_for_element('select', 'tag')
-        select = Select(d.driver.find_element_by_tag_name('select'))
-        time.sleep(2)
-        select.select_by_visible_text('County')
-        source = d.driver.page_source
-    soup = Soup(source, 'html.parser')
-    table = soup.findAll('table', {'class': 'GNBU0IVDGE summary-table'})
-    rows = table[0].find_all('td')
-    regions = []
-    custs_out = []
-    custs_served = []
-    for row in rows:
-        if 'summary-region-column' in str(row):
-            regions.append(row.get_text().replace(" County", "").replace(
-                                " COUNTY", "").strip().replace("ST ", "ST. "))
-        elif 'summary-number-out-column' in str(row):
-            custs_out.append(row.get_text())
-        elif ('summary-number-served-column' in str(row) and
-              "GMFGE5DLD" not in str(row) and "%" not in row.get_text()):
-            custs_served.append(row.get_text())
-        else:
-            pass
-    print('Regions found: %s' % regions)
-    print('Customers out: %s' % custs_out)
-    print('Custs served: %s' % custs_served)
+    # TODO add tests here
+    pass

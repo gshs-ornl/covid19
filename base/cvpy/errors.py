@@ -93,3 +93,4 @@ class ErrorType:
     Glob = 'An error occurred while globbing for CSV files.'
     Database = 'An error occurred while using Database().'
     Image = 'An error occured while using ReadImage().'
+    PDF = 'An error occurred while reading PDF.'

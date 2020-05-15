@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Provides methods for reading images and recognizing characters."""
 import re
+import sys
+import camelot
 import logging
+import requests
+import tempfile
 import pandas as pd
 import urllib.request
 from PIL import Image
 from PIL import UnidentifiedImageError
-from pytesseract import image_to_data, image_to_string
+from pytesseract import image_to_data
 from pytesseract import Output
 from urllib.error import HTTPError
 from cvpy.common import check_environment as ce
@@ -26,9 +30,10 @@ class ReadImage():
             try:
                 if re.match(UrlRegex.RE, image_file):
                     self.image = Image.open(urllib.request.urlopen(image_file))
+                else:
+                    self.image = Image.open(self.image_file)
             except Exception as e:
-                self.logger.info(f'Image was not a URL: {e}')
-                self.image = Image.open(self.image_file)
+                self.logger.error(f'Image read exception: {e}')
         except FileNotFoundError as e:
             msg = f'File {image_file} not found: {e}'
             self.logger.error(msg)
@@ -52,18 +57,13 @@ class ReadImage():
             self.logger.error(msg)
             raise ReadImageException(msg)
 
-    def process(self, ptype='data'):
+    def process(self):
         """Process the read image into a string."""
         try:
-            if ptype == 'data':
-                self.text = image_to_data(self.image, lang='eng', nice=1,
-                                          output_type=Output.DATAFRAME,
-                                          timeout=self.timeout,
-                                          pandas_config=ImageConfig.PD)
-            elif ptype == 'string':
-                self.text = image_to_string(self.image, timeout=self.timeout)
-            else:
-                raise ReadImageException(f'Unrecognized ptype: {ptype}')
+            self.text = image_to_data(self.image, lang='eng', nice=1,
+                                      output_type=Output.DATAFRAME,
+                                      timeout=self.timeout,
+                                      pandas_config=ImageConfig.PD)
         except RuntimeError as e:
             msg = f'Image file {self.image_file} timed out with timeout of ' +\
                 f'{self.timeout}. Consider increasing timeout. {e}'
@@ -88,7 +88,20 @@ class ReadImage():
             raise ReadImageException(msg)
 
 
-class ReadPDF():
-    """Provide module performing OCR for PDFs."""
-    # TODO finish this
-    pass
+class ReadPDFTables():
+    """Provide module for reading PDF tables."""
+    def __init__(self, pdf_file, url=True,
+                 logger=logging.getLogger(ce('PY_LOGGER', 'main'))):
+        if url is True:
+            try:
+                temp = 'content.pdf'
+                r = requests.get(pdf_file, allow_redirects=True)
+                open(f'/tmp/{temp}', 'wb').write(r.content)
+                pdf_file = temp
+            except Exception as e:
+                self.logger.error(f'Error {e} occurred reading {pdf_file}')
+        self.pdf = camelot.read_pdf(pdf_file)
+
+    def return_df(self, index=1):
+        return self.pdf[index].df
+

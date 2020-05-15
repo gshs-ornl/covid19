@@ -204,16 +204,6 @@ for feature in raw_data['features']:
         nan])
 
 # by village
-'''
-XXX
-
-The 'cases' and 'recovered' numbers will generally display absolute values,
-but will display '1-4' on the website. However, the values in JSON will always be
-represented as an absolute value - '1'. The manual team has requested to use the 
-upper boundary, and the JSON contains no information about what this upper boundary is,
-so this code is momentarily disabled.
-'''
-'''
 resolution = 'village'
 
 url = 'https://services2.arcgis.com/FPJlJZYRsD8OhCWA/ArcGIS/rest/services/Village_Query/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=false&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnExceededLimitFeatures=true&f=json'
@@ -227,11 +217,13 @@ for feature in raw_data['features']:
     try:
         cases = int(attributes['Cases'])
     except TypeError:
+        # 0 values are stored as 'null'
         cases = 0
     region = attributes['Village']
     try:
         recovered = int(attributes['Recoveries'])
     except TypeError:
+        # 0 values are stored as 'null'
         recovered = 0
     row_csv.append([
         'state', country, state, region,
@@ -250,7 +242,6 @@ for feature in raw_data['features']:
         nan, nan, nan, nan,
         nan, nan,
         nan])
-'''
 
 ### finished
 

@@ -64,8 +64,6 @@ class LoggingInfo:
     """Define the logging format information."""
     MASTERFORMAT = f'[{Colors.YELLOW}%(asctime)s{Colors.RESET}]' + \
         f'-({Colors.BEIGE}%(process)d{Colors.RESET})- ' + \
-        f'{Colors.GREEN}%(levelname)8s{Colors.RESET} - ' + \
-        f'-({Colors.BEIGE}%(process)d{Colors.RESET})- ' + \
         f'{Colors.GREEN}%(levelname)4s{Colors.RESET} - ' + \
         f'{Colors.BEIGE}%(module)8s' + \
         f'{Colors.RESET}:{Colors.VIOLET}%(funcName)s' +\
