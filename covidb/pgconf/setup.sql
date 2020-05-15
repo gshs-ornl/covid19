@@ -77,7 +77,8 @@ create table  if not exists static.geounits (
     id serial PRIMARY KEY,
     county_id int references static.county(id),
     state_id int references static.states(id),
-    country_id int references static.country(id)
+    country_id int references static.country(id),
+    fips_id int references static.fips_lut(id),
 	, name TEXT
     , resolution TEXT -- country, state, county, etc.
     , details TEXT
@@ -116,7 +117,8 @@ CREATE TABLE IF NOT EXISTS scraping.attribute_classes
 
 CREATE TABLE IF NOT EXISTS scraping.attributes
  (id SERIAL PRIMARY KEY,
-  attribute varchar NOT NULL
+  attribute varchar NOT NULL,
+  rating int NULL DEFAULT 0
 );
 
 create table scraping.providers
@@ -328,9 +330,64 @@ END;
 $$
 STRICT
 LANGUAGE plpgsql IMMUTABLE;
+create or replace function public.fn_elasticsearch_data(p_start timestamp with time zone default '01-01-1970'::timestamp with time zone, p_end timestamp with time zone default now())
+    returns
+        TABLE
+        (
+            vendor text,
+            dataset text,
+            updated timestamp with time zone,
+            scraped_ts timestamp with time zone,
+            country varchar,
+            state varchar,
+            state_fips varchar,
+            county_name varchar,
+            country_fips varchar,
+            county_lon double precision,
+            county_lat double precision,
+            attribute varchar,
+            attribute_value numeric
+        )
+    language plpgsql
+as
+$$
+BEGIN
 
--- CALL staging.save_attribute_data ('US^Montana^Beaverhead'::text, 'county'::text, '{"provider": "state", "country": "US", "state": "Montana", "region": null, "url": "https://services.arcgis.com/qnjIrwR8z5Izc0ij/ArcGIS/rest/services/COVID_Cases_Production_View/FeatureServer/0/query?f=json&where=Total%20%3C%3E%200&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=NewCases%20desc%2CNAMELABEL%20asc&resultOffset=0&resultRecordCount=56&cacheHint=true", "access_time": "2020-04-21 13:24:22.212315", "county": "Beaverhead", "cases": 1.0, "updated": null, "deaths": 0.0, "presumptive": null, "recovered": 0.0, "tested": null, "hospitalized": 0.0, "negative": null, "counties": null, "severe": null, "lat": null, "lon": null, "fips": null, "monitored": null, "no_longer_monitored": null, "pending": null, "active": null, "inconclusive": null, "quarantined": null, "private_tests": null, "state_tests": null, "scrape_group": null, "resolution": "county", "icu": null, "cases_male": null, "cases_female": null, "lab": null, "lab_tests": null, "lab_positive": null, "lab_negative": null, "age_range": "0_9", "age_cases": 0.0, "age_percent": null, "age_deaths": null, "age_hospitalized": null, "age_tested": null, "age_negative": null, "age_hospitalized_percent": null, "age_negative_percent": null, "age_deaths_percent": null, "sex": null, "sex_counts": null, "sex_percent": null, "other": null, "other_value": null}'::jsonb);
+    RETURN QUERY
+        select
+           v.name as vendor,
+           dt.name as dataset,
+           m.updated,
+           sg.scraped_ts,
+           cntry.country,
+           st.state,
+           st.fips as state_fips,
+           cnt.county_name,
+           l.fips  as county_fips,
+           cnt.lon as county_lon,
+           cnt.lat as county_lat,
+           a.attribute,
+           m.value as attribute_value
+    from scraping.melt m
+             join scraping.attributes a ON a.id = m.attribute
+             join scraping.attribute_classes ac ON ac.id = m.attribute_class
+             join scraping.scrapes sg ON sg.id = m.scrape_id
+             join scraping.datasets dt ON dt.id = m.dataset_id
+             join scraping.vendors v ON v.id = dt.vendor_id
+             join static.geounits geo ON geo.id = m.geounit_id
+             left join static.states st ON st.id = geo.state_id
+             left join static.country cntry ON cntry.id = geo.country_id
+             left join static.county cnt ON cnt.id = geo.county_id
+             left join static.fips_lut l ON cnt.id = l.county_id
+    where m.updated >= p_start and m.updated <= p_end and a.rating > 0;
+END
+$$;
 
+
+--Indexes
+CREATE INDEX ix_updated ON scraping.melt(updated);
+
+-- select * from public.fn_elasticsearch_data(p_start := '04/01/2020', p_end := '04/02/2020');
 
 
 --Functions
