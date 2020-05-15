@@ -5,13 +5,11 @@ import zipfile
 from werkzeug.utils import secure_filename
 import xlrd
 
-from es_app.common import get_var
+from es_app.common import get_var, identity
 
 try:
     from cvpy.slurper import Slurp
 except ModuleNotFoundError:
-    def identity(x):
-        return x
     Slurp = identity
 
 
@@ -48,6 +46,12 @@ slurp_html = """
 
 
 def slurp_csv(file, filename):
+    """Reads csv file object in chunks writing to slurp folder
+
+    :param file: file-like object
+    :param filename: name of file to be written
+    :return: completion message
+    """
     _name = secure_filename(filename)
     _path = path.join(csv_dir, _name)
     with open(_path, 'w', encoding='utf-8') as _csv:
@@ -60,6 +64,12 @@ def slurp_csv(file, filename):
 
 
 def slurp_excel(file, filename):
+    """Reads excel file object writing to slurp folder as csv
+
+    :param file: file-like excel object
+    :param filename: name of excel file
+    :return: generator of status messages for each sheet
+    """
     _name = secure_filename(filename).rsplit('.', 1)[0]
     with xlrd.open_workbook(file_contents=file.read()) as workbook:
         sheet_num = 0
@@ -76,6 +86,12 @@ def slurp_excel(file, filename):
 
 
 def slurp_zip(zip_file: zipfile.ZipFile, type_: str):
+    """Reads zip file object writing contents as csvs to slurp folder
+
+    :param zip_file: file-like zip object
+    :param type_: file type of zip contents
+    :return: status messages of slurp_csv or slurp_excel
+    """
     for item in zip_file.namelist():
         with zip_file.open(item) as file:
             if type_ == 'zip-csv':
