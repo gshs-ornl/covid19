@@ -170,7 +170,7 @@ class CSVLoader(object):
             self.db.con.commit()
 
     def load(self, csv_stream=None, fname=None, op='append', logger=None,
-             rows=[]):
+             rows=[], schema=None):
         """loads data from csv_stream to db
 
         :csv_stream: python stream with the CSV file
@@ -178,6 +178,8 @@ class CSVLoader(object):
         :op: operation (append, new, replace)
 
         """
+        if self.schema is None and schema is not None:
+            self.schema = schema
 
         if not logger:
             logger = self._logger
