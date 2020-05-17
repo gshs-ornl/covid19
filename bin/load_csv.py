@@ -15,7 +15,6 @@ from argparse import ArgumentParser as AP
 from datetime import datetime
 from pathlib import Path
 import inspect
-import cvpy
 from cvpy.database import Database
 from cvpy.csvloader import CSVLoader
 
@@ -122,6 +121,7 @@ def next_csv():
                                errors='replace'), fn
 
         elif ff.suffix.lower() == ".csv":
+            # FIXME: do not completely fail on missing file
             yield open(ff, "r", encoding='utf-8-sig', errors='replace'), ff
 
         # TODO: option to select a file inside a zip
@@ -151,13 +151,13 @@ def next_csv():
                         elif any([fnmatch.fnmatch(fn, fe)
                                   for fe in args.exclude]):
                             logger.info(f"Skipping {ff_zip}:{fn}" +
-                                        f"(glob in {args.exclude}")
+                                        f"(glob in {args.exclude})")
                         else:
                             with zf.open(fn) as csvh:
-                                yield io.TextIOWrapper(csvh,
-                                                       encoding='utf-8-sig',
-                                                       errors='replace'),
-                                f"{ff}:{fn}"
+                                yield (io.TextIOWrapper(csvh,
+                                                        encoding='utf-8-sig',
+                                                        errors='replace'),
+                                       f"{ff}:{fn}")
         else:
             logger.info(f"Do not know what to do with {ff}")
 
