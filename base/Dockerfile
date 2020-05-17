@@ -105,9 +105,13 @@ RUN set -eux && R --version
 RUN apt-get update -qqy && apt-get install -t unstable -y \
         --no-install-recommends libgcc-8-dev
 
-# install tippecanoe
-RUN set -eux && git clone https://github.com/mapbox/tippecanoe.git && \
-      cd tippecanoe && make -j && make install
+# install R packages
+COPY install_reqs.R /tmp/install_reqs.R
+RUN Rscript /tmp/install_reqs.R && R --slave -e "install.packages('shiny')"
+
+## install tippecanoe
+#RUN set -eux && git clone https://github.com/mapbox/tippecanoe.git && \
+      #cd tippecanoe && make -j && make install
 
 # set default database env files
 ENV DB_HOST db
@@ -120,12 +124,10 @@ ENV SELENIUM_PORT 4444
 
 # install python dependencies
 COPY requirements.txt .
+COPY db-requirements.txt .
 RUN set -eux && pip install --upgrade pip && \
         pip install --no-cache-dir -r requirements.txt
 
-# install R packages
-COPY install_reqs.R /tmp/install_reqs.R
-RUN Rscript /tmp/install_reqs.R && R --slave -e "install.packages('shiny')"
 
 # install our python package
 COPY setup.py .
