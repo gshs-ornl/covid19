@@ -6,7 +6,7 @@ populate_database() {
 	MAX_RETRIES=10
     RETRIES_REMAINING=${MAX_RETRIES}
     until psql "postgresql://jesters:AngryMoose78@db/covidb" -c \
-       "select count(*) from scraping.raw_data;"
+       "select count(*) from staging.stav;"
       do
         sleep 5
         RETRIES_REMAINING=$((RETRIES_REMAINING - 1))
