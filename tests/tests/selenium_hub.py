@@ -13,24 +13,11 @@ class LocalGoogleTestCase(unittest.TestCase):
         self.addCleanup(self.browser.quit)
 
     def testPageTitle(self):
-        self.browser.get('http://www.google.com')
+        self.browser.get('https://www.google.com')
         self.assertIn('Google', self.browser.title)
 
 
-class RemoteAddrGoogleTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.browser = webdriver.Remote(
-            command_executor='http://127.0.0.1:4444/wd/hub',
-            desired_capabilities=DesiredCapabilities.CHROME)
-        self.addCleanup(self.browser.quit)
-
-    def testPageTitle(self):
-        self.browser.get('http://www.google.com')
-        self.assertIn('Google', self.browser.title)
-
-
-class RemoteNameGoogleTestCase(unittest.TestCase):
+class RemoteGoogleTestCase(unittest.TestCase):
 
     def setUp(self):
         self.browser = webdriver.Remote(
@@ -39,45 +26,7 @@ class RemoteNameGoogleTestCase(unittest.TestCase):
         self.addCleanup(self.browser.quit)
 
     def testPageTitle(self):
-        self.browser.get('http://www.google.com')
-        self.assertIn('Google', self.browser.title)
-
-
-class WebDriverLocalGoogleTestCase(unittest.TestCase):
-
-    def setUp(self):
-        with WB('http://www.google.com') as wd:
-            self.browser = wd.driver
-        self.addCleanup(self.browser.quit())
-
-    def testPageTitle(self):
-        self.browser.get('http://ww.google.com')
-        self.assertIn('Google', self.browser.title)
-
-
-class WebdriverRemoteNameGoogleTestCase(unittest.TestCase):
-
-    def setUp(self):
-        with WB('http://www.google.com', container=True,
-                remote='http://chrome:4444/wd/hub') as wd:
-            self.browser = wd.driver
-        self.addCleanup(self.browser.quit())
-
-    def testPageTitle(self):
-        self.browser.get('http://www.google.com')
-        self.assertIn('Google', self.browser.title)
-
-
-class WebdriverRemoteURLGoogleTestCase(unittest.TestCase):
-
-    def setUp(self):
-        with WB('http://www.google.com', container=True,
-                remote='http://127.0.01:4444/wd/hub') as wd:
-            self.browser = wd.driver
-        self.addCleanup(self.browser.quit())
-
-    def testPageTitle(self):
-        self.browser.get('http://www.google.com')
+        self.browser.get('https://www.google.com')
         self.assertIn('Google', self.browser.title)
 
 

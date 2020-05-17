@@ -13,7 +13,7 @@ pip install -r ./base/db-requirements.txt
 ## Load Data from automatically scraped CSVs
 
 ```
-python -u ./bin/csv_loader.py -vv ../covidb-data/daily_raw_dump/*.zip | tee csv_loader.$(date -Is).log
+python -u ./bin/load_csv.py -vv ../covidb-data/daily_raw_dump/*.zip | tee csv_loader.$(date -Is).log
 
 ```
 
@@ -22,5 +22,5 @@ The script will not fail on IntegrityErrors but the errors will be reported.  If
 To see all option run
 
 ```
-python -u ./bin/csv_loader.py -h
+python -u ./bin/load_csv.py -h
 

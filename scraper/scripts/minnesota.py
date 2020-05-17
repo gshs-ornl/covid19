@@ -244,24 +244,56 @@ dict_info_state = {'provider': 'state', 'country': country,
                     "url": state_table_url,
                     "state": state, "resolution": "state",
                     "page": str(df), "access_time": access_time}
-'''
-tested_raw = df[0]
-cases_raw = df[1]
-no_longer_isolation = df[2]
-deaths_df = df[3]
-hospitalization = df[6]
-age_group_pct = df[7]
-median_age = df[8]
-race_pct = df[9][0:8]
-exposure_pct_cases = df[10]
-county_cases_deaths = df[11]
+
+daily_update_df = df[0]
+newly_cases_df = df[1]
+tested_raw = df[4]
+deaths_df = df[6]
+hospitalization = df[7]
+age_group_cases_deaths = df[8]
+gender_cases = df[9]
+race_cases_deaths = df[10][0:8]
+eth_cases_deaths = df[10][9:]
+exposure_cases = df[11]
+county_cases_deaths = df[12]
+res_cases = df[13]
+
+# Daily update
+cases = int(float(daily_update_df.iloc[0][0].replace(
+    ' \tTotal positive (cumulative)', '').replace(',', '')))
+other_keys = ['Newly reported cases', 'Newly reported deaths']
+other_values = [int(float(daily_update_df[0].iloc[1][0].replace('\t'+other_keys[0], '').replace(',', ''))),
+                int(float(daily_update_df[0].iloc[1][1].replace('\t'+other_keys[1], '').replace(',', '')))]
+
+state_cases_df = pd.DataFrame({'cases': [cases]})
+daily_cases_deaths_df = pd.DataFrame(
+    {'other': other_keys, 'other_value': other_values})
+
+# Newly reported cases by
+newly_cases_txt = 'Number of newly reported cases'
+newly_cases_df = newly_cases_df.rename(
+    columns={'County': 'county', newly_cases_txt: 'other_value'})
+newly_cases_df['other'] = newly_cases_txt
+
+
+# County-level: newly reported deaths by county of residence
+newly_reported_deaths_counties_text = 'Number of newly reported deaths'
+newly_reported_deaths_counties = df[2].rename(
+    columns={'County of residence': 'county', 'Age group': 'age_range',
+             newly_reported_deaths_counties_text: 'other_value'})
+newly_reported_deaths_counties['other'] = newly_reported_deaths_counties_text
+
+# State-level: newly reported deaths by residence type
+newly_reported_deaths_res = df[3].rename(
+    columns={'Residence type': 'other',
+             'Number of newly reported deaths': 'other_value'})
+newly_reported_deaths_res['other'] = 'residence_type_' + newly_reported_deaths_res['other']
 
 new_date = []
 # Get the latest date
 tested_raw = tested_raw.rename(columns={
-    'Date reported': 'updated',
+    'Date reported to MDH': 'updated',
     'Total approximate number of completed tests': 'tested'})
-print(tested_raw)
 date_list = tested_raw['updated'].to_list()
 for date in date_list:
     new_date.append(datetime.datetime.strptime(date, '%m/%d'))
@@ -274,52 +306,25 @@ tested_raw = tested_raw[tested_raw['updated'] == latest_date]
 tested_state = tested_raw[['tested']]
 
 # State-level: other testing info
-state_lab_df = tested_raw[['Completed tests reported from the MDH Public Health Lab (daily)']]
-state_lab_df.columns = ['other_value']
-state_lab_df['other'] = 'Completed tests reported from the MDH Public Health Lab (daily)'
+state_lab_df_txt = 'Completed tests reported from the MDH Public Health Lab (daily)'
+state_lab_df = tested_raw[['updated', state_lab_df_txt]]
+state_lab_df.columns = ['updated', 'other_value']
+state_lab_df['other'] = state_lab_df_txt
 
-ext_lab_df = tested_raw[['Completed tests reported from external laboratories (daily)']]
-ext_lab_df.columns = ['other_value']
-ext_lab_df['other'] = 'Completed tests reported from external laboratories (daily)'
-
-# State-level: cases
-cases_raw = cases_raw.rename(columns={
-    'Date reported': 'updated',
-    'Change in positive cases (daily)': 'other_value',
-    'Total confirmed positive': 'cases'})
-cases_raw['other'] = 'Change in positive cases (daily)'
-cases_raw = cases_raw[cases_raw['updated'] == latest_date]
-
-
-# State-level: no longer monitored
-no_longer_isolation = no_longer_isolation.rename(columns={'Date reported': 'updated',
-                               'No longer needing isolation': 'no_longer_monitored'})
-no_longer_isolation = no_longer_isolation[no_longer_isolation['updated'] == latest_date]
-no_longer_isolation = no_longer_isolation[['no_longer_monitored']]
+ext_lab_df_txt = 'Completed tests reported from external laboratories (daily)'
+ext_lab_df = tested_raw[['updated', ext_lab_df_txt]]
+ext_lab_df.columns = ['updated', 'other_value']
+ext_lab_df['other'] = ext_lab_df_txt
 
 # State-level: deaths
-deaths_df = deaths_df.rename(columns={'Date reported': 'updated',
-                               'Newly reported deaths (daily)': 'other_value',
-                               'Total deaths': 'deaths'})
+deaths_df = deaths_df.rename(
+    columns={'Date reported': 'updated',
+             'Newly reported deaths (daily)': 'other_value',
+             'Total deaths': 'deaths'})
 deaths_df = deaths_df[deaths_df['updated'] == latest_date]
 deaths_df['other'] = 'Newly reported deaths (daily)'
 state_deaths = deaths_df[['deaths']]
 state_daily_deaths = deaths_df[['updated', 'other', 'other_value']]
-
-# County-level: newly reported deaths by county of residence
-newly_reported_deaths_counties_other_text = 'Number of newly reported deaths'
-newly_reported_deaths_counties = df[4].rename(
-    columns={'County of residence': 'county', 'Age group': 'age_range',
-             newly_reported_deaths_counties_other_text: 'other_value'})
-newly_reported_deaths_counties['other'] = newly_reported_deaths_counties_other_text
-
-
-# State-level: newly reported deaths by residence type
-newly_reported_deaths_res = df[5].rename(
-    columns={'Residence type': 'other',
-             'Number of newly reported deaths': 'other_value'})
-newly_reported_deaths_res['other'] = 'residence_type_' + newly_reported_deaths_res['other']
-
 
 # State-level: hospitalization
 hospitalization = hospitalization.rename(
@@ -330,54 +335,62 @@ hospitalization = hospitalization[hospitalization['updated'] == latest_date]
 hospitalized = hospitalization[['hospitalized', 'icu']]
 
 # Other: ICU daily
-icu_daily = hospitalization[['Hospitalized in ICU (daily)']]
-icu_daily.columns = ['other_value']
+icu_daily = hospitalization[['updated', 'Hospitalized in ICU (daily)']]
+icu_daily.columns = ['updated', 'other_value']
 icu_daily['other'] = 'Hospitalized in ICU (daily)'
 
 # Other: not in ICU daily
-not_icu_daily = hospitalization[['Hospitalized, not in ICU (daily)']]
-not_icu_daily.columns = ['other_value']
+not_icu_daily = hospitalization[['updated', 'Hospitalized, not in ICU (daily)']]
+not_icu_daily.columns = ['updated', 'other_value']
 not_icu_daily['other'] = 'Hospitalized, not in ICU (daily)'
 
-# State-level: Age range percent
-age_group_pct = age_group_pct.rename(
-    columns={'Age Group': 'age_range', 'Percent of Cases': 'age_percent',
-             'Percent of Deaths': 'age_deaths_percent'})
+# State-level: cases and deaths by age group
+age_group_cases_deaths = age_group_cases_deaths.rename(
+    columns={'Age Group': 'age_range', 'Number of Cases': 'cases',
+             'Number of Deaths': 'deaths'})
 
-# State-level: Race - cases and deaths percent
-race_cases_pct = race_pct[['Race', 'Percent of Cases']]
-race_cases_pct = race_cases_pct.rename(
-    columns={'Percent of Cases': 'other_value'})
-race_cases_pct['other'] = race_cases_pct['Race'].astype(str) + '_percent_of_cases'
-race_cases_pct = race_cases_pct.drop('Race', axis=1)
+# State-level: cases by gender
+gender_cases = gender_cases.rename(
+    columns={'Gender': 'sex', 'Number of Cases': 'sex_counts'})
 
-# State-level: Median Age
-median_age.columns = median_age.iloc[0]
-median_age = median_age.drop(0, axis=0)
-median_age.columns = ['other', 'other_value', 'age_range']
-median_age['other'] = median_age['other'].astype(str) + '_median_age'
+# State-level: cases and deaths by race
+race_cases_deaths = race_cases_deaths.rename(
+    columns={'Race': 'other_value', 'Number of Cases': 'cases',
+             'Number of Deaths': 'deaths'})
+race_cases_deaths['other'] = 'race'
 
-# State-level: Exposure - percent of cases
-exposure_pct_cases = exposure_pct_cases.rename(
-    columns={'Likely Exposure': 'other', 'Percent of Cases': 'other_value'})
-exposure_pct_cases['other'] = exposure_pct_cases['other'].astype(str) +\
-                              '_percent_of_cases'
+# State-level: cases and deaths by ethnicity
+eth_cases_deaths = eth_cases_deaths.rename(
+    columns={'Race': 'other_value', 'Number of Cases': 'cases',
+             'Number of Deaths': 'deaths'})
+eth_cases_deaths['other'] = 'ethnicity'
+
+# State-level: Exposure - cases
+exposure_cases = exposure_cases.rename(
+    columns={'Likely Exposure': 'other_value', 'Number of Cases': 'cases'})
+exposure_cases['other'] = 'Likely Exposure'
 
 # County-level: cases and deaths
-county_cases_deaths = county_cases_deaths.rename(columns={'County': 'county',
-                                                          'Cases': 'cases',
-                                                          'Deaths': 'deaths'})
+county_cases_deaths = county_cases_deaths.rename(
+    columns={'County': 'county', 'Cases': 'cases', 'Deaths': 'deaths'})
 
-county_df = [county_cases_deaths, newly_reported_deaths_counties]
-state_df = [tested_state, state_lab_df, ext_lab_df,
-            no_longer_isolation, state_deaths,
-            state_daily_deaths, newly_reported_deaths_res, hospitalized,
-            icu_daily, not_icu_daily,
-            age_group_pct] #, race_cases_pct, median_age, exposure_pct_cases]
+# State-level: cases by residence type
+res_cases = res_cases.rename(
+    columns={'Residence Type': 'other_value',
+             'Number of Cases': 'cases'})
+res_cases['other'] = 'Residence Type'
+
+state_df = [state_cases_df, daily_cases_deaths_df, newly_reported_deaths_res,
+            tested_state, state_lab_df, ext_lab_df,
+            state_deaths, state_daily_deaths,
+            hospitalized, icu_daily, not_icu_daily,
+            age_group_cases_deaths, gender_cases,
+            race_cases_deaths, eth_cases_deaths, exposure_cases, res_cases]
+county_df = [newly_cases_df, newly_reported_deaths_counties,
+             county_cases_deaths]
 
 county_df = fill_in_df(county_df, dict_info_county, columns)
 state_df = fill_in_df(state_df, dict_info_state, columns)
-'''
 
 now = datetime.datetime.now()
 dt_string = now.strftime("_%Y-%m-%d_%H%M")
@@ -386,8 +399,7 @@ if path and not path.endswith('/'):
     path += '/'
 file_name = path + state + dt_string + '.csv'
 
-#df = pd.concat([pd.DataFrame(row_csv, columns=columns),
-                # county_df,state_df])
+df = pd.concat([pd.DataFrame(row_csv, columns=columns),
+                county_df, state_df])
 
-df = pd.DataFrame(row_csv)
 df.to_csv(file_name, index=False)
