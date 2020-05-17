@@ -15,12 +15,14 @@ class Slurp():
 
     def __init__(self, path=None, clean_dir=ce('OUTPUT_DIR', '/tmp/output'),
                  logger=logging.getLogger(ce('PY_LOGGER', 'main')),
+                 user=ce('DB_USER', 'digester'),
                  view_creator=ce('VIEW_CREATOR', 'create_views.sql')):
         """Initialize the Slurp."""
         self.view_creator = view_creator
         self.logger = logger
         self.uri = create_uri(self.logger)
         self.path = path
+        self.user = user
         self.logger.info(f'Path passed: {self.path}')
         if self.path is None:
             csvs = glob_csvs(clean_dir, self.logger)
@@ -40,7 +42,7 @@ class Slurp():
             traceback.print_stack()
             raise SlurpException(f'Unknown way to process: {self.path}')
 
-    def process(self, c):
+    def process(self, c, host='db', port='5432'):
         """Process the CSV passed during Slurp initialization."""
         # TODO fill in with better logic
         self.logger.info(f'Proceeding with file {self.path}')
@@ -57,13 +59,17 @@ class Slurp():
             self.logger.error(f'Problem slurping {c}: {e}')
             raise SlurpException(f'Slurper: {e}' +
                                  f'Slurping of CSV failed with error: {e}')
-        try:
-            self.logger.info(
-                f'Attempting to create views with {self.view_creator}')
-            cmd = [self.view_creator]
-            res = check_output(cmd)
-            self.logger.info(f'Results from self.view_creator: {res}')
-        except Exception as e:
-            traceback.print_stack()
-            self.logger.error(f'Problem creating views: {e}')
-            raise SlurpException(f'Slurper error: {e}')
+        if os.path.isfile(self.view_creator):
+            try:
+                self.logger.info(
+                    f'Attempting to create views with {self.view_creator}')
+                cmd = ['psql', '-U', self.user,  '-h', host, '-p', port, '-d',
+                       'covidb', '-f', self.view_creator]
+                res = check_output(cmd)
+                self.logger.info(f'Results from self.view_creator: {res}')
+            except Exception as e:
+                traceback.print_stack()
+                self.logger.error(f'Problem creating views: {e}')
+                raise SlurpException(f'Slurper error: {e}')
+        else:
+            self.logger.warning(f'View creator {self.view_creator} not found.')
