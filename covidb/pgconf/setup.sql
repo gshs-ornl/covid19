@@ -330,6 +330,9 @@ CREATE INDEX ix_updated ON scraping.melt(updated);
 
 --Functions
 
+GRANT USAGE, CREATE ON SCHEMA scraping, static, staging TO cvadmin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA scraping, static, staging TO cvadmin;
+
 GRANT USAGE ON SCHEMA scraping TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA static TO reporters, jesters, cvadmin;
 GRANT USAGE ON SCHEMA public TO reporters;
