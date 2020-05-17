@@ -12,7 +12,8 @@ populate_database() {
         RETRIES_REMAINING=$((RETRIES_REMAINING - 1))
         if [ "${RETRIES_REMAINING}" -lt 1 ]; then
           echo -e "\e[31m GIVING UP ON DATABASE CONNECTION \e[39m"
-	    else
+          exit 1
+        else
           echo -e "\e[33m retrying \e[39m database, retries remain ${RETRIES_REMAINING}"
         fi
       done
