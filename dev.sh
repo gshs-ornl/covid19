@@ -18,6 +18,9 @@
 #/   -p|--push)
 #/       push the base image
 #/
+#/   -R|--remove-volumes)
+#/       remove the external volumes (these can fill up disk space quick)
+#/
 #/   -t|--tag
 #/       the tag for the image without the label
 #/
@@ -45,6 +48,9 @@
 #/   -T|--test)
 #/       spin up with the test container and follow the logs
 #/
+#/   --remove-db-volume)
+#/       remove the covidb_pg volume
+#/
 #/   --no-cache)
 #/       build without cache; WARNING this may take > 1 hr depending on specs
 #/
@@ -67,6 +73,8 @@ DEPLOY=0
 STRIPPED=0
 DB_ONLY=0
 TEST=0
+REMOVE_VOLUMES=0
+REMOVE_DB_VOLUME=0
 # 1}}} ------------------------------------------------------------------------
 # functions {{{1 --------------------------------------------------------------
 banner() { # {{{2 -------------------------------------------------------------
@@ -96,14 +104,31 @@ show_help() { # {{{2 ----------------------------------------------------------
   grep '^#/' "${BASH_SOURCE[0]}" | cut -c4- || \
     die "Failed to display usage information"
 } # 2}}} ----------------------------------------------------------------------
-check_volume() { # {{{2 ------------------------------------------------------
+remove_volume() { # {{{2 ------------------------------------------------------
     VOLUMES=$(docker volume ls --format "{{.Name}}")
     if echo "$VOLUMES" | grep -q "$1"; then
-        info "$1 found"
+      info "$1 found, \e[33mremoving\e[39m"
+      docker volume remove "$1"
     else
-        info "creating $1"
-    docker volume create --name="$1"
+      info "$1 not found, \e[32mskipping\e[39m"
     fi
+} # 2}}} ----------------------------------------------------------------------
+remove_volumes() { # {{{2 -----------------------------------------------------
+  remove_volume covid_in
+  remove_volume covid_out
+  remove_volume covid_clean
+} # 2}}} ----------------------------------------------------------------------
+remove_dbvolume() { # {{{2 ----------------------------------------------------
+  remove_volume covidb_pg
+} # 2}}} ----------------------------------------------------------------------
+check_volume() { # {{{2 -------------------------------------------------------
+  VOLUMES=$(docker volume ls --format "{{.Name}}")
+  if echo "$VOLUMES" | grep -q "$1"; then
+    info "$1 found"
+  else
+    info "creating $1"
+    docker volume create --name="$1"
+  fi
 } # 2}}} ----------------------------------------------------------------------
 check_volumes() {
     check_volume covidb_pg
@@ -182,6 +207,14 @@ while :; do
       TEST=1
       shift
       ;; # 3}}}
+    -R|--remove-volumes) # {{{3
+      REMOVE_VOLUMES=1
+      shift
+      ;; # 3}}}
+    --remove-db-volume) # {{{3
+      REMOVE_DB_VOLUME=1
+      shift
+      ;; # 3}}}
     -h|-\?|--help) # help {{{3 ------------------------------------------------
       banner
       show_help
@@ -214,6 +247,12 @@ fi
 if [ "$PUSH" -eq "1" ]; then
   info "Pushing image $IMAGE_TAG"
   docker push "$IMAGE_TAG"
+fi
+if [ "$REMOVE_VOLUMES" -eq "1" ]; then
+  remove_volumes
+fi
+if [ "$REMOVE_DB_VOLUME" -eq "1" ]; then
+  remove volume covidb_pg
 fi
 if [ "$UP" -eq "1" ]; then
   info "Spinning up stack"
